@@ -1,14 +1,22 @@
 package cn.bossfriday.jmeter.rpc.modules;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class FooResult {
-    private Foo request;
-
     private int code;
 
     private String msg;
+
+    private Long time;
+
+    public FooResult() {
+
+    }
+
+    public FooResult(int code, String msg, Long time) {
+        this.code = code;
+        this.msg = msg;
+        this.time = time;
+    }
 }

@@ -42,6 +42,7 @@ public class NubyBearSampler extends AbstractSampler implements TestStateListene
         try {
             config = new SamplerConfig();
             config.setSystemName(getSystemName());
+            config.setNodeName(getNodeName());
             config.setZkAddress(getZkAddress());
             config.setHost(getHost());
             config.setPort(getPort());
@@ -74,6 +75,10 @@ public class NubyBearSampler extends AbstractSampler implements TestStateListene
 
     public String getSystemName() {
         return this.getPropertyAsString(GUID_SYSTEM_NAME);
+    }
+
+    public String getNodeName() {
+        return this.getPropertyAsString(GUID_NODE_NAME);
     }
 
     public String getZkAddress() {

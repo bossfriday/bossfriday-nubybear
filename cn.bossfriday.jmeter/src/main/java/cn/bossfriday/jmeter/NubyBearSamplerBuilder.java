@@ -27,7 +27,6 @@ public class NubyBearSamplerBuilder {
     public static String[] behaviorNames;
 
     private static final Logger log = LoggerFactory.getLogger(NubyBearSamplerBuilder.class);
-    private static final String reflectPrefix = "cn.bossfriday.jmeter.sampler";
     private static ConcurrentHashMap<String, Class<?>> clazzMap = new ConcurrentHashMap<>();    // K:behaviorName, V:Class<?>
 
     static {

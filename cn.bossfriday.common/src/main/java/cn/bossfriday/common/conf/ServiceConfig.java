@@ -24,6 +24,17 @@ public class ServiceConfig {
     @XmlElement(name = "plugin")
     private List<PluginElement> plugins;
 
+    public ServiceConfig() {
+
+    }
+
+    public ServiceConfig(String systemName, String zkAddress, ClusterNode clusterNode, List<PluginElement> plugins) {
+        this.systemName = systemName;
+        this.zkAddress = zkAddress;
+        this.clusterNode = clusterNode;
+        this.plugins = plugins;
+    }
+
     public String getSystemName() {
         return systemName;
     }

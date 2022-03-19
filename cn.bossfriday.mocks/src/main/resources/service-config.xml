@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
-    <systemName>demo</systemName>
+    <systemName>foo</systemName>
     <zkAddress>127.0.0.1:2181</zkAddress>
     <clusterNode>
         <name>node1</name>

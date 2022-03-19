@@ -10,6 +10,10 @@ public class SamplerConfig {
 
     @Getter
     @Setter
+    private String nodeName;
+
+    @Getter
+    @Setter
     private String zkAddress;
 
     @Getter

@@ -12,6 +12,6 @@ public class Foo {
 
     private Integer age;
 
-    private String desc;
+    private Long timestamp;
 
 }
