@@ -9,7 +9,8 @@ nubybear是我家孩子的一只棕熊毛绒玩偶，没有其他意思。 该�
 * 【todo】计划基于actor-rpc开发一个分布式文件服务。
 
 **cn.bossfriday.jmeter**
-* actor-rpc压力测试
+* 【doing】actor-rpc压力测试
+* 【todo】文件服务压力测试
 
 **cn.bossfriday.mocks**
 * 项目所需挡板。
