@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <systemName>demo</systemName>
+    <zkAddress>127.0.0.1:2181</zkAddress>
+    <clusterNode>
+        <name>node1</name>
+        <host>127.0.0.1</host>
+        <port>18080</port>
+        <virtualNodesNum>100</virtualNodesNum>
+    </clusterNode>
+    <!--
+    <plugins>
+        <plugin>
+            <name>cn.bossfridy.service.broadcast</name>
+            <path>plugins/cn.bossfridy.service.broadcast.jar</path>
+            <main>cn.bossfridy.service.broadcast.Bootstrap</main>
+        </plugin>
+    </plugins>
+    -->
+</config>
