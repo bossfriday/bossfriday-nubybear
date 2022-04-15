@@ -109,33 +109,63 @@ public class ByteUtil {
         return subBytes;
     }
 
-    /**
-     * bytes2Int
-     *
-     * @param bytes
-     * @return
-     */
-    public static int bytes2Int(byte[] bytes) {
-        int value;
-        value = (int) (((bytes[0] & 0xFF) << 24)
-                | ((bytes[1] & 0xFF) << 16)
-                | ((bytes[2] & 0xFF) << 8)
-                | (bytes[3] & 0xFF));
+    public static byte[] int2Bytes(int num) {
+        byte[] byteNum = new byte[4];
+        for (int ix = 0; ix < 4; ++ix) {
+            int offset = 32 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
 
-        return value;
+        return byteNum;
     }
 
-    /**
-     * @param value
-     * @return
-     */
-    public static byte[] int2Bytes(int value) {
-        byte[] src = new byte[4];
-        src[0] = (byte) ((value >> 24) & 0xFF);
-        src[1] = (byte) ((value >> 16) & 0xFF);
-        src[2] = (byte) ((value >> 8) & 0xFF);
-        src[3] = (byte) (value & 0xFF);
+    public static int bytes2Int(byte[] byteNum) {
+        int num = 0;
+        for (int ix = 0; ix < 4; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
 
-        return src;
+        return num;
+    }
+
+    public static byte[] long2Bytes(long num) {
+        byte[] byteNum = new byte[8];
+        for (int ix = 0; ix < 8; ++ix) {
+            int offset = 64 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
+
+        return byteNum;
+    }
+
+    public static long bytes2Long(byte[] byteNum) {
+        long num = 0;
+        for (int ix = 0; ix < 8; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+
+        return num;
+    }
+
+    public static byte[] number482Bytes(long num) {
+        byte[] byteNum = new byte[6];
+        for (int ix = 0; ix < 6; ++ix) {
+            int offset = 48 - (ix + 1) * 8;
+            byteNum[ix] = (byte) ((num >> offset) & 0xff);
+        }
+
+        return byteNum;
+    }
+
+    public static long bytes2number48(byte[] byteNum) {
+        long num = 0;
+        for (int ix = 0; ix < 6; ++ix) {
+            num <<= 8;
+            num |= (byteNum[ix] & 0xff);
+        }
+
+        return num;
     }
 }

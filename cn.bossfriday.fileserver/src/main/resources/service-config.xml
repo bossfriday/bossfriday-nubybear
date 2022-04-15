@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <systemName>nubybear</systemName>
+    <zkAddress>127.0.0.1:2181</zkAddress>
+    <clusterNode>
+        <name>nubybear-node1</name>
+        <host>127.0.0.1</host>
+        <port>18080</port>
+        <virtualNodesNum>100</virtualNodesNum>
+    </clusterNode>
+</config>
