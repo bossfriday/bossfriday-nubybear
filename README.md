@@ -6,7 +6,7 @@ nubybear是我家孩子的一只棕熊毛绒玩偶，没有其他意思。 该�
 * 公共util类
 
 # 3. cn.bossfriday.fileserver
-【doing】**一个用Java开发的分布式高性能文件服务**
+【doing】**一个用Java开发的分布式高性能文件服务**，开源出来给有缘人抄作业吧。
 
 ## 3.1 设计预期
 * 1、【效率】使用netty实现http file server。
