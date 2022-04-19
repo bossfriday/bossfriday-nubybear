@@ -19,11 +19,12 @@ public class FileUploadTest {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
-        File file = new File("D:/tmp/1.txt");
+        File file = new File("D:/tmp/1.pdf");
 
         try {
             httpClient = HttpClients.createDefault();
-            httpPost = new HttpPost("http://127.0.0.1:18080");
+            httpPost = new HttpPost("http://127.0.0.1:18086/upload/full/v1/");
+            httpPost.addHeader("X-File-Total-Size", String.valueOf(file.length()));
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
             builder.addBinaryBody("upfile", file, ContentType.create("application/x-zip-compressed"), file.getName());

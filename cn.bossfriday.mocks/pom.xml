@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.common</artifactId>
+            <artifactId>cn.bossfriday.jmeter</artifactId>
             <version>1.0</version>
             <scope>compile</scope>
         </dependency>

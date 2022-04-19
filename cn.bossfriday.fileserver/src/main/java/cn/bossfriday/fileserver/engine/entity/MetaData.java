@@ -1,6 +1,6 @@
-package cn.bossfriday.fileserver.store.entity;
+package cn.bossfriday.fileserver.engine.entity;
 
-import cn.bossfriday.fileserver.store.core.ICodec;
+import cn.bossfriday.fileserver.engine.core.ICodec;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,8 +11,7 @@ public class MetaData implements ICodec<MetaData> {
     private byte fileStatus;            // 文件状态标识
     private long timestamp;             // 上传时间戳
     private String fileName;            // 文件名
-    private byte[] fileSize;            // 文件大小
-    private byte[] data;                // 文件数据
+    private long fileSize;              // 文件大小
 
     public MetaData() {
 

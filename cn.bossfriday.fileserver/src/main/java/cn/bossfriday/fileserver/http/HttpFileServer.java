@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
+import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -17,7 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class HttpFileServer {
-    public void start(int port) throws Exception {
+    public static void start() throws Exception {
+        int port = FileServerConfigManager.getFileServerConfig().getHttpPort();
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -50,9 +52,5 @@ public class HttpFileServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        new HttpFileServer().start(18080);
     }
 }

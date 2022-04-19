@@ -4,18 +4,12 @@ import lombok.Data;
 
 @Data
 public class WriteTmpFileMsg {
+    private int storageEngineVersion;
     private String fileTransactionId;
+    private boolean isKeepAlive;
     private String fileName;
-    private int fileSize;
+    private long fileSize;
+    private long fileTotalSize;
     private long offset;
     private byte[] data;
-
-    @Override
-    public String toString() {
-        return "WriteTmpFileMsg{" +
-                "fileTransactionId='" + fileTransactionId + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", fileSize=" + fileSize +
-                '}';
-    }
 }

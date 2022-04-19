@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.store.enums;
+package cn.bossfriday.fileserver.engine.enums;
 
 public enum FileStatus {
 
@@ -13,9 +13,5 @@ public enum FileStatus {
 
     public byte getValue() {
         return this.value;
-    }
-
-    public static void main(String[] args) {
-        System.out.println(FileStatus.Deleted.getValue());
     }
 }

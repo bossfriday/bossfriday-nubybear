@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.store.core;
+package cn.bossfriday.fileserver.engine.core;
 
 public interface ICodec<T> {
     /**

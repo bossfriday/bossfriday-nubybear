@@ -34,6 +34,20 @@ public class RandomAccessFileBuffer implements Closeable {
     /** 缓存区是否回环 */
     private boolean isWinding = false;
 
+    public RandomAccessFileBuffer(File file) throws IOException {
+        bufSize = BUF_PAGE_SIZE;
+        writeHandle = new RandomAccessFile(file, "rw");
+        readHandle = new RandomAccessFile(file, "r");
+        fileLen = writeHandle.length();
+    }
+
+    public RandomAccessFileBuffer(File file, final int bufferSize) throws IOException {
+        bufSize = bufferSize < BUF_PAGE_SIZE ? BUF_PAGE_SIZE : bufferSize;
+        writeHandle = new RandomAccessFile(file, "rw");
+        readHandle = new RandomAccessFile(file, "r");
+        fileLen = writeHandle.length();
+    }
+
     public RandomAccessFileBuffer(final String filePath) throws IOException {
         File file = new File(filePath);
         bufSize = BUF_PAGE_SIZE;

@@ -46,12 +46,12 @@ public class ThreadPoolUtil {
     }
 
     /**
-     * @param name 线程池名称,
+     * @param name             线程池名称,
      * @param threadNamePrefix 线程名称前缀.
-     * @param coreSize 线程数量. 必须> 1
-     * @param maxThreadSize 最大数量. 必须> 1 ,并且大于 coreSize ,否则使用coreSize
-     * @param workerQueueSize 线程队列数量, 当 workerQueueSize <=0  workerQueueSize:使用默认值 Integer.MAX_VALUE
-     * @param rejectedHandler 拒绝策略, 如果为空 使用 ThreadPoolExecutor.AbortPolicy()
+     * @param coreSize         线程数量. 必须> 1
+     * @param maxThreadSize    最大数量. 必须> 1 ,并且大于 coreSize ,否则使用coreSize
+     * @param workerQueueSize  线程队列数量, 当 workerQueueSize <=0  workerQueueSize:使用默认值 Integer.MAX_VALUE
+     * @param rejectedHandler  拒绝策略, 如果为空 使用 ThreadPoolExecutor.AbortPolicy()
      */
     public static ExecutorService getThreadPool(String name,
                                                 String threadNamePrefix,
@@ -77,7 +77,14 @@ public class ThreadPoolUtil {
         return threadMap.get(name);
     }
 
-    private static ThreadFactory getThreadFactory(String name, String threadNamePrefix) {
+    /**
+     * getThreadFactory
+     *
+     * @param name
+     * @param threadNamePrefix
+     * @return
+     */
+    public static ThreadFactory getThreadFactory(String name, String threadNamePrefix) {
         if (StringUtils.isBlank(threadNamePrefix)) {
             threadNamePrefix = name;
         }
@@ -97,6 +104,7 @@ public class ThreadPoolUtil {
 
     /**
      * getCoreSize：未将来有配置优先走配置留统一处理口子
+     *
      * @param name
      * @param coreSize
      * @return

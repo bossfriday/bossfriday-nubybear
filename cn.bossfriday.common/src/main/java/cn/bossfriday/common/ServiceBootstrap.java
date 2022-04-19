@@ -31,21 +31,20 @@ public abstract class ServiceBootstrap implements IPlugin {
     protected abstract void stop() throws Exception;
 
     @Override
-    public void startup(String serviceConfigFilePath) {
+    public void startup(ServiceConfig config) {
         try {
-            startup(getServiceConfig(serviceConfigFilePath));
+            if (config == null)
+                throw new Exception("ServiceConfig is null");
+
+            ClusterRouterFactory.build(config);
+            registerActor(config);
+            ClusterRouterFactory.getClusterRouter().registryService();
+            ClusterRouterFactory.getClusterRouter().startActorSystem();
+            start();
+            log.info(config.getSystemName() + " startup() done.");
         } catch (Exception ex) {
             log.error("Bootstrap.startup() error!", ex);
         }
-    }
-
-    public void startup(ServiceConfig config) throws Exception {
-        ClusterRouterFactory.build(config);
-        registerActor(config);
-        ClusterRouterFactory.getClusterRouter().registryService();
-        ClusterRouterFactory.getClusterRouter().startActorSystem();
-        start();
-        log.info("Bootstrap.startup() done.");
     }
 
     @Override
@@ -55,13 +54,6 @@ public abstract class ServiceBootstrap implements IPlugin {
         } catch (Exception e) {
             log.error("service shutdown error!", e);
         }
-    }
-
-    private ServiceConfig getServiceConfig(String serviceConfigFilePath) throws Exception {
-        ServiceConfig config = XmlParserUtil.parse(serviceConfigFilePath, ServiceConfig.class);
-        log.info("currentNode service-config:" + config.toString());
-
-        return config;
     }
 
     private void registerActor(ServiceConfig config) throws Exception {

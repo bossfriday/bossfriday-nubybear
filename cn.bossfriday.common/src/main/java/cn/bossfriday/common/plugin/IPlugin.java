@@ -1,12 +1,12 @@
 package cn.bossfriday.common.plugin;
 
+import cn.bossfriday.common.conf.ServiceConfig;
+
 public interface IPlugin {
     /**
      * startup
-     *
-     * @param serviceConfigFilePath
      */
-    void startup(String serviceConfigFilePath);
+    void startup(ServiceConfig config);
 
     /**
      * shutdown
