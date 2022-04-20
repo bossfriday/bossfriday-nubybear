@@ -11,7 +11,7 @@ public class MetaData implements ICodec<MetaData> {
     private byte fileStatus;            // 文件状态标识
     private long timestamp;             // 上传时间戳
     private String fileName;            // 文件名
-    private long fileSize;              // 文件大小
+    private long fileTotalSize;         // 文件大小
 
     public MetaData() {
 

@@ -32,7 +32,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private long fileSize = 0;  // todo：断点上传使用
     private long fileTotalSize = 0;
     private boolean isKeepAlive = false;
-    private ActorRef httpFileServerActor;
+    private ActorRef trackerActor;
 
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(false);
     private final String uploadUrlReg = "/upload/(.*?)/v(.*?)/";
@@ -43,7 +43,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             if (msg instanceof HttpRequest) {
                 HttpRequest request = this.request = (HttpRequest) msg;
                 fileTransactionId = UUIDUtil.getShortString();
-                httpFileServerActor = ClusterRouterFactory.getClusterRouter().getActorSystem().actorOf(ACTOR_HTTP_FILE_SERVER);
+                trackerActor = ClusterRouterFactory.getClusterRouter().getActorSystem().actorOf(ACTOR_FS_TRACKER);
 
                 if (HttpMethod.GET.equals(request.method())) {
                     // todo: 文件下载
@@ -51,7 +51,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                     parseUploadUrl();
                     fileSize = fileTotalSize = getFileTotalSize();
                     isKeepAlive = HttpHeaders.isKeepAlive(request);
-                    FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, fileSize, fileTotalSize);
+                    FileTransactionContextManager.getInstance().addContext(version, fileTransactionId, ctx, fileSize, fileTotalSize);
                     decoder = new HttpPostRequestDecoder(factory, request);
                 } else if (HttpMethod.DELETE.equals(request.method())) {
                     // todo:文件删除
@@ -157,8 +157,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             msg.setFileTotalSize(fileTotalSize);
             msg.setOffset(offset);
             msg.setData(chunkData);
-            RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(this.fileTransactionId, ACTOR_WRITE_TMP_FILE, msg);
-            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, httpFileServerActor);
+            RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(this.fileTransactionId, ACTOR_FS_TMP_FILE, msg);
+            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
         } catch (Exception ex) {
             log.error("HttpFileServerHandler.chunkedProcessHttpData() error!", ex);
         } finally {
@@ -177,6 +177,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 decoder.destroy();
                 decoder = null;
             }
+            log.info("HttpFileServerHandler.release() done: " + fileTransactionId);
         } catch (Exception e) {
             log.error("HttpFileServerHandler.release() error!", e);
         }

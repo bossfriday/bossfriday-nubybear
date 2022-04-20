@@ -9,6 +9,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FileTransactionContext {
     @Getter
     @Setter
+    private int storageEngineVersion;
+
+    @Getter
+    @Setter
     private String fileTransactionId;
 
     @Getter

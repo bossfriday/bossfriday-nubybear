@@ -1,7 +1,8 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.utils.F;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
+import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,13 +44,21 @@ public class StorageEngine {
      */
     public void start() {
         // todo:临时文件落盘恢复、过期文件清理任务启动（包含过期临时文件清理）、临时文件落盘……
+        log.info("StorageEngine start done: " + FileServerConfigManager.getCurrentClusterNodeName());
+    }
+
+    /**
+     * 文件上传
+     */
+    public MetaDataIndex upload(WriteTmpFileResult data) {
+        return null;
     }
 
     private void init() {
         try {
             // 目录初始化
             baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(),
-                    FileServerConfigManager.getServiceConfig().getClusterNode().getName());
+                    FileServerConfigManager.getCurrentClusterNodeName());
             if (!baseDir.exists())
                 baseDir.mkdirs();
 
@@ -59,10 +68,5 @@ public class StorageEngine {
         } catch (Exception e) {
             log.error("StorageEngine init error!", e);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        File file = new File("D:\\tmp\\fileData");
-        file.createNewFile();
     }
 }

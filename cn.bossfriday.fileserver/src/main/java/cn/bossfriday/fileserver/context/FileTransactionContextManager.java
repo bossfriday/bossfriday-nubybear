@@ -30,9 +30,10 @@ public class FileTransactionContextManager {
     /**
      * getContext
      */
-    public FileTransactionContext getContext(String fileTransactionId) {
-        if (!contextMap.containsKey(fileTransactionId))
-            return null;
+    public FileTransactionContext getContext(String fileTransactionId) throws Exception {
+        if (!contextMap.containsKey(fileTransactionId)) {
+            throw new Exception("FileTransactionContext not existed: " + fileTransactionId);
+        }
 
         return contextMap.get(fileTransactionId);
     }
@@ -40,11 +41,12 @@ public class FileTransactionContextManager {
     /**
      * addContext
      */
-    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, long fileSize, long fileTotalSize) throws Exception {
+    public void addContext(int  version,String fileTransactionId, ChannelHandlerContext ctx, long fileSize, long fileTotalSize) throws Exception {
         if (contextMap.containsKey(fileTransactionId))
             throw new Exception("duplicated FileTransactionContext!(fileTransactionId:" + fileTransactionId + ")");
 
         FileTransactionContext context = new FileTransactionContext();
+        context.setStorageEngineVersion(version);
         context.setFileTransactionId(fileTransactionId);
         context.setCtx(ctx);
         context.setFileSize(fileSize);

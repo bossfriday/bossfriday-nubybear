@@ -21,14 +21,16 @@ public class FileServerConst {
     /**
      * actors
      */
-    public static final String ACTOR_HTTP_FILE_SERVER = "httpFileServ";
-    public static final String ACTOR_WRITE_TMP_FILE = "wTmpFile";
+    public static final String ACTOR_FS_TRACKER = "fs_tracker";
+    public static final String ACTOR_FS_TMP_FILE = "fs_tmpFile";
+    public static final String ACTOR_FS_UPLOAD = "fs_upload";
 
     /**
      * file
      */
     public static final String FILE_PATH_TMP = "tmp";
     public static final String FILE_UPLOADING_TMP_FILE_EXT ="ing";
+    public static final String FILE_DEFAULT_EXT ="octetstream";
 
     /**
      * http header

@@ -1,11 +1,11 @@
 package cn.bossfriday.fileserver.engine.core;
 
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResp;
+import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
 
 public interface ITmpFileHandler {
     /**
      * write
      */
-    WriteTmpFileResp write(WriteTmpFileMsg msg) throws Exception;
+    WriteTmpFileResult write(WriteTmpFileMsg msg) throws Exception;
 }

@@ -33,4 +33,11 @@ public class FileServerConfigManager {
     public static ServiceConfig getServiceConfig() {
         return serviceConfig;
     }
+
+    /**
+     * getCurrentClusterNodeName
+     */
+    public static String getCurrentClusterNodeName() {
+        return serviceConfig.getClusterNode().getName();
+    }
 }

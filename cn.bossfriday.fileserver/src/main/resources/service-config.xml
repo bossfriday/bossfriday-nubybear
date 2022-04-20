@@ -3,7 +3,7 @@
     <systemName>nubybear</systemName>
     <zkAddress>127.0.0.1:2181</zkAddress>
     <clusterNode>
-        <name>node1</name>
+        <name>fs-node1</name>
         <host>127.0.0.1</host>
         <port>18080</port>
         <virtualNodesNum>100</virtualNodesNum>

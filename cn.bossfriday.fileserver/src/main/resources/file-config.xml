@@ -2,4 +2,8 @@
 <config>
     <httpPort>18086</httpPort>
     <storageRootPath>D:\tmp\fileData</storageRootPath>
+    <namespaceRules>
+        <namespaceRule name="normal" expireDay="180" /> <!--普通空间-->
+        <namespaceRule name="forever" expireDay="-1" /> <!--永久存储空间-->
+    </namespaceRules>
 </config>
