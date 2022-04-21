@@ -1,8 +1,14 @@
 package cn.bossfriday.common.utils;
 
+import cn.bossfriday.common.exception.BizException;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 
 public class FileUtil {
     /**
@@ -34,5 +40,34 @@ public class FileUtil {
         }
 
         return fileName.substring(index + 1).toLowerCase();
+    }
+
+    /**
+     * 目标文件零拷贝写入数据
+     */
+    public static void transferFrom(FileChannel destFileChannel, byte[] data, long position, boolean isCloseDestFileChannel) throws Exception {
+        if (destFileChannel == null)
+            throw new BizException("destFileChannel is null!");
+
+        ByteArrayInputStream srcInput = null;
+        ReadableByteChannel srcChannel = null;
+        try {
+            srcInput = new ByteArrayInputStream(data);
+            srcChannel = Channels.newChannel(srcInput);
+            destFileChannel.transferFrom(srcChannel, position, data.length);
+        } finally {
+            if (srcInput != null)
+                srcInput.close();
+
+            if (srcChannel != null)
+                srcChannel.close();
+
+            if (isCloseDestFileChannel)
+                destFileChannel.close();
+        }
+    }
+
+    public static void transferFrom(FileChannel destFileChannel, byte[] data, long position) throws Exception {
+        transferFrom(destFileChannel, data, position, false);
     }
 }

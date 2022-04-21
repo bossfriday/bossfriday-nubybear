@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
@@ -49,9 +50,12 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof HttpRequest) {
             try {
+                log.info("-------------HttpRequest begin-------------");
                 HttpRequest request = this.request = (HttpRequest) msg;
-                fileTransactionId = UUIDUtil.getShortString();
                 isKeepAlive = HttpHeaders.isKeepAlive(request);
+                if (StringUtils.isEmpty(this.fileTransactionId)) {
+                    fileTransactionId = UUIDUtil.getShortString();
+                }
 
                 if (HttpMethod.GET.equals(request.method())) {
                     // todo: 文件下载
@@ -150,6 +154,14 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private void chunkedReadHttpData() {
         try {
             while (decoder.hasNext()) {
+                /**
+                 * public InterfaceHttpData next():
+                 *
+                 * Description copied from interface: InterfaceHttpPostRequestDecoder
+                 * Returns the next available InterfaceHttpData or null if, at the time it is called,
+                 * there is no more available InterfaceHttpData. A subsequent call to offer(httpChunk) could enable more data.
+                 * Be sure to call ReferenceCounted.release() after you are done with processing to make sure to not leak any resources
+                 */
                 InterfaceHttpData data = decoder.next();
                 if (data != null) {
                     try {
@@ -162,6 +174,15 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
+            /**
+             * public InterfaceHttpData currentPartialHttpData():
+             *
+             * Description copied from interface: InterfaceHttpPostRequestDecoder
+             * Returns the current InterfaceHttpData if currently in decoding status,
+             * meaning all data are not yet within, or null if there is no InterfaceHttpData currently in decoding status
+             * (either because none yet decoded or none currently partially decoded).
+             * Full decoded ones are accessible through hasNext() and next() methods.
+             */
             HttpData data = (HttpData) decoder.currentPartialHttpData();
             if (data != null && data instanceof FileUpload) {
                 chunkedProcessHttpData((FileUpload) data);
@@ -180,16 +201,15 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private void chunkedProcessHttpData(FileUpload data) {
         byte[] chunkData = null;
         try {
-            // 读取分片内容
             ByteBuf byteBuf = data.getByteBuf();
             int readBytesCount = byteBuf.readableBytes();
             chunkData = new byte[readBytesCount];
             byteBuf.readBytes(chunkData);
 
-            // RPC处理
             WriteTmpFileMsg msg = new WriteTmpFileMsg();
             msg.setStorageEngineVersion(version);
             msg.setFileTransactionId(this.fileTransactionId);
+            msg.setNamespace(namespace);
             msg.setKeepAlive(isKeepAlive);
             msg.setFileName(data.getFilename());
             msg.setFileSize(fileSize);
@@ -237,25 +257,25 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     /**
      * getFileTotalSize
      */
-    private Long getFileTotalSize() {
+    private Long getFileTotalSize() throws Exception {
         String fileSizeString = getHeaderValue(HEADER_FILE_TOTAL_SIZE);
         if (StringUtils.isEmpty(fileSizeString))
-            throw new RuntimeException("upload request must contains  " + HEADER_FILE_TOTAL_SIZE + " header");
+            throw new BizException("upload request must contains  " + HEADER_FILE_TOTAL_SIZE + " header");
 
         try {
             return Long.parseLong(fileSizeString);
         } catch (Exception e) {
-            throw new RuntimeException("invalid " + HEADER_FILE_TOTAL_SIZE + " header value");
+            throw new BizException("invalid " + HEADER_FILE_TOTAL_SIZE + " header value");
         }
     }
 
     /**
      * 解析上传Url
      */
-    private void parseUploadUrl() {
+    private void parseUploadUrl() throws Exception {
         final String url = request.getUri().toLowerCase();
         if (!Pattern.matches(uploadUrlReg, url)) {
-            throw new RuntimeException("invalid upload url!");
+            throw new BizException("invalid upload url!");
         }
 
         Pattern pattern = Pattern.compile(uploadUrlReg);
@@ -269,7 +289,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         if (!StorageEngine.getInstance().getNamespaceMap().containsKey(namespace)) {
-            throw new RuntimeException("invalid storage namespace");
+            throw new BizException("invalid storage namespace");
         }
 
         if (uploadTypeString.equals(URL_UPLOAD_FULL)) {
@@ -279,39 +299,14 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         } else if (uploadTypeString.equals(URL_UPLOAD_RANGE)) {
             fileUploadType = FileUploadType.RangeUpload;
         } else {
-            throw new RuntimeException("invalid upload type!");
+            throw new BizException("invalid upload type!");
         }
 
         try {
             version = Integer.parseInt(versionString);
         } catch (Exception ex) {
-            throw new RuntimeException("invalid engine version!");
+            throw new BizException("invalid engine version!");
         }
-    }
-
-    /**
-     * sendErrorResponse
-     */
-    private void sendErrorResponse(ChannelHandlerContext ctx) {
-        if (!hasError()) {
-            return;
-        }
-
-        if (!FileTransactionContextManager.getInstance().existed(fileTransactionId)) {
-            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.copiedBuffer(errorMsg.toString(), CharsetUtil.UTF_8));
-            response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
-            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
-            response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-
-            ChannelFuture future = ctx.channel().writeAndFlush(response);
-            future.addListener(ChannelFutureListener.CLOSE);
-            ctx.channel().close();
-
-            return;
-        }
-
-        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
     }
 
     /**
@@ -319,5 +314,17 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private boolean hasError() {
         return errorMsg.length() > 0;
+    }
+
+    /**
+     * sendErrorResponse
+     */
+    private void sendErrorResponse(ChannelHandlerContext ctx) {
+        if (!FileTransactionContextManager.getInstance().existed(fileTransactionId)) {
+            FileServerHttpResponseHelper.sendErrorResponse(ctx, errorMsg.toString());
+            return;
+        }
+
+        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
     }
 }

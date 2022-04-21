@@ -26,4 +26,8 @@ public class MetaData implements ICodec<MetaData> {
     public MetaData deserialize(byte[] bytes) throws Exception {
         return null;
     }
+
+    public static void main(String[] args) {
+        byte[] bytes = new byte[100];
+    }
 }

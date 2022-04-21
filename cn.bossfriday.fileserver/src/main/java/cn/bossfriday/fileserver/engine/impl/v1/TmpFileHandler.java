@@ -2,7 +2,6 @@ package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LRUHashMap;
-import cn.bossfriday.common.utils.RandomAccessFileBuffer;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
@@ -16,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_DEFAULT_EXT;
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_UPLOADING_TMP_FILE_EXT;
@@ -23,12 +24,12 @@ import static cn.bossfriday.fileserver.common.FileServerConst.FILE_UPLOADING_TMP
 @Slf4j
 @StorageEngineVersion
 public class TmpFileHandler implements ITmpFileHandler {
-    private LRUHashMap<String, RandomAccessFileBuffer> tmpFileAccessMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 2);
+    private LRUHashMap<String, FileChannel> tmpFileChannelMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 2);
 
     @Override
     public WriteTmpFileResult write(WriteTmpFileMsg msg) throws Exception {
         String fileTransactionId = msg.getFileTransactionId();
-        RandomAccessFileBuffer tmpFileAccess = null;
+        FileChannel tmpFileAccess = null;
         WriteTmpFileResult result = null;
 
         try {
@@ -36,24 +37,21 @@ public class TmpFileHandler implements ITmpFileHandler {
             if (ctx == null)
                 throw new Exception("FileTransactionContext is null!(" + fileTransactionId + ")");
 
-            tmpFileAccess = getTmpFileAccess(msg);
-            tmpFileAccess.write(msg.getOffset(), msg.getData());
+            tmpFileAccess = getTmpFileChannel(msg);
+            FileUtil.transferFrom(tmpFileAccess,msg.getData(),msg.getOffset());
             ctx.addTmpFileSaveSize(msg.getData().length);
-
-            if (ctx.isFlushTmpFile()) {
-                tmpFileAccess.flush();
-            }
 
             // 临时文件完成
             if (ctx.isCloseTmpFileAccess()) {
                 tmpFileAccess.close();
-                tmpFileAccessMap.remove(fileTransactionId);
+                tmpFileChannelMap.remove(fileTransactionId);
 
                 String fileExtName = renameTmpFile(msg);
                 result = new WriteTmpFileResult();
                 result.setFileTransactionId(msg.getFileTransactionId());
                 result.setResult(OperationResult.OK);
                 result.setStorageEngineVersion(msg.getStorageEngineVersion());
+                result.setNamespace(msg.getNamespace());
                 result.setClusterNodeName(FileServerConfigManager.getCurrentClusterNodeName());
                 result.setKeepAlive(msg.isKeepAlive());
                 result.setTimestamp(System.currentTimeMillis());
@@ -63,10 +61,10 @@ public class TmpFileHandler implements ITmpFileHandler {
                 log.info("tmpFile process done :" + fileTransactionId);
             }
         } catch (Exception ex) {
+            log.error("write tmpFile error!", ex);
             if (tmpFileAccess != null) {
-                tmpFileAccess.flush();
                 tmpFileAccess.close();
-                tmpFileAccessMap.remove(fileTransactionId);
+                tmpFileChannelMap.remove(fileTransactionId);
             }
 
             result = new WriteTmpFileResult(fileTransactionId, OperationResult.SystemError);
@@ -75,22 +73,19 @@ public class TmpFileHandler implements ITmpFileHandler {
         return result;
     }
 
-    /**
-     * getTmpFile
-     */
-    private synchronized RandomAccessFileBuffer getTmpFileAccess(WriteTmpFileMsg msg) throws Exception {
+    private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws Exception {
         String fileTransactionId = msg.getFileTransactionId();
-        if (tmpFileAccessMap.containsKey(fileTransactionId))
-            return tmpFileAccessMap.get(fileTransactionId);
+        if (tmpFileChannelMap.containsKey(fileTransactionId))
+            return tmpFileChannelMap.get(fileTransactionId);
 
         File tmpFile = getTmpFile(fileTransactionId);
         if (!tmpFile.exists())
             FileUtil.create(tmpFile, msg.getFileSize());
 
-        RandomAccessFileBuffer raf = new RandomAccessFileBuffer(tmpFile);
-        tmpFileAccessMap.put(fileTransactionId, raf);
+        FileChannel destFileChannel = new RandomAccessFile(tmpFile, "rw").getChannel();
+        tmpFileChannelMap.put(fileTransactionId, destFileChannel);
 
-        return raf;
+        return destFileChannel;
     }
 
     /**

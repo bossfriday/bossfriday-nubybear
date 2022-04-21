@@ -6,6 +6,7 @@ import lombok.Data;
 public class WriteTmpFileMsg {
     private int storageEngineVersion;
     private String fileTransactionId;
+    private String namespace;
     private boolean isKeepAlive;
     private String fileName;
     private long fileSize;

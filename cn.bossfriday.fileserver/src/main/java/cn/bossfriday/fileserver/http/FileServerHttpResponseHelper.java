@@ -16,6 +16,7 @@ import javax.activation.MimetypesFileTypeMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Slf4j
 public class FileServerHttpResponseHelper {
@@ -60,6 +61,21 @@ public class FileServerHttpResponseHelper {
 
     public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String responseContent) {
         sendResponse(fileTransactionId, status, "", responseContent, true);
+    }
+
+    /**
+     * sendErrorResponse
+     */
+    public static void sendErrorResponse(ChannelHandlerContext ctx, String msg) {
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
+        response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
+        response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+
+        ChannelFuture future = ctx.channel().writeAndFlush(response);
+        future.addListener(ChannelFutureListener.CLOSE);
+        ctx.channel().close();
     }
 
     /**

@@ -9,6 +9,7 @@ public class WriteTmpFileResult {
     private OperationResult result;
     private int storageEngineVersion;
     private String clusterNodeName;
+    private String namespace;
     private boolean isKeepAlive;
     private long timestamp;
     private long fileTotalSize;
