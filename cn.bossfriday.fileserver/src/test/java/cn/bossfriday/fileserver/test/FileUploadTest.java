@@ -23,7 +23,7 @@ public class FileUploadTest {
 
         try {
             httpClient = HttpClients.createDefault();
-            httpPost = new HttpPost("http://127.0.0.1:18086/upload/full/v1/");
+            httpPost = new HttpPost("http://127.0.0.1:18086/upload/normal/full/v1/");
             httpPost.addHeader("X-File-Total-Size", String.valueOf(file.length()));
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -34,10 +34,8 @@ public class FileUploadTest {
             HttpEntity respEntity = httpResponse.getEntity();
             int respCode = httpResponse.getStatusLine().getStatusCode();
             System.out.println("respCode:" + respCode);
-            if(respCode == 200) {
-                String responseBody = EntityUtils.toString(httpResponse.getEntity());
-                System.out.println(responseBody);
-            }
+            String responseBody = EntityUtils.toString(httpResponse.getEntity());
+            System.out.println(responseBody);
         } finally {
             if (httpPost != null)
                 httpPost.releaseConnection();

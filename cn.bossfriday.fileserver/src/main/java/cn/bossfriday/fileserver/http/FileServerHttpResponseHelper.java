@@ -24,8 +24,13 @@ public class FileServerHttpResponseHelper {
     /**
      * sendResponse
      */
-    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String contentType, String responseContent, boolean isCloseChannel) throws Exception {
+    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String contentType, String responseContent, boolean isCloseChannel) {
         FileTransactionContext fileCtx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
+        if (fileCtx == null) {
+            log.warn("FileTransactionContext not existed: " + fileTransactionId);
+            return;
+        }
+
         ChannelHandlerContext ctx = fileCtx.getCtx();
         boolean isKeepAlive = fileCtx.isKeepAlive();
 
@@ -38,6 +43,8 @@ public class FileServerHttpResponseHelper {
 
         if (isKeepAlive) {
             response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        } else {
+            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
         }
 
         response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
@@ -51,7 +58,7 @@ public class FileServerHttpResponseHelper {
         removeContext(fileTransactionId, ctx, isCloseChannel);
     }
 
-    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String responseContent) throws Exception {
+    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String responseContent) {
         sendResponse(fileTransactionId, status, "", responseContent, true);
     }
 

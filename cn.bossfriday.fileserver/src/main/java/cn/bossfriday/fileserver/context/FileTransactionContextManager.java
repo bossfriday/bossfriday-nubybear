@@ -30,12 +30,18 @@ public class FileTransactionContextManager {
     /**
      * getContext
      */
-    public FileTransactionContext getContext(String fileTransactionId) throws Exception {
-        if (!contextMap.containsKey(fileTransactionId)) {
-            throw new Exception("FileTransactionContext not existed: " + fileTransactionId);
-        }
+    public FileTransactionContext getContext(String fileTransactionId) {
+        if (!contextMap.containsKey(fileTransactionId))
+            return null;
 
         return contextMap.get(fileTransactionId);
+    }
+
+    /**
+     * existed
+     */
+    public boolean existed(String fileTransactionId) {
+        return contextMap.containsKey(fileTransactionId);
     }
 
     /**
