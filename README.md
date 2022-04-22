@@ -21,6 +21,3 @@ nubybear是我家孩子的一只棕熊毛绒玩偶，没有其他意思。 该�
 # 4. cn.bossfriday.jmeter
 * actor-rpc压力测试   
 * 【todo】文件服务压力测试
-
-# 5. cn.bossfriday.mocks**
-* 项目所需挡板。
