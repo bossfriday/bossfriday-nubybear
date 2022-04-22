@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.engine;
 
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.fileserver.engine.core.StorageEngineVersion;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +28,11 @@ public class StorageHandlerFactory {
      * getTmpFileHandler
      */
     public static ITmpFileHandler getTmpFileHandler(int storageEngineVersion) throws Exception {
-        if (tmpFileHandlerImplMap.containsKey(storageEngineVersion)) {
-            return tmpFileHandlerImplMap.get(storageEngineVersion);
+        if (!tmpFileHandlerImplMap.containsKey(storageEngineVersion)) {
+            throw new BizException(ITmpFileHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
         }
 
-        return null;
+        return tmpFileHandlerImplMap.get(storageEngineVersion);
     }
 
     /**

@@ -12,12 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
 
-/**
- * 临时文件操作Actor
- */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_TMP_FILE)
-public class WriteTmpFileActor extends TypedActor<WriteTmpFileMsg> {
+public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
     @Override
     public void onMessageReceived(WriteTmpFileMsg msg) throws Exception {
         WriteTmpFileResult result = null;

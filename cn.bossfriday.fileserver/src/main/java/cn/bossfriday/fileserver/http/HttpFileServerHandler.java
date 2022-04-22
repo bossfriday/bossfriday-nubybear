@@ -8,6 +8,7 @@ import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
+import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -216,8 +217,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             msg.setFileTotalSize(fileTotalSize);
             msg.setOffset(offset);
             msg.setData(chunkData);
-            RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(this.fileTransactionId, ACTOR_FS_TMP_FILE, msg);
-            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, StorageEngine.getInstance().getStorageTracker());
+            StorageTracker.getInstance().onPartialUploadDataReceived(msg);
         } catch (Exception ex) {
             log.error("HttpFileServerHandler.chunkedProcessHttpData() error!", ex);
             errorMsg.append(ex.getMessage());

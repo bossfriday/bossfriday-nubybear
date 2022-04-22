@@ -38,7 +38,7 @@ public class TmpFileHandler implements ITmpFileHandler {
                 throw new Exception("FileTransactionContext is null!(" + fileTransactionId + ")");
 
             tmpFileAccess = getTmpFileChannel(msg);
-            FileUtil.transferFrom(tmpFileAccess,msg.getData(),msg.getOffset());
+            FileUtil.transferFrom(tmpFileAccess, msg.getData(), msg.getOffset());
             ctx.addTmpFileSaveSize(msg.getData().length);
 
             // 临时文件完成

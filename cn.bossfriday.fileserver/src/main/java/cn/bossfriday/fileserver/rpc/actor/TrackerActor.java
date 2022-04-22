@@ -7,6 +7,7 @@ import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.UntypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.http.FileServerHttpResponseHelper;
 import cn.bossfriday.fileserver.rpc.module.UploadResult;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
@@ -15,9 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
-/**
- * 文件服务调度Actor
- */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_TRACKER)
 public class TrackerActor extends UntypedActor {
@@ -25,41 +23,16 @@ public class TrackerActor extends UntypedActor {
     public void onReceive(Object msg) throws Exception {
         try {
             if (msg instanceof WriteTmpFileResult) {
-                WriteTmpFileResult result = (WriteTmpFileResult) msg;
-                onWriteTmpFileResultReceived(result);
+                StorageTracker.getInstance().onWriteTmpFileResultReceived((WriteTmpFileResult) msg);
                 return;
             }
 
             if (msg instanceof UploadResult) {
-                UploadResult result = (UploadResult) msg;
-                onUploadResultReceived(result);
+                StorageTracker.getInstance().onUploadResultReceived((UploadResult) msg);
                 return;
             }
         } catch (Exception ex) {
             log.error("TrackerActor process error!", ex);
         }
-    }
-
-    /**
-     * 上传完成
-     * @param msg
-     */
-    private void onUploadResultReceived(UploadResult msg) {
-
-    }
-
-    /**
-     * 临时文件处理完成
-     */
-    private void onWriteTmpFileResultReceived(WriteTmpFileResult msg) throws Exception {
-        if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
-
-            return;
-        }
-
-        // 强制路由：同一个fileTransaction要求在同一个集群节点处理
-        RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
-        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.getSelf());
     }
 }

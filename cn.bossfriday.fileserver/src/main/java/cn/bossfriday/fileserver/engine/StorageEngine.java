@@ -1,7 +1,5 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.router.ClusterRouterFactory;
-import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
@@ -11,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.HashMap;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TRACKER;
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
 
 @Slf4j
@@ -21,9 +18,6 @@ public class StorageEngine {
 
     @Getter
     private File tmpDir;    // 存储临时目录
-
-    @Getter
-    private ActorRef storageTracker;    // 存储调度器
 
     @Getter
     private HashMap<String, Integer> namespaceMap;    // 存储空间
@@ -90,8 +84,6 @@ public class StorageEngine {
             tmpDir = new File(baseDir, FILE_PATH_TMP);
             if (!tmpDir.exists())
                 tmpDir.mkdirs();
-
-            storageTracker = ClusterRouterFactory.getClusterRouter().getActorSystem().actorOf(ACTOR_FS_TRACKER);
         } catch (Exception e) {
             log.error("StorageEngine init error!", e);
         }
