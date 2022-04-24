@@ -5,8 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
+
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface StorageEngineVersion {
-    int version() default 1;
+public @interface CurrentStorageEngineVersion {
+    int version() default DEFAULT_STORAGE_ENGINE_VERSION;
 }

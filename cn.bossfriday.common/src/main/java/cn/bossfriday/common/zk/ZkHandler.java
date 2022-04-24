@@ -12,6 +12,7 @@ import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.framework.recipes.cache.PathChildrenCache;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import java.util.List;
@@ -81,11 +82,13 @@ public class ZkHandler {
     /**
      * getChildNodeList
      */
-    public List<String> getChildNodeList(String path) {
+    public List<String> getChildNodeList(String path) throws Exception {
         try {
             return this.client.getChildren().forPath(path);
+        } catch (KeeperException.NoNodeException e) {
+            // ignore: just no node.
         } catch (Exception ex) {
-            log.warn("NoNode for " + path);
+            throw ex;
         }
 
         return null;

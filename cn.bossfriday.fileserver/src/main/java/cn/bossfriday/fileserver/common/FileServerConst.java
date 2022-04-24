@@ -2,14 +2,12 @@ package cn.bossfriday.fileserver.common;
 
 public class FileServerConst {
     /**
-     * chunk
+     * storage
      */
-    public static final int CHUNK_SIZE = 64 * 1024;
-
-    /**
-     * storage engine version
-     */
-    public static final int STORAGE_ENGINE_VERSION_0 = 0;
+    public static final int DEFAULT_STORAGE_ENGINE_VERSION = 1;
+    public static final int MAX_STORAGE_VERSION = 255;
+    public static final int STORAGE_CHUNK_SIZE = 64 * 1024;
+    public static final String STORAGE_FILE_EXTENSION_NAME = "data";
 
     /**
      * URL

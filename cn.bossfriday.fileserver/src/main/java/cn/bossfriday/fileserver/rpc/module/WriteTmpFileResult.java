@@ -15,6 +15,7 @@ public class WriteTmpFileResult {
     private long fileTotalSize;
     private String fileName;
     private String fileExtName;
+    private String filePath;
 
     public WriteTmpFileResult() {
 

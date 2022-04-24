@@ -33,7 +33,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 @Slf4j
 public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private HttpRequest request;
-    private FileUploadType fileUploadType;
+    private FileUploadType fileUploadType;  // todo：断点上传使用
     private String namespace;
     private int version = 0;
     private HttpPostRequestDecoder decoder;
@@ -156,9 +156,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         try {
             while (decoder.hasNext()) {
                 /**
-                 * public InterfaceHttpData next():
-                 *
-                 * Description copied from interface: InterfaceHttpPostRequestDecoder
                  * Returns the next available InterfaceHttpData or null if, at the time it is called,
                  * there is no more available InterfaceHttpData. A subsequent call to offer(httpChunk) could enable more data.
                  * Be sure to call ReferenceCounted.release() after you are done with processing to make sure to not leak any resources
@@ -176,9 +173,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             }
 
             /**
-             * public InterfaceHttpData currentPartialHttpData():
-             *
-             * Description copied from interface: InterfaceHttpPostRequestDecoder
              * Returns the current InterfaceHttpData if currently in decoding status,
              * meaning all data are not yet within, or null if there is no InterfaceHttpData currently in decoding status
              * (either because none yet decoded or none currently partially decoded).
@@ -283,8 +277,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         String uploadTypeString = "";
         String versionString = "";
         while (matcher.find()) {
-            namespace = matcher.group(1).trim();
-            uploadTypeString = matcher.group(2).trim();
+            namespace = matcher.group(1).toLowerCase().trim();
+            uploadTypeString = matcher.group(2).toLowerCase().trim();
             versionString = matcher.group(3).trim();
         }
 
@@ -304,6 +298,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
         try {
             version = Integer.parseInt(versionString);
+            if (version < DEFAULT_STORAGE_ENGINE_VERSION || version > MAX_STORAGE_VERSION)
+                throw new BizException("invalid engine version!");
         } catch (Exception ex) {
             throw new BizException("invalid engine version!");
         }
