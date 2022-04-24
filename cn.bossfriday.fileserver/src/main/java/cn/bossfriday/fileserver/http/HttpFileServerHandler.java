@@ -108,13 +108,15 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (decoder != null) {
             decoder.cleanFiles();
+            decoder.destroy();
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.channel().close();
         log.error("HttpFileServerHandler.exceptionCaught()", cause);
+        release();
+        ctx.channel().close();
     }
 
     /**
@@ -231,7 +233,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 decoder.destroy();
                 decoder = null;
             }
-            log.info("HttpFileServerHandler.release() done: " + fileTransactionId);
         } catch (Exception e) {
             log.error("HttpFileServerHandler.release() error!", e);
         }

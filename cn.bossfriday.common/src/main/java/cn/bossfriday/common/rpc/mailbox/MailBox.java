@@ -18,7 +18,7 @@ public abstract class MailBox {
 
     public MailBox(int capacity) {
         this.queue = getMainBoxQueue(capacity);
-        queue.handleEventsWith(new RpcMessageEventHandler());
+        queue.handleEventsWithWorkerPool(new RpcMessageEventHandler());
     }
 
     /**
@@ -79,9 +79,9 @@ public abstract class MailBox {
         }
     }
 
-    public class RpcMessageEventHandler implements EventHandler<RpcMessageEvent> {
+    public class RpcMessageEventHandler implements WorkHandler<RpcMessageEvent> {
         @Override
-        public void onEvent(RpcMessageEvent messageEvent, long l, boolean b) throws Exception {
+        public void onEvent(RpcMessageEvent messageEvent) throws Exception {
             process(messageEvent.getMsg());
         }
     }

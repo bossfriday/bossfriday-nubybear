@@ -3,6 +3,7 @@ package cn.bossfriday.fileserver.engine;
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
+import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
@@ -19,10 +20,11 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static cn.bossfriday.common.Const.EACH_RECEIVE_QUEUE_SIZE;
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
 
 @Slf4j
-public class StorageEngine {
+public class StorageEngine extends BaseStorageEngine {
     private volatile static StorageEngine instance = null;
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -37,6 +39,7 @@ public class StorageEngine {
     private HashMap<String, StorageNamespace> namespaceMap;    // 存储空间
 
     private StorageEngine() {
+        super(EACH_RECEIVE_QUEUE_SIZE);
         init();
     }
 
@@ -60,52 +63,72 @@ public class StorageEngine {
      */
     public void start() throws Exception {
         // todo:临时文件落盘恢复、过期文件清理任务启动（包含过期临时文件清理）、临时文件落盘……
+        super.start();
         loadStorageIndex();
         log.info("StorageEngine start done: " + FileServerConfigManager.getCurrentClusterNodeName());
+    }
+
+    /**
+     * stop
+     */
+    public void stop() {
+        super.queue.shutdown();
+    }
+
+    @Override
+    protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) throws Exception {
+        System.out.println("onRecoverableTmpFileEvent------->" + event.toString());
     }
 
     /**
      * 文件上传
      */
     public MetaDataIndex upload(WriteTmpFileResult data) throws Exception {
-        if (data == null)
-            throw new BizException("WriteTmpFileResult is null!");
-
-        int engineVersion = data.getStorageEngineVersion();
-        IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);
-        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(engineVersion);
-        ITmpFileHandler tmpFileHandler = StorageHandlerFactory.getTmpFileHandler(engineVersion);
-        long metaDataLength = metaDataHandler.getLength(data.getFileName(), data.getFileTotalSize());
-
-        StorageIndex resultIndex = null;
-        StorageIndex currentStorageIndex = getStorageIndex(data.getNamespace(), engineVersion);
-        lock.writeLock().lock();
+        String fileTransactionId = "";
         try {
-            resultIndex = storageHandler.askStorage(currentStorageIndex, metaDataLength);
-        } finally {
-            lock.writeLock().unlock();
+            if (data == null)
+                throw new BizException("WriteTmpFileResult is null!");
+
+            fileTransactionId = data.getFileTransactionId();
+            int engineVersion = data.getStorageEngineVersion();
+            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);
+            IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(engineVersion);
+            ITmpFileHandler tmpFileHandler = StorageHandlerFactory.getTmpFileHandler(engineVersion);
+            long metaDataLength = metaDataHandler.getLength(data.getFileName(), data.getFileTotalSize());
+
+            StorageIndex resultIndex = null;
+            StorageIndex currentStorageIndex = getStorageIndex(data.getNamespace(), engineVersion);
+            lock.writeLock().lock();
+            try {
+                resultIndex = storageHandler.askStorage(currentStorageIndex, metaDataLength);
+            } finally {
+                lock.writeLock().unlock();
+            }
+
+            if (resultIndex == null)
+                throw new BizException("Result StorageIndex is null: " + data.getFileTransactionId());
+
+            long metaDataIndexOffset = resultIndex.getOffset() - metaDataLength;
+            if (metaDataIndexOffset < 0)
+                throw new BizException("metaDataIndexOffset <0: " + data.getFileTransactionId());
+
+            MetaDataIndex metaDataIndex = MetaDataIndex.builder()
+                    .clusterNode(data.getClusterNodeName())
+                    .storeEngineVersion((byte) engineVersion)
+                    .time(resultIndex.getTime())
+                    .namespace(data.getNamespace())
+                    .offset(metaDataIndexOffset)
+                    .build();
+            String recoverableTmpFileName = metaDataHandler.encodeMetaDataIndex(metaDataIndex) + "." + data.getFileExtName();
+            String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
+            this.publishEvent(new RecoverableTmpFile(metaDataIndex, recoverableTmpFilePath));
+
+            return metaDataIndex;
+        } catch (Exception ex) {
+            log.error("upload error: " + fileTransactionId);
         }
 
-        if (resultIndex == null)
-            throw new BizException("Result StorageIndex is null: " + data.getFileTransactionId());
-
-        long metaDataIndexOffset = resultIndex.getOffset() - metaDataLength;
-        if (metaDataIndexOffset < 0)
-            throw new BizException("metaDataIndexOffset <0: " + data.getFileTransactionId());
-
-        MetaDataIndex metaDataIndex = MetaDataIndex.builder()
-                .clusterNode(data.getClusterNodeName())
-                .storeEngineVersion((byte) engineVersion)
-                .time(resultIndex.getTime())
-                .namespace(data.getNamespace())
-                .offset(metaDataIndexOffset)
-                .build();
-
-        String recoverableTmpFileName = metaDataHandler.encodeMetaDataIndex(metaDataIndex) + "." + data.getFileExtName();
-        String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
-        RecoverableTmpFile rTmpFile = new RecoverableTmpFile(metaDataIndex, recoverableTmpFilePath);
-
-        return metaDataIndex;
+        return null;
     }
 
     private void init() {
