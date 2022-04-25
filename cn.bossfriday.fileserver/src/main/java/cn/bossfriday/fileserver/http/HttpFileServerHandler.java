@@ -1,9 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
 import cn.bossfriday.common.exception.BizException;
-import cn.bossfriday.common.router.ClusterRouterFactory;
-import cn.bossfriday.common.router.RoutableBean;
-import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
@@ -11,14 +8,10 @@ import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
-import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -26,9 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Slf4j
 public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
@@ -56,6 +46,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 isKeepAlive = HttpHeaders.isKeepAlive(request);
                 if (StringUtils.isEmpty(this.fileTransactionId)) {
                     fileTransactionId = UUIDUtil.getShortString();
+                    FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, isKeepAlive);
                 }
 
                 if (HttpMethod.GET.equals(request.method())) {
@@ -66,7 +57,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 if (HttpMethod.POST.equals(request.method())) {
                     parseUploadUrl();
                     fileSize = fileTotalSize = getFileTotalSize();
-                    FileTransactionContextManager.getInstance().addContext(version, fileTransactionId, ctx, fileSize, fileTotalSize);
                     return;
                 }
 
@@ -106,6 +96,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.info("channelInactive: " + fileTransactionId);
         if (decoder != null) {
             decoder.cleanFiles();
             decoder.destroy();
@@ -114,7 +105,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("HttpFileServerHandler.exceptionCaught()", cause);
+        log.error("exceptionCaught: " + fileTransactionId, cause);
         release();
         ctx.channel().close();
     }
@@ -164,12 +155,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                  */
                 InterfaceHttpData data = decoder.next();
                 if (data != null) {
-                    try {
-                        if (data instanceof FileUpload) {
-                            chunkedProcessHttpData((FileUpload) data);
-                        }
-                    } finally {
-                        data.release();
+                    if (data instanceof FileUpload) {
+                        chunkedProcessHttpData((FileUpload) data);
                     }
                 }
             }
@@ -219,6 +206,10 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             errorMsg.append(ex.getMessage());
         } finally {
             offset += chunkData.length;
+            if (data.refCnt() > 0) {
+                data.release();
+            }
+
             chunkData = null;
         }
     }
@@ -233,6 +224,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 decoder.destroy();
                 decoder = null;
             }
+
+            log.info("release done: " + fileTransactionId);
         } catch (Exception e) {
             log.error("HttpFileServerHandler.release() error!", e);
         }

@@ -47,16 +47,14 @@ public class FileTransactionContextManager {
     /**
      * addContext
      */
-    public void addContext(int  version,String fileTransactionId, ChannelHandlerContext ctx, long fileSize, long fileTotalSize) throws Exception {
+    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive) throws Exception {
         if (contextMap.containsKey(fileTransactionId))
             throw new Exception("duplicated FileTransactionContext!(fileTransactionId:" + fileTransactionId + ")");
 
         FileTransactionContext context = new FileTransactionContext();
-        context.setStorageEngineVersion(version);
         context.setFileTransactionId(fileTransactionId);
         context.setCtx(ctx);
-        context.setFileSize(fileSize);
-        context.setFileTotalSize(fileTotalSize);
+        context.setKeepAlive(isKeepAlive);
 
         contextMap.put(fileTransactionId, context);
     }

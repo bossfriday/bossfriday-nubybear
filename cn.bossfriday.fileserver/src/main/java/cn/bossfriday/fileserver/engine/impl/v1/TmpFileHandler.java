@@ -54,10 +54,10 @@ public class TmpFileHandler implements ITmpFileHandler {
 
             tmpFileAccess = getTmpFileChannel(msg);
             FileUtil.transferFrom(tmpFileAccess, msg.getData(), msg.getOffset());
-            ctx.addTmpFileSaveSize(msg.getData().length);
+            long savedSize = ctx.addAndGetTransferredSize(msg.getData().length);
 
             // 临时文件完成
-            if (ctx.isCloseTmpFileAccess()) {
+            if (savedSize >= msg.getFileTotalSize()) {
                 tmpFileAccess.close();
                 tmpFileChannelMap.remove(fileTransactionId);
 
