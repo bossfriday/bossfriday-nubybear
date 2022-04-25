@@ -1,6 +1,7 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.utils.F;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LRUHashMap;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
@@ -25,7 +26,17 @@ import static cn.bossfriday.fileserver.common.FileServerConst.FILE_UPLOADING_TMP
 @Slf4j
 @CurrentStorageEngineVersion
 public class TmpFileHandler implements ITmpFileHandler {
-    private LRUHashMap<String, FileChannel> tmpFileChannelMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 2);
+    private LRUHashMap<String, FileChannel> tmpFileChannelMap = new LRUHashMap<>(5000, new F.Action2<String, FileChannel>() {
+
+        @Override
+        public void invoke(String arg1, FileChannel arg2) {
+            try {
+                arg2.close();
+            } catch (Exception ex) {
+                // ignore
+            }
+        }
+    }, 1000 * 60 * 30L);
 
     @Override
     public WriteTmpFileResult write(WriteTmpFileMsg msg) throws Exception {

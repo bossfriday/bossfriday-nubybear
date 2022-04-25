@@ -8,6 +8,7 @@ public class FileServerConst {
     public static final int MAX_STORAGE_VERSION = 255;
     public static final int STORAGE_CHUNK_SIZE = 64 * 1024;
     public static final String STORAGE_FILE_EXTENSION_NAME = "data";
+    public static final int DEFAULT_FILE_STATUS = 0;
 
     /**
      * URL
@@ -27,8 +28,8 @@ public class FileServerConst {
      * file
      */
     public static final String FILE_PATH_TMP = "tmp";
-    public static final String FILE_UPLOADING_TMP_FILE_EXT ="ing";
-    public static final String FILE_DEFAULT_EXT ="octetstream";
+    public static final String FILE_UPLOADING_TMP_FILE_EXT = "ing";
+    public static final String FILE_DEFAULT_EXT = "octetstream";
 
     /**
      * http header

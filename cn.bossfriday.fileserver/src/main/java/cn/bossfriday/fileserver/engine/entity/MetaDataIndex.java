@@ -1,11 +1,11 @@
 package cn.bossfriday.fileserver.engine.entity;
 
-import cn.bossfriday.common.utils.Base58Util;
+import cn.bossfriday.common.utils.GsonUtil;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import cn.bossfriday.fileserver.engine.core.ICodec;
+import cn.bossfriday.fileserver.engine.impl.v1.MetaDataHandler;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -14,40 +14,29 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 @Slf4j
+@Data
 @Builder
 public class MetaDataIndex implements ICodec<MetaDataIndex> {
     public static final int HASH_CODE_LENGTH = 4;
 
-    @Getter
-    @Setter
     private String clusterNode;         // 集群节点
-
-    @Getter
-    @Setter
-    private byte storeEngineVersion;    // 存储引擎版本
-
-    @Getter
-    @Setter
+    private int storeEngineVersion;    // 存储引擎版本
     private String namespace;           // 存储空间
-
-    @Getter
-    @Setter
-    private int time;                   // 时间 yyyyMMdd
-
-    @Getter
-    @Setter
+    private long timestamp;             // 上传时间戳
     private long offset;                // 偏移量
+    private String fileName;            // 原始文件名
 
     public MetaDataIndex() {
 
     }
 
-    public MetaDataIndex(String clusterNode, byte storeEngineVersion, String namespace, int time, long offset) {
+    public MetaDataIndex(String clusterNode, int storeEngineVersion, String namespace, long timestamp, long offset, String fileName) {
         this.clusterNode = clusterNode;
         this.storeEngineVersion = storeEngineVersion;
         this.namespace = namespace;
-        this.time = time;
+        this.timestamp = timestamp;
         this.offset = offset;
+        this.fileName = fileName;
     }
 
     @Override
@@ -58,13 +47,14 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
             out = new ByteArrayOutputStream();
             dos = new DataOutputStream(out);
 
-            int hashInt = hash(this.clusterNode, this.namespace, this.time, this.offset);
+            int hashInt = hash(this.clusterNode, this.namespace, this.timestamp, this.offset);
             dos.writeInt(hashInt);
             dos.writeUTF(clusterNode);
-            dos.writeByte(storeEngineVersion);
+            dos.writeByte((byte)storeEngineVersion);
             dos.writeUTF(namespace);
-            dos.writeInt(time);
+            dos.writeLong(timestamp);
             dos.writeLong(offset);
+            dos.writeUTF(fileName);
 
             return out.toByteArray();
         } finally {
@@ -90,17 +80,19 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
 
             int hashInt = dis.readInt();
             String clusterNode = dis.readUTF();
-            byte storeEngineVersion = dis.readByte();
+            int storeEngineVersion = Byte.toUnsignedInt(dis.readByte());
             String namespace = dis.readUTF();
-            int time = dis.readInt();
+            long timestamp = dis.readLong();
             long offset = dis.readLong();
+            String fileName = dis.readUTF();
 
             return MetaDataIndex.builder()
                     .clusterNode(clusterNode)
                     .storeEngineVersion(storeEngineVersion)
                     .namespace(namespace)
-                    .time(time)
+                    .timestamp(timestamp)
                     .offset(offset)
+                    .fileName(fileName)
                     .build();
         } finally {
             try {
@@ -118,36 +110,28 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     /**
      * hash（业务逻辑验证和使用，仅为使下载地址的生成散列更开）
      */
-    private static int hash(String clusterNode, String namespace, int time, long offset) throws Exception {
-        String key = clusterNode + namespace + time + offset;
+    private static int hash(String clusterNode, String namespace, long timestamp, long offset) throws Exception {
+        String key = clusterNode + namespace + timestamp + offset;
         return MurmurHashUtil.hash32(key);
     }
 
     @Override
     public String toString() {
-        return "MetaDataIndex{" +
-                "clusterNode='" + clusterNode + '\'' +
-                ", storeEngineVersion=" + Byte.toUnsignedInt(storeEngineVersion) +
-                ", namespace=" + namespace +
-                ", time=" + time +
-                ", offset=" + offset +
-                '}';
+        return GsonUtil.beanToJson(this);
     }
 
     public static void main(String[] args) throws Exception {
-        MetaDataIndex index = new MetaDataIndex("clusterNode", (byte) 1, "normal", 20221012, 10000L);
+        MetaDataIndex index = new MetaDataIndex("clusterNode", 1, "normal", System.currentTimeMillis(), 10000L,"1.jpg");
         System.out.println(index.toString());
         byte[] data = index.serialize();
-        //MetaDataIndex index1 = new MetaDataIndex().deserialize(data);
-        //System.out.println(index1.toString());
+        MetaDataIndex index1 = new MetaDataIndex().deserialize(data);
+        System.out.println(index1.toString());
 
-        long begin = System.currentTimeMillis();
-        for(int i=0;i<1000000;i++) {
-            String base58String = Base58Util.encode(data);
-            byte[] data2 = Base58Util.decode(base58String);
-//        MetaDataIndex index1 = new MetaDataIndex().deserialize(data2);
-        }
-        System.out.println(System.currentTimeMillis() - begin);
+        MetaDataHandler metaDataHandler = new MetaDataHandler();
+        String str = metaDataHandler.downloadUrlEncode(index);
+        System.out.println(str);
 
+        MetaDataIndex index2 = metaDataHandler.downloadUrlDecode(str);
+        System.out.println(index2);
     }
 }

@@ -14,18 +14,18 @@ public interface IMetaDataHandler {
     Long getLength(String fileName, long fileTotalSize) throws Exception;
 
     /**
-     * encodeMetaDataIndex（元数据索引编码）
+     * downloadUrlEncode（元数据索引编码）
      * @param metaDataIndex
      * @return
      * @throws Exception
      */
-    String encodeMetaDataIndex(MetaDataIndex metaDataIndex) throws Exception;
+    String downloadUrlEncode(MetaDataIndex metaDataIndex) throws Exception;
 
     /**
-     * 元数据索引解码
+     * downloadUrlDecode
      * @param input
      * @return
      * @throws Exception
      */
-    MetaDataIndex decodeMetaDataIndex(String input) throws Exception;
+    MetaDataIndex downloadUrlDecode(String input) throws Exception;
 }

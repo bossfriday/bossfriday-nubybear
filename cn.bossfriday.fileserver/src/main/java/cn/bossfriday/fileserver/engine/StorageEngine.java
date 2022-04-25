@@ -76,14 +76,20 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     @Override
-    protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) throws Exception {
-        System.out.println("onRecoverableTmpFileEvent------->" + event.toString());
+    protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) {
+        String fileTransactionId = "";
+        try {
+            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(event.getStoreEngineVersion());
+            storageHandler.apply(event);
+        } catch (Exception ex) {
+            log.error("onRecoverableTmpFileEvent() error!" + fileTransactionId, ex);
+        }
     }
 
     /**
      * 文件上传
      */
-    public MetaDataIndex upload(WriteTmpFileResult data) throws Exception {
+    public MetaDataIndex upload(WriteTmpFileResult data) {
         String fileTransactionId = "";
         try {
             if (data == null)
@@ -100,7 +106,7 @@ public class StorageEngine extends BaseStorageEngine {
             StorageIndex currentStorageIndex = getStorageIndex(data.getNamespace(), engineVersion);
             lock.writeLock().lock();
             try {
-                resultIndex = storageHandler.askStorage(currentStorageIndex, metaDataLength);
+                resultIndex = storageHandler.ask(currentStorageIndex, metaDataLength);
             } finally {
                 lock.writeLock().unlock();
             }
@@ -114,18 +120,31 @@ public class StorageEngine extends BaseStorageEngine {
 
             MetaDataIndex metaDataIndex = MetaDataIndex.builder()
                     .clusterNode(data.getClusterNodeName())
-                    .storeEngineVersion((byte) engineVersion)
-                    .time(resultIndex.getTime())
+                    .storeEngineVersion(engineVersion)
                     .namespace(data.getNamespace())
+                    .timestamp(resultIndex.getTime())
                     .offset(metaDataIndexOffset)
+                    .fileName(data.getFileName())
                     .build();
-            String recoverableTmpFileName = metaDataHandler.encodeMetaDataIndex(metaDataIndex) + "." + data.getFileExtName();
+
+            String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(metaDataIndex, data.getFileExtName());
             String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
-            this.publishEvent(new RecoverableTmpFile(metaDataIndex, recoverableTmpFilePath));
+            RecoverableTmpFile recoverableTmpFile = RecoverableTmpFile.builder()
+                    .fileTransactionId(fileTransactionId)
+                    .storeEngineVersion(data.getStorageEngineVersion())
+                    .namespace(data.getNamespace())
+                    .time(resultIndex.getTime())
+                    .offset(metaDataIndex.getOffset())
+                    .timestamp(data.getTimestamp())
+                    .fileName(data.getFileName())
+                    .fileTotalSize(data.getFileTotalSize())
+                    .filePath(recoverableTmpFilePath)
+                    .build();
+            this.publishEvent(recoverableTmpFile);
 
             return metaDataIndex;
         } catch (Exception ex) {
-            log.error("upload error: " + fileTransactionId);
+            log.error("upload error: " + fileTransactionId, ex);
         }
 
         return null;

@@ -1,9 +1,9 @@
 package cn.bossfriday.fileserver.engine.entity;
 
+import cn.bossfriday.common.utils.GsonUtil;
 import cn.bossfriday.fileserver.engine.core.ICodec;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
@@ -12,35 +12,23 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
 @Slf4j
+@Data
 @Builder
 public class MetaData implements ICodec<MetaData> {
-    @Getter
-    @Setter
-    private byte storeEngineVersion;    // 存储引擎版本
 
-    @Getter
-    @Setter
-    private byte fileStatus;            // 文件状态标识
-
-    @Getter
-    @Setter
+    private int storeEngineVersion;    // 存储引擎版本
+    private int fileStatus;            // 文件状态标识
     private long timestamp;             // 上传时间戳
-
-    @Getter
-    @Setter
     private String fileName;            // 文件名
-
-    @Getter
-    @Setter
     private long fileTotalSize;         // 文件大小
 
     public MetaData() {
 
     }
 
-    public MetaData(byte storeEngineVersion, byte fileStatus, long timestamp, String fileName, long fileTotalSize) {
-        this.storeEngineVersion = storeEngineVersion;
-        this.fileStatus = fileStatus;
+    public MetaData(int storeEngineVersion, int fileStatus, long timestamp, String fileName, long fileTotalSize) {
+        this.storeEngineVersion = (byte) storeEngineVersion;
+        this.fileStatus = (byte) fileStatus;
         this.timestamp = timestamp;
         this.fileName = fileName;
         this.fileTotalSize = fileTotalSize;
@@ -55,8 +43,8 @@ public class MetaData implements ICodec<MetaData> {
             out = new ByteArrayOutputStream();
             dos = new DataOutputStream(out);
 
-            dos.writeByte(storeEngineVersion);
-            dos.writeByte(fileStatus);
+            dos.writeByte((byte) storeEngineVersion);
+            dos.writeByte((byte) fileStatus);
             dos.writeLong(timestamp);
             dos.writeUTF(fileName);
             dos.writeLong(fileTotalSize);
@@ -83,8 +71,8 @@ public class MetaData implements ICodec<MetaData> {
             in = new ByteArrayInputStream(bytes);
             dis = new DataInputStream(in);
 
-            byte storeEngineVersion = dis.readByte();
-            byte fileStatus = dis.readByte();
+            int storeEngineVersion = Byte.toUnsignedInt(dis.readByte());
+            int fileStatus = Byte.toUnsignedInt(dis.readByte());
             long timestamp = dis.readLong();
             String fileName = dis.readUTF();
             long fileTotalSize = dis.readLong();
@@ -111,17 +99,11 @@ public class MetaData implements ICodec<MetaData> {
 
     @Override
     public String toString() {
-        return "MetaData{" +
-                "storeEngineVersion=" + Byte.toUnsignedInt(storeEngineVersion) +
-                ", fileStatus=" + Byte.toUnsignedInt(fileStatus) +
-                ", timestamp=" + timestamp +
-                ", fileName='" + fileName + '\'' +
-                ", fileTotalSize=" + fileTotalSize +
-                '}';
+        return GsonUtil.beanToJson(this);
     }
 
     public static void main(String[] args) throws Exception {
-        MetaData data1 = new MetaData((byte) 1, (byte) 0, System.currentTimeMillis(), "1.jpg", 100L);
+        MetaData data1 = new MetaData(1, 0, System.currentTimeMillis(), "1.jpg", 100L);
         System.out.println(data1.toString());
         byte[] data = data1.serialize();
         MetaData data2 = new MetaData().deserialize(data);

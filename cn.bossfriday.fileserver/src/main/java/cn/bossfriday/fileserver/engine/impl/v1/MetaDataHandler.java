@@ -19,7 +19,7 @@ public class MetaDataHandler implements IMetaDataHandler {
     }
 
     @Override
-    public String encodeMetaDataIndex(MetaDataIndex metaDataIndex) throws Exception {
+    public String downloadUrlEncode(MetaDataIndex metaDataIndex) throws Exception {
         byte[] bytes = metaDataIndex.serialize();
         obfuscateMetaDataIndex(bytes);
 
@@ -27,8 +27,12 @@ public class MetaDataHandler implements IMetaDataHandler {
     }
 
     @Override
-    public MetaDataIndex decodeMetaDataIndex(String input) throws Exception {
-        return null;
+    public MetaDataIndex downloadUrlDecode(String input) throws Exception {
+        byte[] bytes = Base58Util.decode(input);
+        obfuscateMetaDataIndex(bytes);
+        MetaDataIndex metaDataIndex = new MetaDataIndex().deserialize(bytes);
+
+        return metaDataIndex;
     }
 
     /**

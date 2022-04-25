@@ -11,6 +11,12 @@ import org.reflections.Reflections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
+
+/**
+ * 存储处理工厂
+ * 找不到实现则使用默认存储引擎版本实现，方便多版本实现装饰
+ */
 @Slf4j
 public class StorageHandlerFactory {
     private static ConcurrentHashMap<Integer, ITmpFileHandler> tmpFileHandlerImplMap = new ConcurrentHashMap<>();
@@ -33,9 +39,10 @@ public class StorageHandlerFactory {
     /**
      * getTmpFileHandler
      */
-    public static ITmpFileHandler getTmpFileHandler(int storageEngineVersion) throws Exception {
+    public static ITmpFileHandler getTmpFileHandler(int storageEngineVersion) {
         if (!tmpFileHandlerImplMap.containsKey(storageEngineVersion)) {
-            throw new BizException(ITmpFileHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(ITmpFileHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            return tmpFileHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
         return tmpFileHandlerImplMap.get(storageEngineVersion);
@@ -44,9 +51,10 @@ public class StorageHandlerFactory {
     /**
      * getStorageHandler
      */
-    public static IStorageHandler getStorageHandler(int storageEngineVersion) throws Exception {
+    public static IStorageHandler getStorageHandler(int storageEngineVersion) {
         if (!storageHandlerImplMap.containsKey(storageEngineVersion)) {
-            throw new BizException(IStorageHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(IStorageHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            return storageHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
         return storageHandlerImplMap.get(storageEngineVersion);
@@ -55,9 +63,10 @@ public class StorageHandlerFactory {
     /**
      * getMetaDataHandler
      */
-    public static IMetaDataHandler getMetaDataHandler(int storageEngineVersion) throws Exception {
+    public static IMetaDataHandler getMetaDataHandler(int storageEngineVersion) {
         if (!metaDataHandlerImplMap.containsKey(storageEngineVersion)) {
-            throw new BizException(IMetaDataHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(IMetaDataHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            return metaDataHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
         return metaDataHandlerImplMap.get(storageEngineVersion);

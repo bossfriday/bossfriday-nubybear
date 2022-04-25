@@ -5,10 +5,13 @@ import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
+import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.http.FileServerHttpResponseHelper;
 import cn.bossfriday.fileserver.rpc.module.UploadResult;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +75,19 @@ public class StorageTracker {
     /**
      * onUploadResultReceived
      */
-    public void onUploadResultReceived(UploadResult msg) {
+    public void onUploadResultReceived(UploadResult msg) throws Exception {
+        if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
+            FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
 
+            return;
+        }
+
+        String fileTransactionId = msg.getFileTransactionId();;
+        MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
+        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(metaDataIndex.getStoreEngineVersion());
+        String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
+        String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
+        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, HttpHeaders.Values.APPLICATION_JSON, uploadResponseBody, false);
+        log.info(fileTransactionId + " upload done:" + path);
     }
 }

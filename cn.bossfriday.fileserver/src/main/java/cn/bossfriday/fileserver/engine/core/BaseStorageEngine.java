@@ -83,7 +83,7 @@ public abstract class BaseStorageEngine {
                 // BlockingWaitStrategy：最低效的策略，但对CPU的消耗最小；
                 // SleepingWaitStrategy：与BlockingWaitStrategy类似，合用于异步日志类似的场景；
                 // YieldingWaitStrategy 性能最好，要求事件处理线数小于 CPU 逻辑核心数
-                new BlockingWaitStrategy());
+                new SleepingWaitStrategy());
 
         return disruptor;
     }
