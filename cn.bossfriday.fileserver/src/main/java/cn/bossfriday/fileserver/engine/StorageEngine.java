@@ -7,6 +7,7 @@ import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
+import cn.bossfriday.fileserver.engine.entity.ChunkedFileData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
 import cn.bossfriday.fileserver.engine.entity.StorageIndex;
@@ -124,7 +125,7 @@ public class StorageEngine extends BaseStorageEngine {
                     .namespace(data.getNamespace())
                     .timestamp(resultIndex.getTime())
                     .offset(metaDataIndexOffset)
-                    .fileName(data.getFileName())
+                    .fileExtName(data.getFileExtName())
                     .build();
 
             String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(metaDataIndex, data.getFileExtName());
@@ -145,6 +146,23 @@ public class StorageEngine extends BaseStorageEngine {
             return metaDataIndex;
         } catch (Exception ex) {
             log.error("upload error: " + fileTransactionId, ex);
+        }
+
+        return null;
+    }
+
+    /**
+     * 分片下载
+     */
+    public ChunkedFileData chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) {
+        try {
+            if (metaDataIndex == null)
+                throw new BizException("MetaDataIndex is null!");
+
+            log.info("----->" + metaDataIndex.toString());
+
+        } catch (Exception ex) {
+            log.error("chunkedDownload error: " + fileTransactionId, ex);
         }
 
         return null;

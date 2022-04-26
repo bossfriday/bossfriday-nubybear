@@ -22,6 +22,7 @@ public class UploadActor extends TypedActor<WriteTmpFileResult> {
         String fileTransactionId = "";
         UploadResult result = null;
         try {
+            fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = StorageEngine.getInstance().upload(msg);
             if (metaDataIndex == null) {
                 throw new BizException("MetaDataIndex is null: " + fileTransactionId);
@@ -32,10 +33,7 @@ public class UploadActor extends TypedActor<WriteTmpFileResult> {
             log.error("UploadActor process error: " + fileTransactionId, ex);
             result = new UploadResult(msg.getFileTransactionId(), OperationResult.SystemError);
         } finally {
-            if (result != null) {
-                this.getSender().tell(result, ActorRef.noSender());
-            }
-
+            this.getSender().tell(result, ActorRef.noSender());
             msg = null;
         }
     }

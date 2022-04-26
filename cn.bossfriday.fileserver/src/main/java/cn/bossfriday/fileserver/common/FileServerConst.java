@@ -6,9 +6,8 @@ public class FileServerConst {
      */
     public static final int DEFAULT_STORAGE_ENGINE_VERSION = 1;
     public static final int MAX_STORAGE_VERSION = 255;
-    public static final int STORAGE_CHUNK_SIZE = 64 * 1024;
+    public static final int DOWNLOAD_CHUNK_SIZE = 64 * 1024;     // 64K
     public static final String STORAGE_FILE_EXTENSION_NAME = "data";
-    public static final int DEFAULT_FILE_STATUS = 0;
 
     /**
      * URL
@@ -16,13 +15,15 @@ public class FileServerConst {
     public static final String URL_UPLOAD_FULL = "full";
     public static final String URL_UPLOAD_BASE64 = "base64";
     public static final String URL_UPLOAD_RANGE = "range";
+    public static final String URL_DOWNLOAD = "download";
 
     /**
      * actors
      */
     public static final String ACTOR_FS_TRACKER = "fs_tracker";
     public static final String ACTOR_FS_TMP_FILE = "fs_tmpFile";
-    public static final String ACTOR_FS_UPLOAD = "fs_upload";
+    public static final String ACTOR_FS_UPLOAD = "fs_up";
+    public static final String ACTOR_FS_DOWNLOAD = "fs_down";
 
     /**
      * file

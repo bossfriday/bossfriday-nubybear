@@ -5,7 +5,11 @@ import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
+import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
+import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
+import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,62 +39,63 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(false);
     private final StringBuilder errorMsg = new StringBuilder();
-    private final String uploadUrlReg = "/upload/(.*?)/(.*?)/v(.*?)/";
+    private static final String REG_UPLOAD = "/upload/(.*?)/(.*?)/v(.*?)/";
+    private static final String REG_DOWNLOAD = "/" + URL_DOWNLOAD + "/v(.*?)/(.*?)\\.(.*?)";
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof HttpRequest) {
-            try {
-                log.info("-------------HttpRequest begin-------------");
-                HttpRequest request = this.request = (HttpRequest) msg;
-                isKeepAlive = HttpHeaders.isKeepAlive(request);
-                if (StringUtils.isEmpty(this.fileTransactionId)) {
-                    fileTransactionId = UUIDUtil.getShortString();
-                    FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, isKeepAlive);
-                }
-
-                if (HttpMethod.GET.equals(request.method())) {
-                    // todo: 文件下载
-                    return;
-                }
-
-                if (HttpMethod.POST.equals(request.method())) {
-                    parseUploadUrl();
-                    fileSize = fileTotalSize = getFileTotalSize();
-                    return;
-                }
-
-                if (HttpMethod.DELETE.equals(request.method())) {
-                    // todo:文件删除
-                    return;
-                }
-
-                if (HttpMethod.OPTIONS.equals(request.method())) {
-                    // todo:doOptions
-                    return;
-                }
-
-                errorMsg.append("unsupported http method");
-            } catch (Exception ex) {
-                log.error("HttpRequest process error!", ex);
-                errorMsg.append(ex.getMessage());
-            } finally {
+        try {
+            if (msg instanceof HttpRequest) {
                 try {
+                    log.info("-------------HttpRequest begin-------------");
+                    HttpRequest request = this.request = (HttpRequest) msg;
+                    isKeepAlive = HttpHeaders.isKeepAlive(request);
+                    if (StringUtils.isEmpty(this.fileTransactionId)) {
+                        fileTransactionId = UUIDUtil.getShortString();
+                        FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, isKeepAlive);
+                    }
+
+                    if (HttpMethod.GET.equals(request.method())) {
+                        download();
+                        return;
+                    }
+
+                    if (HttpMethod.POST.equals(request.method())) {
+                        parseUploadUrl();
+                        fileSize = fileTotalSize = getFileTotalSize();
+                        return;
+                    }
+
+                    if (HttpMethod.DELETE.equals(request.method())) {
+                        // todo:文件删除
+                        return;
+                    }
+
+                    if (HttpMethod.OPTIONS.equals(request.method())) {
+                        // todo:doOptions
+                        return;
+                    }
+
+                    errorMsg.append("unsupported http method");
+                } catch (Exception ex) {
+                    log.error("HttpRequest process error!", ex);
+                    errorMsg.append(ex.getMessage());
+                } finally {
                     decoder = new HttpPostRequestDecoder(factory, request);
-                } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
-                    errorMsg.append(e1.getMessage());
-                    sendErrorResponse(ctx);
                 }
             }
-        }
 
-        if (msg instanceof HttpObject) {
-            try {
-                fileUpload(ctx, (HttpObject) msg);
-            } catch (Exception ex) {
-                log.error("HttpObject process error!", ex);
-                errorMsg.append(ex.getMessage());
+            if (msg instanceof HttpObject) {
+                try {
+                    fileUpload((HttpObject) msg);
+                } catch (Exception ex) {
+                    log.error("HttpObject process error!", ex);
+                    errorMsg.append(ex.getMessage());
+                }
             }
+        } catch (Exception ex) {
+            log.error("channelRead error: " + fileTransactionId, ex);
+            FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
 
@@ -106,14 +111,47 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("exceptionCaught: " + fileTransactionId, cause);
-        release();
+        reset();
         ctx.channel().close();
+    }
+
+    /**
+     * 文件下载
+     * TODO:保障同一个下载全过程始终使用同一个线程进行下载
+     */
+    private void download() throws Exception {
+        String downUrl = request.getUri();
+        if (!downUrl.endsWith("/"))
+            downUrl += "/";
+
+        if (!Pattern.matches(REG_DOWNLOAD, downUrl))
+            throw new BizException("invalid download url: " + downUrl);
+
+        Pattern pattern = Pattern.compile(REG_DOWNLOAD);
+        Matcher matcher = pattern.matcher(downUrl);
+        String encodedMetaDataIndex = "";
+        String versionString = "";
+        while (matcher.find()) {
+            versionString = matcher.group(1).trim();
+            encodedMetaDataIndex = matcher.group(2).trim();
+        }
+
+        setVersion(versionString);
+        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(version);
+        MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(encodedMetaDataIndex);
+        DownloadMsg ms = DownloadMsg.builder()
+                .fileTransactionId(fileTransactionId)
+                .isKeepAlive(isKeepAlive)
+                .metaDataIndex(metaDataIndex)
+                .chunkIndex(0L)
+                .build();
+        StorageTracker.getInstance().onDownloadRequestReceived(ms);
     }
 
     /**
      * 文件上传
      */
-    private void fileUpload(ChannelHandlerContext ctx, HttpObject msg) {
+    private void fileUpload(HttpObject msg) {
         if (decoder == null) {
             return;
         }
@@ -124,7 +162,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 chunk = (HttpContent) msg;
                 decoder.offer(chunk);
 
-                if (!hasError()) {
+                if (!hasErrorMsg()) {
                     chunkedReadHttpData();
                 }
             }
@@ -133,17 +171,23 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             errorMsg.append(ex.getMessage());
         } finally {
             if (chunk instanceof LastHttpContent) {
-                if (hasError()) {
-                    sendErrorResponse(ctx);
+                if (hasErrorMsg()) {
+                    FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
                 }
 
-                release();
+                reset();
+            }
+
+            if(chunk != null) {
+                chunk.release();
             }
         }
     }
 
     /**
      * 分片读取数据
+     * Netty PartialHttpData 使用很容易造成ByteBuf直接内存泄露
+     * 调试时通过-Dio.netty.leakDetectionLevel=PARANOID保障对每次请求做检测
      */
     private void chunkedReadHttpData() {
         try {
@@ -154,10 +198,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                  * Be sure to call ReferenceCounted.release() after you are done with processing to make sure to not leak any resources
                  */
                 InterfaceHttpData data = decoder.next();
-                if (data != null) {
-                    if (data instanceof FileUpload) {
-                        chunkedProcessHttpData((FileUpload) data);
-                    }
+                if (data != null && data instanceof FileUpload) {
+                    chunkedProcessHttpData((FileUpload) data);
                 }
             }
 
@@ -172,7 +214,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 chunkedProcessHttpData((FileUpload) data);
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
-            log.info(this.fileTransactionId + " chunk end");
+            log.info("chunkedReadHttpData end: " + this.fileTransactionId);
         } catch (Throwable tr) {
             log.error("HttpFileServerHandler.chunkedReadHttpData() error!", tr);
             errorMsg.append(tr.getMessage());
@@ -206,18 +248,18 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             errorMsg.append(ex.getMessage());
         } finally {
             offset += chunkData.length;
+            chunkData = null;
+
             if (data.refCnt() > 0) {
                 data.release();
             }
-
-            chunkData = null;
         }
     }
 
     /**
-     * 释放所有资源
+     * reset
      */
-    private void release() {
+    private void reset() {
         try {
             request = null;
             if (decoder != null) {
@@ -225,9 +267,9 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 decoder = null;
             }
 
-            log.info("release done: " + fileTransactionId);
+            log.info("reset done: " + fileTransactionId);
         } catch (Exception e) {
-            log.error("HttpFileServerHandler.release() error!", e);
+            log.error("HttpFileServerHandler.reset() error!", e);
         }
     }
 
@@ -245,51 +287,79 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     /**
      * getFileTotalSize
      */
-    private Long getFileTotalSize() throws Exception {
-        String fileSizeString = getHeaderValue(HEADER_FILE_TOTAL_SIZE);
-        if (StringUtils.isEmpty(fileSizeString))
-            throw new BizException("upload request must contains  " + HEADER_FILE_TOTAL_SIZE + " header");
-
+    private Long getFileTotalSize() {
         try {
-            return Long.parseLong(fileSizeString);
-        } catch (Exception e) {
-            throw new BizException("invalid " + HEADER_FILE_TOTAL_SIZE + " header value");
+            String fileSizeString = getHeaderValue(HEADER_FILE_TOTAL_SIZE);
+            if (StringUtils.isEmpty(fileSizeString))
+                throw new BizException("upload request must contains  " + HEADER_FILE_TOTAL_SIZE + " header");
+
+            try {
+                return Long.parseLong(fileSizeString);
+            } catch (Exception e) {
+                throw new BizException("invalid " + HEADER_FILE_TOTAL_SIZE + " header value");
+            }
+        } catch (Exception ex) {
+            errorMsg.append(ex.getMessage());
         }
+
+        return 0L;
     }
 
     /**
      * 解析上传Url
      */
-    private void parseUploadUrl() throws Exception {
-        final String url = request.getUri().toLowerCase();
-        if (!Pattern.matches(uploadUrlReg, url)) {
-            throw new BizException("invalid upload url!");
-        }
+    private void parseUploadUrl() {
+        try {
+            String url = request.getUri().toLowerCase();
+            if(!url.endsWith("/")) {
+                url += "/";
+            }
 
-        Pattern pattern = Pattern.compile(uploadUrlReg);
-        Matcher matcher = pattern.matcher(url);
-        String uploadTypeString = "";
-        String versionString = "";
-        while (matcher.find()) {
-            namespace = matcher.group(1).toLowerCase().trim();
-            uploadTypeString = matcher.group(2).toLowerCase().trim();
-            versionString = matcher.group(3).trim();
-        }
+            if (!Pattern.matches(REG_UPLOAD, url)) {
+                throw new BizException("invalid upload url!");
+            }
 
-        if (!StorageEngine.getInstance().getNamespaceMap().containsKey(namespace)) {
-            throw new BizException("invalid storage namespace");
-        }
+            Pattern pattern = Pattern.compile(REG_UPLOAD);
+            Matcher matcher = pattern.matcher(url);
+            String uploadTypeString = "";
+            String versionString = "";
+            while (matcher.find()) {
+                namespace = matcher.group(1).toLowerCase().trim();
+                uploadTypeString = matcher.group(2).toLowerCase().trim();
+                versionString = matcher.group(3).trim();
+            }
 
-        if (uploadTypeString.equals(URL_UPLOAD_FULL)) {
-            fileUploadType = FileUploadType.FullUpload;
-        } else if (uploadTypeString.equals(URL_UPLOAD_BASE64)) {
-            fileUploadType = FileUploadType.Base64Upload;
-        } else if (uploadTypeString.equals(URL_UPLOAD_RANGE)) {
-            fileUploadType = FileUploadType.RangeUpload;
-        } else {
-            throw new BizException("invalid upload type!");
-        }
+            if (!StorageEngine.getInstance().getNamespaceMap().containsKey(namespace)) {
+                throw new BizException("invalid storage namespace");
+            }
 
+            if (uploadTypeString.equals(URL_UPLOAD_FULL)) {
+                fileUploadType = FileUploadType.FullUpload;
+            } else if (uploadTypeString.equals(URL_UPLOAD_BASE64)) {
+                fileUploadType = FileUploadType.Base64Upload;
+            } else if (uploadTypeString.equals(URL_UPLOAD_RANGE)) {
+                fileUploadType = FileUploadType.RangeUpload;
+            } else {
+                throw new BizException("invalid upload type!");
+            }
+
+            setVersion(versionString);
+        } catch (Exception ex) {
+            errorMsg.append(ex.getMessage());
+        }
+    }
+
+    /**
+     * hasError
+     */
+    private boolean hasErrorMsg() {
+        return errorMsg.length() > 0;
+    }
+
+    /**
+     * setVersion
+     */
+    private void setVersion(String versionString) throws Exception {
         try {
             version = Integer.parseInt(versionString);
             if (version < DEFAULT_STORAGE_ENGINE_VERSION || version > MAX_STORAGE_VERSION)
@@ -299,22 +369,31 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    /**
-     * hasError
-     */
-    private boolean hasError() {
-        return errorMsg.length() > 0;
-    }
+    public static void main(String[] args) throws Exception {
+        String downUrl = "/download/v1/3EGJLnXEkYdv6gFVnFmFVxerAVanann57CsUeKirFMdvCnTwGAwd9C.jpg";
 
-    /**
-     * sendErrorResponse
-     */
-    private void sendErrorResponse(ChannelHandlerContext ctx) {
-        if (!FileTransactionContextManager.getInstance().existed(fileTransactionId)) {
-            FileServerHttpResponseHelper.sendErrorResponse(ctx, errorMsg.toString());
-            return;
+        if (!Pattern.matches(REG_DOWNLOAD, downUrl))
+            throw new BizException("invalid download url: " + downUrl);
+
+        Pattern pattern = Pattern.compile(REG_DOWNLOAD);
+        Matcher matcher = pattern.matcher(downUrl);
+        String encodedMetaDataIndex = "";
+        String versionString = "";
+        while (matcher.find()) {
+            versionString = matcher.group(1).trim();
+            encodedMetaDataIndex = matcher.group(2).trim();
         }
 
-        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
+        System.out.println(versionString);
+        System.out.println(encodedMetaDataIndex);
+
+//        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(version);
+//        MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(encodedMetaDataIndex);
+//        DownloadMsg ms = DownloadMsg.builder()
+//                .fileTransactionId(fileTransactionId)
+//                .isKeepAlive(isKeepAlive)
+//                .metaDataIndex(metaDataIndex)
+//                .chunkIndex(0L)
+//                .build();
     }
 }

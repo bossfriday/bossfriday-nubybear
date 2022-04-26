@@ -7,6 +7,8 @@ import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import lombok.extern.slf4j.Slf4j;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
+import static cn.bossfriday.fileserver.common.FileServerConst.URL_DOWNLOAD;
 import static cn.bossfriday.fileserver.engine.entity.MetaDataIndex.HASH_CODE_LENGTH;
 
 @Slf4j
@@ -22,8 +24,8 @@ public class MetaDataHandler implements IMetaDataHandler {
     public String downloadUrlEncode(MetaDataIndex metaDataIndex) throws Exception {
         byte[] bytes = metaDataIndex.serialize();
         obfuscateMetaDataIndex(bytes);
-
-        return Base58Util.encode(bytes);
+        String encodedMetaDataString = Base58Util.encode(bytes);
+        return "/" + URL_DOWNLOAD + "/v" + DEFAULT_STORAGE_ENGINE_VERSION + "/" + encodedMetaDataString + "." + metaDataIndex.getFileExtName();
     }
 
     @Override
@@ -31,6 +33,8 @@ public class MetaDataHandler implements IMetaDataHandler {
         byte[] bytes = Base58Util.decode(input);
         obfuscateMetaDataIndex(bytes);
         MetaDataIndex metaDataIndex = new MetaDataIndex().deserialize(bytes);
+        if (metaDataIndex.getStoreEngineVersion() != DEFAULT_STORAGE_ENGINE_VERSION)
+            throw new BizException("invalid storageEngineVersion!");
 
         return metaDataIndex;
     }

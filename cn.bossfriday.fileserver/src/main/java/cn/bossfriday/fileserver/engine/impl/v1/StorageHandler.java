@@ -9,6 +9,7 @@ import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
 import cn.bossfriday.fileserver.engine.entity.StorageIndex;
+import cn.bossfriday.fileserver.engine.enums.FileStatus;
 import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +19,6 @@ import java.nio.channels.FileChannel;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_FILE_STATUS;
 import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTENSION_NAME;
 
 @Slf4j
@@ -83,7 +83,7 @@ public class StorageHandler implements IStorageHandler {
 
             metaDataBytes = MetaData.builder()
                     .storeEngineVersion(recoverableTmpFile.getStoreEngineVersion())
-                    .fileStatus(DEFAULT_FILE_STATUS)
+                    .fileStatus(FileStatus.Normal.getValue())
                     .timestamp(recoverableTmpFile.getTimestamp())
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())

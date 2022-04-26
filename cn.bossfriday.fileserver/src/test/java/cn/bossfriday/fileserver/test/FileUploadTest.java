@@ -16,6 +16,12 @@ import java.io.File;
 @Slf4j
 public class FileUploadTest {
     public static void main(String[] args) throws Exception {
+        for(int i=0;i<10;i++) {
+            upload();
+        }
+    }
+
+    private static void upload() throws Exception {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
@@ -31,7 +37,6 @@ public class FileUploadTest {
             HttpEntity entity = builder.build();
             httpPost.setEntity(entity);
             httpResponse = httpClient.execute(httpPost);
-            HttpEntity respEntity = httpResponse.getEntity();
             int respCode = httpResponse.getStatusLine().getStatusCode();
             System.out.println("respCode:" + respCode);
             String responseBody = EntityUtils.toString(httpResponse.getEntity());

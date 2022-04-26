@@ -8,6 +8,7 @@ import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.http.FileServerHttpResponseHelper;
+import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
 import cn.bossfriday.fileserver.rpc.module.UploadResult;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
@@ -49,7 +50,7 @@ public class StorageTracker {
     }
 
     /**
-     * onPartialUploadDataReceived
+     * 临时文件写入请求
      */
     public void onPartialUploadDataReceived(WriteTmpFileMsg msg) throws Exception {
         // 按fileTransactionId路由
@@ -58,12 +59,11 @@ public class StorageTracker {
     }
 
     /**
-     * onWriteTmpFileResultReceived
+     * 临时文件写入结果
      */
     public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) throws Exception {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
-
             return;
         }
 
@@ -73,12 +73,11 @@ public class StorageTracker {
     }
 
     /**
-     * onUploadResultReceived
+     * 上传结果
      */
     public void onUploadResultReceived(UploadResult msg) throws Exception {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
-
             return;
         }
 
@@ -88,6 +87,16 @@ public class StorageTracker {
         String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
         String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
         FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, HttpHeaders.Values.APPLICATION_JSON, uploadResponseBody, false);
-        log.info(fileTransactionId + " upload done:" + path);
+        log.info(fileTransactionId + " upload done:" + uploadResponseBody);
+    }
+
+    /**
+     * 下载请求
+     */
+    public void onDownloadRequestReceived(DownloadMsg msg) throws Exception {
+        // 强制路由：从master节点下载（todo:如果master不用，则从slave节点下载）
+        MetaDataIndex index = msg.getMetaDataIndex();
+        RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DOWNLOAD, msg);
+        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
     }
 }
