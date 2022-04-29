@@ -2,13 +2,11 @@ package cn.bossfriday.common.utils;
 
 import cn.bossfriday.common.exception.BizException;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 
 public class FileUtil {
     /**
@@ -21,11 +19,7 @@ public class FileUtil {
             raf.setLength(length);
         } finally {
             if (raf != null) {
-                try {
-                    raf.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                raf.close();
             }
         }
     }
@@ -43,7 +37,7 @@ public class FileUtil {
     }
 
     /**
-     * 目标文件零拷贝写入数据
+     * transferFrom（零拷贝写入数据）
      */
     public static void transferFrom(FileChannel destFileChannel, byte[] data, long position, boolean isCloseDestFileChannel) throws Exception {
         if (destFileChannel == null)
@@ -69,5 +63,33 @@ public class FileUtil {
 
     public static void transferFrom(FileChannel destFileChannel, byte[] data, long position) throws Exception {
         transferFrom(destFileChannel, data, position, false);
+    }
+
+    /**
+     * 零拷贝读取数据
+     */
+    public static byte[] transferTo(FileChannel srcFileChannel, long position, long length, boolean isCloseSrcFileChannel) throws Exception {
+        WritableByteChannel destChannel = null;
+        ByteArrayOutputStream out = null;
+        try {
+            out = new ByteArrayOutputStream();
+            destChannel = Channels.newChannel(out);
+
+            srcFileChannel.transferTo(position, length, destChannel);
+            return out.toByteArray();
+        } finally {
+            if (out != null)
+                out.close();
+
+            if (destChannel != null)
+                destChannel.close();
+
+            if (isCloseSrcFileChannel)
+                srcFileChannel.close();
+        }
+    }
+
+    public static byte[] transferTo(FileChannel srcFileChannel, long position, int length) throws Exception {
+        return transferTo(srcFileChannel, position, length, true);
     }
 }

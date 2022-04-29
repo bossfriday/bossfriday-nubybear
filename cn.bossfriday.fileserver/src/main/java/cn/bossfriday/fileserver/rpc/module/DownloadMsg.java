@@ -7,32 +7,19 @@ import lombok.Data;
 @Data
 @Builder
 public class DownloadMsg {
-//    private String fileTransactionId;
-//    private boolean isKeepAlive;
-//    private String clusterNode;
-//    private int storeEngineVersion;
-//    private String namespace;
-//    private long timestamp;
-//    private long offset;
-//    private int chunkIndex;
-//    private int chunkSize;
-//    private int chunkCount;
-//    private long fileTotalSize;
-//    private String fileName;
-
     private String fileTransactionId;
-    private boolean isKeepAlive;
     private MetaDataIndex metaDataIndex;
+    private long fileTotalSize;
     private long chunkIndex;
 
     public DownloadMsg() {
 
     }
 
-    public DownloadMsg(String fileTransactionId, boolean isKeepAlive, MetaDataIndex metaDataIndex, long chunkIndex) {
+    public DownloadMsg(String fileTransactionId, MetaDataIndex metaDataIndex, long fileTotalSize, long chunkIndex) {
         this.fileTransactionId = fileTransactionId;
-        this.isKeepAlive = isKeepAlive;
         this.metaDataIndex = metaDataIndex;
+        this.fileTotalSize = fileTotalSize;
         this.chunkIndex = chunkIndex;
     }
 }

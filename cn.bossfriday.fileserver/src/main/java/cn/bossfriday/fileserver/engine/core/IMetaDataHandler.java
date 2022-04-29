@@ -5,16 +5,24 @@ import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 public interface IMetaDataHandler {
 
     /**
-     * getLength（获取元数据总长度）
+     * getMetaDataLength（获取元数据总长度）
      *
      * @param fileName
      * @param fileTotalSize
      * @return
      */
-    Long getLength(String fileName, long fileTotalSize) throws Exception;
+    Long getMetaDataTotalLength(String fileName, long fileTotalSize) throws Exception;
 
     /**
-     * downloadUrlEncode（元数据索引编码）
+     * getMetaDataLength（不包含文件Data）
+     * @param fileName
+     * @return
+     * @throws Exception
+     */
+    int getMetaDataLength(String fileName) throws Exception;
+
+    /**
+     * downloadUrlEncode（元数据索引下载地址编码）
      * @param metaDataIndex
      * @return
      * @throws Exception
@@ -22,7 +30,7 @@ public interface IMetaDataHandler {
     String downloadUrlEncode(MetaDataIndex metaDataIndex) throws Exception;
 
     /**
-     * downloadUrlDecode
+     * downloadUrlDecode（元数据索引下载地址解码）
      * @param input
      * @return
      * @throws Exception

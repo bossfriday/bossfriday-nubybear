@@ -56,7 +56,7 @@ public class FileTransactionContextManager {
             throw new BizException("fileTransactionId is null or empty!");
 
         if (contextMap.containsKey(fileTransactionId))
-            throw new Exception("duplicated FileTransactionContext!(fileTransactionId:" + fileTransactionId + ")");
+            throw new BizException("duplicated FileTransactionContext!(fileTransactionId:" + fileTransactionId + ")");
 
         FileTransactionContext context = new FileTransactionContext();
         context.setFileTransactionId(fileTransactionId);

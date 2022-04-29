@@ -103,7 +103,9 @@ public class MetaData implements ICodec<MetaData> {
     }
 
     public static void main(String[] args) throws Exception {
-        MetaData data1 = new MetaData(1, 0, System.currentTimeMillis(), "1.jpg", 100L);
+        String fileName = "1.jpg";
+        long fileTotalSize = 100L;
+        MetaData data1 = new MetaData(1, 0, System.currentTimeMillis(), fileName, fileTotalSize);
         System.out.println(data1.toString());
         byte[] data = data1.serialize();
         MetaData data2 = new MetaData().deserialize(data);

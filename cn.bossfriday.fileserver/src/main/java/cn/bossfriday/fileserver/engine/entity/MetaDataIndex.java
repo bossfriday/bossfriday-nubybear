@@ -22,20 +22,22 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     private String clusterNode;         // 集群节点
     private int storeEngineVersion;     // 存储引擎版本
     private String namespace;           // 存储空间
-    private long timestamp;             // 上传时间戳
+    private int time;                   // 上传时间戳
     private long offset;                // 落盘文件偏移量
+    private int metaDataLength;         // 元数据长度（不包含FileDta）
     private String fileExtName;         // 文件扩展名
 
     public MetaDataIndex() {
 
     }
 
-    public MetaDataIndex(String clusterNode, int storeEngineVersion, String namespace, long timestamp, long offset, String fileExtName) {
+    public MetaDataIndex(String clusterNode, int storeEngineVersion, String namespace, int time, long offset, int metaDataLength, String fileExtName) {
         this.clusterNode = clusterNode;
         this.storeEngineVersion = storeEngineVersion;
         this.namespace = namespace;
-        this.timestamp = timestamp;
+        this.time = time;
         this.offset = offset;
+        this.metaDataLength = metaDataLength;
         this.fileExtName = fileExtName;
     }
 
@@ -47,13 +49,14 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
             out = new ByteArrayOutputStream();
             dos = new DataOutputStream(out);
 
-            int hashInt = hash(this.clusterNode, this.namespace, this.timestamp, this.offset);
+            int hashInt = hash(this.clusterNode, this.namespace, this.time, this.offset);
             dos.writeInt(hashInt);
             dos.writeUTF(clusterNode);
             dos.writeByte((byte) storeEngineVersion);
             dos.writeUTF(namespace);
-            dos.writeLong(timestamp);
+            dos.writeInt(time);
             dos.writeLong(offset);
+            dos.writeInt(metaDataLength);
             dos.writeUTF(fileExtName);
 
             return out.toByteArray();
@@ -82,16 +85,18 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
             String clusterNode = dis.readUTF();
             int storeEngineVersion = Byte.toUnsignedInt(dis.readByte());
             String namespace = dis.readUTF();
-            long timestamp = dis.readLong();
+            int time = dis.readInt();
             long offset = dis.readLong();
+            int metaDataLength = dis.readInt();
             String fileExtName = dis.readUTF();
 
             return MetaDataIndex.builder()
                     .clusterNode(clusterNode)
                     .storeEngineVersion(storeEngineVersion)
                     .namespace(namespace)
-                    .timestamp(timestamp)
+                    .time(time)
                     .offset(offset)
+                    .metaDataLength(metaDataLength)
                     .fileExtName(fileExtName)
                     .build();
         } finally {
@@ -110,8 +115,8 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     /**
      * hash（业务逻辑验证和使用，仅为使下载地址的生成散列更开）
      */
-    private static int hash(String clusterNode, String namespace, long timestamp, long offset) throws Exception {
-        String key = clusterNode + namespace + timestamp + offset;
+    private static int hash(String clusterNode, String namespace, int time, long offset) throws Exception {
+        String key = clusterNode + namespace + time + offset;
         return MurmurHashUtil.hash32(key);
     }
 
@@ -121,7 +126,7 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     }
 
     public static void main(String[] args) throws Exception {
-        MetaDataIndex index = new MetaDataIndex("clusterNode", 1, "normal", System.currentTimeMillis(), 10000L, "jpg");
+        MetaDataIndex index = new MetaDataIndex("clusterNode", 1, "normal", 20220101, 10000L, 200, "jpg");
         System.out.println(index.toString());
         byte[] data = index.serialize();
         MetaDataIndex index1 = new MetaDataIndex().deserialize(data);

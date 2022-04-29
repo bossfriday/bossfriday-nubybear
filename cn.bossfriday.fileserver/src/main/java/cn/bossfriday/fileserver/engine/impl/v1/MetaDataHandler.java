@@ -16,8 +16,20 @@ import static cn.bossfriday.fileserver.engine.entity.MetaDataIndex.HASH_CODE_LEN
 public class MetaDataHandler implements IMetaDataHandler {
 
     @Override
-    public Long getLength(String fileName, long fileTotalSize) throws Exception {
-        return 1L + 1L + 8L + fileName.getBytes("UTF-8").length + fileTotalSize;
+    public Long getMetaDataTotalLength(String fileName, long fileTotalSize) throws Exception {
+        return getMetaDataLength(fileName) + fileTotalSize;
+    }
+
+    @Override
+    public int getMetaDataLength(String fileName) throws Exception {
+        /**
+         * storeEngineVersion 1字节
+         * fileStatus 1字节
+         * timestamp 8字节
+         * fileName utf8字符串（前2字节为字符串长度）
+         * fileTotalSize 8字节
+         */
+        return 1 + 1 + 8 + 2 + fileName.getBytes("UTF-8").length + 8;
     }
 
     @Override
@@ -25,6 +37,7 @@ public class MetaDataHandler implements IMetaDataHandler {
         byte[] bytes = metaDataIndex.serialize();
         obfuscateMetaDataIndex(bytes);
         String encodedMetaDataString = Base58Util.encode(bytes);
+
         return "/" + URL_DOWNLOAD + "/v" + DEFAULT_STORAGE_ENGINE_VERSION + "/" + encodedMetaDataString + "." + metaDataIndex.getFileExtName();
     }
 

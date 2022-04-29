@@ -2,6 +2,8 @@ package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.*;
+import cn.bossfriday.fileserver.context.FileTransactionContext;
+import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
@@ -19,24 +21,27 @@ import java.nio.channels.FileChannel;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
 import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTENSION_NAME;
 
 @Slf4j
 @CurrentStorageEngineVersion
 public class StorageHandler implements IStorageHandler {
 
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock fileChannelLock = new ReentrantReadWriteLock();
     private LRUHashMap<String, FileChannel> storageFileChannelMap = new LRUHashMap<>(1000, new F.Action2<String, FileChannel>() {
 
         @Override
-        public void invoke(String arg1, FileChannel arg2) {
+        public void invoke(String key, FileChannel fileChannel) {
             try {
-                arg2.close();
+                fileChannel.close();
             } catch (Exception ex) {
-                // ignore
+                log.warn("FileChannel close failed: " + key);
             }
         }
-    }, 1000 * 60 * 60L * 5);
+    }, 1000 * 60 * 60L * 8);
+
+    private LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
 
     @Override
     public StorageIndex getStorageIndex(String namespace) throws Exception {
@@ -132,21 +137,57 @@ public class StorageHandler implements IStorageHandler {
         return null;
     }
 
+    @Override
+    public byte[] chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) throws Exception {
+        FileChannel storageFileChannel = getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        FileTransactionContext fileCtx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
+        if (fileCtx == null) {
+            throw new BizException("FileTransactionContext not existed: " + fileTransactionId);
+        }
+
+        // 第一个分片下载
+        if (chunkIndex == 0) {
+            MetaData metaData = getMetaData(storageFileChannel, metaDataIndex);
+            long fileSize = metaData.getFileTotalSize();
+            int chunkSize = DOWNLOAD_CHUNK_SIZE;
+            long chunkCount = fileSize % chunkSize == 0 ? (long) (fileSize / chunkSize) : (long) (fileSize / chunkSize + 1);
+            fileCtx.setChunkCount(chunkCount);
+            fileCtx.setMetaData(metaData);
+        }
+
+        if (fileCtx.getChunkCount() <= 0)
+            throw new BizException("fileCtx.getChunkCount()<=0: " + fileTransactionId);
+
+        if (fileCtx.getMetaData() == null)
+            throw new BizException("fileCtx.getMetaData() == null: " + fileTransactionId);
+
+        long chunkedFileDataBeginOffset = getChunkedFileDataBeginOffset(metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), chunkIndex, fileCtx.getChunkCount());
+        long chunkedFileDataEndOffset = getChunkedFileDataEndOffset(metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), chunkIndex, fileCtx.getChunkCount(), fileCtx.getMetaData().getFileTotalSize());
+        long currentChunkSize = chunkedFileDataEndOffset - chunkedFileDataBeginOffset + 1;
+
+        return FileUtil.transferTo(storageFileChannel, chunkedFileDataBeginOffset, currentChunkSize, false);
+    }
+
+    @Override
+    public MetaData getMetaData(String fileTransactionId, MetaDataIndex metaDataIndex) throws Exception {
+        FileChannel storageFileChannel = getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        return getMetaData(storageFileChannel, metaDataIndex);
+    }
 
     /**
      * getFileChannel
      */
     private FileChannel getFileChannel(String namespace, int time) throws Exception {
         String key = namespace + "-" + time;
-        lock.readLock().lock();
+        fileChannelLock.readLock().lock();
         try {
             if (storageFileChannelMap.containsKey(key))
                 return storageFileChannelMap.get(key);
         } finally {
-            lock.readLock().unlock();
+            fileChannelLock.readLock().unlock();
         }
 
-        lock.writeLock().lock();
+        fileChannelLock.writeLock().lock();
         try {
             File storageFile = getStorageFile(namespace, time);
             FileChannel fileChannel = new RandomAccessFile(storageFile, "rw").getChannel();
@@ -154,7 +195,7 @@ public class StorageHandler implements IStorageHandler {
 
             return fileChannel;
         } finally {
-            lock.writeLock().unlock();
+            fileChannelLock.writeLock().unlock();
         }
     }
 
@@ -194,5 +235,59 @@ public class StorageHandler implements IStorageHandler {
         }
 
         return storageFile;
+    }
+
+    /**
+     * getChunkedFileDataBeginOffset
+     */
+    private static long getChunkedFileDataBeginOffset(long metaDataOffset, long metaDataLength, long chunkIndex, long chunkCount) throws Exception {
+        if (chunkIndex + 1 > chunkCount)
+            throw new BizException("invalid chunkIndex: chunkIndex + 1 > chunkCount");
+
+        return metaDataOffset + metaDataLength + (chunkIndex * DOWNLOAD_CHUNK_SIZE);
+    }
+
+    /**
+     * getChunkedFileDataEndOffset
+     */
+    private static long getChunkedFileDataEndOffset(long metaDataOffset, long metaDataLength, long chunkIndex, long chunkCount, long fileTotalSize) throws Exception {
+        if (chunkIndex + 1 > chunkCount)
+            throw new BizException("invalid chunkIndex: chunkIndex + 1 > chunkCount");
+
+        if (chunkIndex + 1 < chunkCount) {
+            return metaDataOffset + metaDataLength + ((chunkIndex + 1) * DOWNLOAD_CHUNK_SIZE) - 1;
+        } else {
+            long x = chunkCount * DOWNLOAD_CHUNK_SIZE - fileTotalSize;
+            if (x < 0)
+                throw new BizException("invalid chunkCount: (chunkCount * DOWNLOAD_CHUNK_SIZE - fileTotalSize) < 0");
+
+            long lastChunkSize = DOWNLOAD_CHUNK_SIZE - x;
+            return metaDataOffset + metaDataLength + (chunkIndex * DOWNLOAD_CHUNK_SIZE) + lastChunkSize - 1;
+        }
+    }
+
+    /**
+     * getMetaData
+     * 不加锁原因：1：MetaData只读不写；2：同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
+     *
+     * @param storageFileChannel
+     * @param metaDataIndex
+     * @return
+     * @throws Exception
+     */
+    private MetaData getMetaData(FileChannel storageFileChannel, MetaDataIndex metaDataIndex) throws Exception {
+        if (metaDataMap.containsKey(metaDataIndex))
+            return metaDataMap.get(metaDataIndex);
+
+        byte[] metaDataBytes = null;
+        try {
+            metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
+            MetaData metaData = new MetaData().deserialize(metaDataBytes);
+            metaDataMap.putIfAbsent(metaDataIndex, metaData);   // 由于没有加锁，因此这里用putIfAbsent。
+
+            return metaData;
+        } finally {
+            metaDataBytes = null;
+        }
     }
 }

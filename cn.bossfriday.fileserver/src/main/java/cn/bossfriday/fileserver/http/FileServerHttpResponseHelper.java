@@ -81,7 +81,7 @@ public class FileServerHttpResponseHelper {
     /**
      * getContentType
      */
-    private static String getContentType(String fileName) {
+    public static String getContentType(String fileName) {
         String fileExtName = FileUtil.getFileExt(fileName);
         if (fileExtName.equals("png")) { // MimetypesFileTypeMap目前缺少png类型
             return "image/png";

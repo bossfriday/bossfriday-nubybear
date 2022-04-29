@@ -27,8 +27,10 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
 @Slf4j
 public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private HttpRequest request;
+    private HttpMethod httpMethod;
     private FileUploadType fileUploadType;  // todo：断点上传使用
     private String namespace;
+    private String encodedMetaDataIndex;
     private int version = 0;
     private HttpPostRequestDecoder decoder;
     private String fileTransactionId;
@@ -56,62 +58,80 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                     }
 
                     if (HttpMethod.GET.equals(request.method())) {
-                        download();
+                        httpMethod = HttpMethod.GET;
+                        parseDownUrl();
                         return;
                     }
 
                     if (HttpMethod.POST.equals(request.method())) {
+                        httpMethod = HttpMethod.POST;
                         parseUploadUrl();
                         fileSize = fileTotalSize = getFileTotalSize();
                         return;
                     }
 
                     if (HttpMethod.DELETE.equals(request.method())) {
-                        // todo:文件删除
+                        httpMethod = HttpMethod.DELETE;
                         return;
                     }
 
                     if (HttpMethod.OPTIONS.equals(request.method())) {
-                        // todo:doOptions
+                        httpMethod = HttpMethod.OPTIONS;
                         return;
                     }
-
-                    errorMsg.append("unsupported http method");
                 } catch (Exception ex) {
                     log.error("HttpRequest process error!", ex);
                     errorMsg.append(ex.getMessage());
                 } finally {
-                    decoder = new HttpPostRequestDecoder(factory, request);
+                    if (httpMethod.equals(HttpMethod.POST)) {
+                        try {
+                            decoder = new HttpPostRequestDecoder(factory, request);
+                        } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
+                            log.warn("getHttpDecoder Error:" + e1.getMessage());
+                        }
+                    }
                 }
             }
 
             if (msg instanceof HttpObject) {
-                try {
-                    fileUpload((HttpObject) msg);
-                } catch (Exception ex) {
-                    log.error("HttpObject process error!", ex);
-                    errorMsg.append(ex.getMessage());
+                if (httpMethod.equals(HttpMethod.POST)) {
+                    try {
+                        fileUpload((HttpObject) msg);
+                    } catch (Exception ex) {
+                        log.error("HttpObject process error!", ex);
+                        errorMsg.append(ex.getMessage());
+                    }
+                } else if (httpMethod.equals(HttpMethod.GET)) {
+                    if (msg instanceof LastHttpContent && !hasErrorMsg()) {
+                        download();
+                    }
+                } else {
+                    if (msg instanceof LastHttpContent) {
+                        errorMsg.append("unsupported http method");
+                    }
                 }
             }
         } catch (Exception ex) {
             log.error("channelRead error: " + fileTransactionId, ex);
-            FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+            errorMsg.append(ex.getMessage());
+        } finally {
+            if (msg instanceof LastHttpContent) {
+                reset();
+                if (hasErrorMsg()) {
+                    FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
+                }
+            }
         }
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         log.info("channelInactive: " + fileTransactionId);
-        if (decoder != null) {
-            decoder.cleanFiles();
-            decoder.destroy();
-        }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("exceptionCaught: " + fileTransactionId, cause);
-        reset();
         ctx.channel().close();
     }
 
@@ -120,29 +140,13 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      * TODO:保障同一个下载全过程始终使用同一个线程进行下载
      */
     private void download() throws Exception {
-        String downUrl = request.getUri();
-        if (!downUrl.endsWith("/"))
-            downUrl += "/";
-
-        if (!Pattern.matches(REG_DOWNLOAD, downUrl))
-            throw new BizException("invalid download url: " + downUrl);
-
-        Pattern pattern = Pattern.compile(REG_DOWNLOAD);
-        Matcher matcher = pattern.matcher(downUrl);
-        String encodedMetaDataIndex = "";
-        String versionString = "";
-        while (matcher.find()) {
-            versionString = matcher.group(1).trim();
-            encodedMetaDataIndex = matcher.group(2).trim();
-        }
-
-        setVersion(versionString);
         IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(version);
         MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(encodedMetaDataIndex);
         DownloadMsg ms = DownloadMsg.builder()
                 .fileTransactionId(fileTransactionId)
-                .isKeepAlive(isKeepAlive)
                 .metaDataIndex(metaDataIndex)
+                // 首次分片下载不传值（第1次分片下载完成后会从元数据中读取，然后缓存至FileTransactionContext供后续分片下载使用
+                .fileTotalSize(-1L)
                 .chunkIndex(0L)
                 .build();
         StorageTracker.getInstance().onDownloadRequestReceived(ms);
@@ -170,15 +174,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             log.error("HttpFileServerHandler.fileUpload() error!", ex);
             errorMsg.append(ex.getMessage());
         } finally {
-            if (chunk instanceof LastHttpContent) {
-                if (hasErrorMsg()) {
-                    FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, errorMsg.toString());
-                }
-
-                reset();
-            }
-
-            if(chunk != null) {
+            if (chunk != null) {
                 chunk.release();
             }
         }
@@ -311,7 +307,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private void parseUploadUrl() {
         try {
             String url = request.getUri().toLowerCase();
-            if(!url.endsWith("/")) {
+            if (!url.endsWith("/")) {
                 url += "/";
             }
 
@@ -350,6 +346,29 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
+     * 解析下载Url
+     */
+    private void parseDownUrl() {
+        try {
+            String downUrl = request.getUri();
+            if (!Pattern.matches(REG_DOWNLOAD, downUrl))
+                throw new BizException("invalid download url: " + downUrl);
+
+            Pattern pattern = Pattern.compile(REG_DOWNLOAD);
+            Matcher matcher = pattern.matcher(downUrl);
+            String versionString = "";
+            while (matcher.find()) {
+                versionString = matcher.group(1).trim();
+                this.encodedMetaDataIndex = matcher.group(2).trim();
+            }
+
+            setVersion(versionString);
+        } catch (Exception ex) {
+            errorMsg.append(ex.getMessage());
+        }
+    }
+
+    /**
      * hasError
      */
     private boolean hasErrorMsg() {
@@ -367,33 +386,5 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         } catch (Exception ex) {
             throw new BizException("invalid engine version!");
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        String downUrl = "/download/v1/3EGJLnXEkYdv6gFVnFmFVxerAVanann57CsUeKirFMdvCnTwGAwd9C.jpg";
-
-        if (!Pattern.matches(REG_DOWNLOAD, downUrl))
-            throw new BizException("invalid download url: " + downUrl);
-
-        Pattern pattern = Pattern.compile(REG_DOWNLOAD);
-        Matcher matcher = pattern.matcher(downUrl);
-        String encodedMetaDataIndex = "";
-        String versionString = "";
-        while (matcher.find()) {
-            versionString = matcher.group(1).trim();
-            encodedMetaDataIndex = matcher.group(2).trim();
-        }
-
-        System.out.println(versionString);
-        System.out.println(encodedMetaDataIndex);
-
-//        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(version);
-//        MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(encodedMetaDataIndex);
-//        DownloadMsg ms = DownloadMsg.builder()
-//                .fileTransactionId(fileTransactionId)
-//                .isKeepAlive(isKeepAlive)
-//                .metaDataIndex(metaDataIndex)
-//                .chunkIndex(0L)
-//                .build();
     }
 }

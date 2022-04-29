@@ -7,7 +7,7 @@ import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.entity.ChunkedFileData;
+import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
 import cn.bossfriday.fileserver.engine.entity.StorageIndex;
@@ -101,13 +101,14 @@ public class StorageEngine extends BaseStorageEngine {
             IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);
             IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(engineVersion);
             ITmpFileHandler tmpFileHandler = StorageHandlerFactory.getTmpFileHandler(engineVersion);
-            long metaDataLength = metaDataHandler.getLength(data.getFileName(), data.getFileTotalSize());
+            long metaDataTotalLength = metaDataHandler.getMetaDataTotalLength(data.getFileName(), data.getFileTotalSize());
+            int metaDataLength = metaDataHandler.getMetaDataLength(data.getFileName());
 
             StorageIndex resultIndex = null;
             StorageIndex currentStorageIndex = getStorageIndex(data.getNamespace(), engineVersion);
             lock.writeLock().lock();
             try {
-                resultIndex = storageHandler.ask(currentStorageIndex, metaDataLength);
+                resultIndex = storageHandler.ask(currentStorageIndex, metaDataTotalLength);
             } finally {
                 lock.writeLock().unlock();
             }
@@ -115,7 +116,7 @@ public class StorageEngine extends BaseStorageEngine {
             if (resultIndex == null)
                 throw new BizException("Result StorageIndex is null: " + data.getFileTransactionId());
 
-            long metaDataIndexOffset = resultIndex.getOffset() - metaDataLength;
+            long metaDataIndexOffset = resultIndex.getOffset() - metaDataTotalLength;
             if (metaDataIndexOffset < 0)
                 throw new BizException("metaDataIndexOffset <0: " + data.getFileTransactionId());
 
@@ -123,8 +124,9 @@ public class StorageEngine extends BaseStorageEngine {
                     .clusterNode(data.getClusterNodeName())
                     .storeEngineVersion(engineVersion)
                     .namespace(data.getNamespace())
-                    .timestamp(resultIndex.getTime())
+                    .time(resultIndex.getTime())
                     .offset(metaDataIndexOffset)
+                    .metaDataLength(metaDataLength)
                     .fileExtName(data.getFileExtName())
                     .build();
 
@@ -154,15 +156,36 @@ public class StorageEngine extends BaseStorageEngine {
     /**
      * 分片下载
      */
-    public ChunkedFileData chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) {
+    public byte[] chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) {
         try {
             if (metaDataIndex == null)
                 throw new BizException("MetaDataIndex is null!");
 
-            log.info("----->" + metaDataIndex.toString());
+            int version = metaDataIndex.getStoreEngineVersion();
+            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
+            return storageHandler.chunkedDownload(fileTransactionId, metaDataIndex, chunkIndex);
 
         } catch (Exception ex) {
             log.error("chunkedDownload error: " + fileTransactionId, ex);
+        }
+
+        return null;
+    }
+
+    /**
+     * getMetaData
+     */
+    public MetaData getMetaData(String fileTransactionId, MetaDataIndex metaDataIndex) {
+        try {
+            if (metaDataIndex == null)
+                throw new BizException("MetaDataIndex is null!");
+
+            int version = metaDataIndex.getStoreEngineVersion();
+            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
+            return storageHandler.getMetaData(fileTransactionId, metaDataIndex);
+
+        } catch (Exception ex) {
+            log.error("getMetaData error: " + fileTransactionId, ex);
         }
 
         return null;

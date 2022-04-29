@@ -10,10 +10,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,7 +37,7 @@ public class HttpFileServer {
                                protected void initChannel(SocketChannel socketChannel) {
                                    socketChannel.pipeline().addLast(new HttpRequestDecoder());
                                    socketChannel.pipeline().addLast(new HttpResponseEncoder());
-                                   socketChannel.pipeline().addLast(new HttpContentCompressor());
+                                   socketChannel.pipeline().addLast(new ChunkedWriteHandler());    // chunked download使用
                                    socketChannel.pipeline().addLast(new HttpFileServerHandler());
                                }
                            }
