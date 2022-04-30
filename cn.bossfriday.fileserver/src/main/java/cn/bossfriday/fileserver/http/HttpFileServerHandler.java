@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.multipart.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
+import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,9 +53,10 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                     log.info("-------------HttpRequest begin-------------");
                     HttpRequest request = this.request = (HttpRequest) msg;
                     isKeepAlive = HttpHeaders.isKeepAlive(request);
+                    String userAgent = getHeaderValue("USER-AGENT");
                     if (StringUtils.isEmpty(this.fileTransactionId)) {
                         fileTransactionId = UUIDUtil.getShortString();
-                        FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, isKeepAlive);
+                        FileTransactionContextManager.getInstance().addContext(fileTransactionId, ctx, isKeepAlive, userAgent);
                     }
 
                     if (HttpMethod.GET.equals(request.method())) {
@@ -233,7 +235,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             msg.setFileTransactionId(this.fileTransactionId);
             msg.setNamespace(namespace);
             msg.setKeepAlive(isKeepAlive);
-            msg.setFileName(data.getFilename());
+            msg.setFileName(URLDecoder.decode(data.getFilename(), "UTF-8"));
             msg.setFileSize(fileSize);
             msg.setFileTotalSize(fileTotalSize);
             msg.setOffset(offset);

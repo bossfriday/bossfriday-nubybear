@@ -20,6 +20,10 @@ public class FileTransactionContext {
     @Setter
     private boolean isKeepAlive;
 
+    @Getter
+    @Setter
+    private String userAgent;
+
     private AtomicLong transferredSize = new AtomicLong(0);
 
     /**

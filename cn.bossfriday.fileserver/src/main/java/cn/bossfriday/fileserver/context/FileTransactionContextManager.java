@@ -51,7 +51,7 @@ public class FileTransactionContextManager {
     /**
      * addContext
      */
-    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive) throws Exception {
+    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive, String userAgent) throws Exception {
         if (StringUtils.isEmpty(fileTransactionId))
             throw new BizException("fileTransactionId is null or empty!");
 
@@ -62,6 +62,7 @@ public class FileTransactionContextManager {
         context.setFileTransactionId(fileTransactionId);
         context.setCtx(ctx);
         context.setKeepAlive(isKeepAlive);
+        context.setUserAgent(userAgent);
 
         contextMap.put(fileTransactionId, context);
         log.info("add context done: " + fileTransactionId);

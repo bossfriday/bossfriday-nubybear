@@ -138,10 +138,12 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() == 0) {
                 // write response header
+                String fileName = FileServerHttpResponseHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
                 response.headers().set(HttpHeaders.Names.CONTENT_TYPE, FileServerHttpResponseHelper.getContentType(metaData.getFileName()));
+                response.headers().set("Content-disposition", "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
                     response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
                 }

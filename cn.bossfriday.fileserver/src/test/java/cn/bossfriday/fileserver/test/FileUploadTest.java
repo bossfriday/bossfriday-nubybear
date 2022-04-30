@@ -12,11 +12,12 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
+import java.net.URLEncoder;
 
 @Slf4j
 public class FileUploadTest {
     public static void main(String[] args) throws Exception {
-        for(int i=0;i<10;i++) {
+        for(int i=0;i<1;i++) {
             upload();
         }
     }
@@ -25,15 +26,14 @@ public class FileUploadTest {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
-        File file = new File("D:/tmp/1.pdf");
-
+        File file = new File("D:/tmp/ServerApi开发指南.pdf");
         try {
             httpClient = HttpClients.createDefault();
             httpPost = new HttpPost("http://127.0.0.1:18086/upload/normal/full/v1/");
             httpPost.addHeader("X-File-Total-Size", String.valueOf(file.length()));
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            builder.addBinaryBody("upfile", file, ContentType.create("application/x-zip-compressed"), file.getName());
+            builder.addBinaryBody("upfile", file, ContentType.create("application/x-zip-compressed"), URLEncoder.encode(file.getName(), "UTF-8"));
             HttpEntity entity = builder.build();
             httpPost.setEntity(entity);
             httpResponse = httpClient.execute(httpPost);

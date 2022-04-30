@@ -3,6 +3,7 @@ package cn.bossfriday.fileserver.http;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -13,10 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import javax.activation.MimetypesFileTypeMap;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Slf4j
 public class FileServerHttpResponseHelper {
@@ -64,21 +66,6 @@ public class FileServerHttpResponseHelper {
     }
 
     /**
-     * sendErrorResponse
-     */
-    public static void sendErrorResponse(ChannelHandlerContext ctx, String msg) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
-        response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
-        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
-        response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
-
-        ChannelFuture future = ctx.channel().writeAndFlush(response);
-        future.addListener(ChannelFutureListener.CLOSE);
-        ctx.channel().close();
-    }
-
-    /**
      * getContentType
      */
     public static String getContentType(String fileName) {
@@ -88,6 +75,30 @@ public class FileServerHttpResponseHelper {
         } else {
             return mimetypesFileTypeMap.getContentType(fileName);
         }
+    }
+
+    /**
+     * encodedDownloadFileName（原文件名浏览器下载支持）
+     * @param agent
+     * @param fileName
+     * @return
+     * @throws Exception
+     */
+    public static String encodedDownloadFileName(String agent, String fileName) throws Exception {
+        if (StringUtils.isEmpty(agent)) {
+            return fileName;
+        }
+
+        String result = "";
+        if (-1 != agent.indexOf("Firefox")) {
+            result = "=?UTF-8?B?" + (new String(Base64.decode(fileName.getBytes(StandardCharsets.UTF_8)))) + "?=";
+        } else if (-1 != agent.indexOf("Chrome")) {
+            result = new String(fileName.getBytes(), StandardCharsets.ISO_8859_1);
+        } else {
+            result = URLEncoder.encode(fileName, StandardCharsets.UTF_8.name());
+        }
+
+        return result;
     }
 
     /**
