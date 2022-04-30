@@ -53,22 +53,23 @@ public interface IStorageHandler {
     RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws Exception;
 
     /**
-     * chunkedDownload（分片下载）
+     * chunkedDownload
      *
      * @param metaDataIndex
-     * @param chunkIndex：从0开始
+     * @param fileTotalSize
+     * @param position
+     * @param length
      * @return
      * @throws Exception
      */
-    byte[] chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) throws Exception;
+    byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws Exception;
 
     /**
      * getMetaData
      *
-     * @param fileTransactionId
      * @param metaDataIndex
      * @return
      * @throws Exception
      */
-    MetaData getMetaData(String fileTransactionId, MetaDataIndex metaDataIndex) throws Exception;
+    MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception;
 }

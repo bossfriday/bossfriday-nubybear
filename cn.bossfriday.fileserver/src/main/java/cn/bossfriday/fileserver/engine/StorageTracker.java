@@ -132,12 +132,12 @@ public class StorageTracker {
             }
 
             ChannelHandlerContext ctx = fileCtx.getCtx();
-            MetaData metaData = fileCtx.getMetaData();
+            MetaData metaData = msg.getChunkedMetaData().getMetaData();
             if (metaData == null)
                 throw new BizException("metaData is null: " + fileTransactionId);
 
             if (msg.getChunkIndex() == 0) {
-                // write http header
+                // write response header
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
@@ -149,8 +149,8 @@ public class StorageTracker {
                 ctx.write(response);
             }
 
-            // writeAndFlush ChunkedStream
-            byte[] chunkedFileData = msg.getChunkedFileData();
+            // Chunked write response body
+            byte[] chunkedFileData = msg.getChunkedMetaData().getChunkedData();
             InputStream inputStream = new ByteArrayInputStream(chunkedFileData);
             ChunkedStream chunkedStream = new ChunkedStream(inputStream, chunkedFileData.length);
             ChannelFuture sendFileFuture;
@@ -169,7 +169,7 @@ public class StorageTracker {
                         log.warn("close inputStream or chunkedStream error!", e);
                     }
 
-                    if (msg.getChunkIndex() == fileCtx.getChunkCount() - 1) {
+                    if (msg.getChunkIndex() == msg.getChunkCount() - 1) {
                         // 最后1个分片完成
                         FileTransactionContextManager.getInstance().removeContext(tid);
                         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
@@ -178,7 +178,7 @@ public class StorageTracker {
                 }
             });
 
-            if (msg.getChunkIndex() < fileCtx.getChunkCount() - 1) {
+            if (msg.getChunkIndex() < msg.getChunkCount() - 1) {
                 // 后续分片下载
                 DownloadMsg downloadMsg = DownloadMsg.builder()
                         .fileTransactionId(fileTransactionId)

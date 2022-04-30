@@ -1,6 +1,5 @@
 package cn.bossfriday.fileserver.context;
 
-import cn.bossfriday.fileserver.engine.entity.MetaData;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,16 +20,7 @@ public class FileTransactionContext {
     @Setter
     private boolean isKeepAlive;
 
-    @Getter
-    @Setter
-    private Long chunkCount;
-
-    @Getter
-    @Setter
-    private MetaData metaData;
-
     private AtomicLong transferredSize = new AtomicLong(0);
-
 
     /**
      * addAndGetTransferredSize

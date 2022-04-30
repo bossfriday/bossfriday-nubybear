@@ -1,16 +1,14 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.utils.LRUHashMap;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.entity.MetaData;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
-import cn.bossfriday.fileserver.engine.entity.StorageIndex;
+import cn.bossfriday.fileserver.engine.entity.*;
 import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
 import lombok.Getter;
@@ -29,6 +27,7 @@ public class StorageEngine extends BaseStorageEngine {
     private volatile static StorageEngine instance = null;
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
 
     @Getter
     private File baseDir;   // 存储根目录
@@ -156,39 +155,39 @@ public class StorageEngine extends BaseStorageEngine {
     /**
      * 分片下载
      */
-    public byte[] chunkedDownload(String fileTransactionId, MetaDataIndex metaDataIndex, long chunkIndex) {
-        try {
-            if (metaDataIndex == null)
-                throw new BizException("MetaDataIndex is null!");
+    public ChunkedMetaData chunkedDownload(MetaDataIndex metaDataIndex, long position, int length) throws Exception {
+        if (metaDataIndex == null)
+            throw new BizException("MetaDataIndex is null!");
 
-            int version = metaDataIndex.getStoreEngineVersion();
-            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
-            return storageHandler.chunkedDownload(fileTransactionId, metaDataIndex, chunkIndex);
+        MetaData metaData = getMetaData(metaDataIndex);
+        int version = metaDataIndex.getStoreEngineVersion();
+        IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
+        byte[] chunkedData = storageHandler.chunkedDownload(metaDataIndex, metaData.getFileTotalSize(), position, length);
 
-        } catch (Exception ex) {
-            log.error("chunkedDownload error: " + fileTransactionId, ex);
-        }
-
-        return null;
+        return ChunkedMetaData.builder()
+                .metaData(metaData)
+                .position(position)
+                .chunkedData(chunkedData)
+                .build();
     }
 
     /**
      * getMetaData
+     * 无锁：1：MetaData只读不写；2：同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
      */
-    public MetaData getMetaData(String fileTransactionId, MetaDataIndex metaDataIndex) {
-        try {
-            if (metaDataIndex == null)
-                throw new BizException("MetaDataIndex is null!");
+    public MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception {
+        if (metaDataIndex == null)
+            throw new BizException("MetaDataIndex is null!");
 
-            int version = metaDataIndex.getStoreEngineVersion();
-            IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
-            return storageHandler.getMetaData(fileTransactionId, metaDataIndex);
+        if (metaDataMap.containsKey(metaDataIndex))
+            return metaDataMap.get(metaDataIndex);
 
-        } catch (Exception ex) {
-            log.error("getMetaData error: " + fileTransactionId, ex);
-        }
+        int version = metaDataIndex.getStoreEngineVersion();
+        IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
+        MetaData metaData = storageHandler.getMetaData(metaDataIndex);
+        metaDataMap.putIfAbsent(metaDataIndex, metaData);
 
-        return null;
+        return metaData;
     }
 
     private void init() {

@@ -2,6 +2,7 @@ package cn.bossfriday.fileserver.rpc.module;
 
 
 import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,8 @@ public class DownloadResult {
     private OperationResult result;
     private MetaDataIndex metaDataIndex;
     private long chunkIndex;
-    private byte[] chunkedFileData;
+    private long chunkCount;
+    private ChunkedMetaData chunkedMetaData;
 
     public DownloadResult() {
 
@@ -24,22 +26,12 @@ public class DownloadResult {
         this.result = result;
     }
 
-    public DownloadResult(String fileTransactionId, OperationResult result, MetaDataIndex metaDataIndex, long chunkIndex, byte[] chunkedFileData) {
+    public DownloadResult(String fileTransactionId, OperationResult result, MetaDataIndex metaDataIndex, long chunkIndex, long chunkCount, ChunkedMetaData chunkedMetaData) {
         this.fileTransactionId = fileTransactionId;
         this.result = result;
         this.metaDataIndex = metaDataIndex;
         this.chunkIndex = chunkIndex;
-        this.chunkedFileData = chunkedFileData;
-    }
-
-    @Override
-    public String toString() {
-        return "DownloadResult{" +
-                "fileTransactionId='" + fileTransactionId + '\'' +
-                ", result=" + result +
-                ", metaDataIndex=" + metaDataIndex +
-                ", chunkIndex=" + chunkIndex +
-                ", chunkedFileData.length=" + chunkedFileData.length +
-                '}';
+        this.chunkCount = chunkCount;
+        this.chunkedMetaData = chunkedMetaData;
     }
 }

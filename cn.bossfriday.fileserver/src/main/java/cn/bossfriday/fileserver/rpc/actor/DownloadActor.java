@@ -6,11 +6,14 @@ import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.TypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
+import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
+import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
 import cn.bossfriday.fileserver.rpc.module.DownloadResult;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DOWNLOAD;
+import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
 
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_DOWNLOAD)
@@ -28,16 +31,30 @@ public class DownloadActor extends TypedActor<DownloadMsg> {
         DownloadResult result = null;
         try {
             fileTransactionId = msg.getFileTransactionId();
-            byte[] chunkedFileData = StorageEngine.getInstance().chunkedDownload(fileTransactionId, msg.getMetaDataIndex(), msg.getChunkIndex());
-            if(chunkedFileData == null)
-                throw new BizException("chunkedFileData is null: " + fileTransactionId);
+            MetaData metaData = StorageEngine.getInstance().getMetaData(msg.getMetaDataIndex());
+            long fileTotalSize = metaData.getFileTotalSize();
+            long chunkIndex = msg.getChunkIndex();
+            int chunkSize = DOWNLOAD_CHUNK_SIZE;
+            long chunkCount = fileTotalSize % chunkSize == 0 ? (long) (fileTotalSize / chunkSize) : (long) (fileTotalSize / chunkSize + 1);
+            long position = chunkIndex * chunkSize;
+            int length = chunkSize;
+            if (chunkIndex + 1 >= chunkCount) {
+                int x = (int) (chunkCount * DOWNLOAD_CHUNK_SIZE - fileTotalSize);
+                if (x < 0)
+                    throw new BizException("invalid chunkCount: (chunkCount * chunkSize - fileTotalSize) < 0");
+
+                length = DOWNLOAD_CHUNK_SIZE - x;
+            }
+
+            ChunkedMetaData chunkedMetaData = StorageEngine.getInstance().chunkedDownload(msg.getMetaDataIndex(), position, length);
 
             result = DownloadResult.builder()
                     .fileTransactionId(fileTransactionId)
                     .result(OperationResult.OK)
                     .metaDataIndex(msg.getMetaDataIndex())
                     .chunkIndex(msg.getChunkIndex())
-                    .chunkedFileData(chunkedFileData)
+                    .chunkCount(chunkCount)
+                    .chunkedMetaData(chunkedMetaData)
                     .build();
         } catch (Exception ex) {
             log.error("DownloadActor process error: " + fileTransactionId, ex);
