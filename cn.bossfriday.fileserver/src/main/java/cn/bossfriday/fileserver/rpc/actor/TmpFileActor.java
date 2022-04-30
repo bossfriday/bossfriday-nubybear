@@ -4,16 +4,16 @@ import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.TypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
+import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
-import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
 
 @Slf4j
-@ActorRoute(methods = ACTOR_FS_TMP_FILE)
+@ActorRoute(methods = ACTOR_FS_TMP_FILE, poolName = ACTOR_FS_TMP_FILE + "_Pool")
 public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
     @Override
     public void onMessageReceived(WriteTmpFileMsg msg) throws Exception {

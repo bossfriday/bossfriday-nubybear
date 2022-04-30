@@ -25,8 +25,8 @@ import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTEN
 @CurrentStorageEngineVersion
 public class StorageHandler implements IStorageHandler {
 
-    private final ReentrantReadWriteLock fileChannelLock = new ReentrantReadWriteLock();
-    private LRUHashMap<String, FileChannel> storageFileChannelMap = new LRUHashMap<>(1000, new F.Action2<String, FileChannel>() {
+    protected final ReentrantReadWriteLock fileChannelLock = new ReentrantReadWriteLock();
+    protected LRUHashMap<String, FileChannel> storageFileChannelMap = new LRUHashMap<>(1000, new F.Action2<String, FileChannel>() {
 
         @Override
         public void invoke(String key, FileChannel fileChannel) {
@@ -38,7 +38,7 @@ public class StorageHandler implements IStorageHandler {
         }
     }, 1000 * 60 * 60L * 8);
 
-    private LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
+    protected LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
 
     @Override
     public StorageIndex getStorageIndex(String namespace) throws Exception {
@@ -166,7 +166,7 @@ public class StorageHandler implements IStorageHandler {
     /**
      * getFileChannel
      */
-    private FileChannel getFileChannel(String namespace, int time) throws Exception {
+    protected FileChannel getFileChannel(String namespace, int time) throws Exception {
         String key = namespace + "-" + time;
         fileChannelLock.readLock().lock();
         try {
@@ -191,7 +191,7 @@ public class StorageHandler implements IStorageHandler {
     /**
      * getStorageDayDir
      */
-    private static File getStorageDayDir(String namespace, int time) throws Exception {
+    protected static File getStorageDayDir(String namespace, int time) throws Exception {
         File baseDir = StorageEngine.getInstance().getBaseDir();
         File namespaceDir = new File(baseDir, namespace);
         if (!namespaceDir.exists()) {
@@ -213,7 +213,7 @@ public class StorageHandler implements IStorageHandler {
     /**
      * getStorageFile
      */
-    private static File getStorageFile(String namespace, int time) throws Exception {
+    protected static File getStorageFile(String namespace, int time) throws Exception {
         File dayDir = getStorageDayDir(namespace, time);
         String storageFileName = String.valueOf(time) + "." + STORAGE_FILE_EXTENSION_NAME;
         File storageFile = new File(dayDir, storageFileName);

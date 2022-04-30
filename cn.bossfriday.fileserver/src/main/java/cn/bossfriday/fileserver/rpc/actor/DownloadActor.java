@@ -16,7 +16,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DOWNLOAD;
 import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
 
 @Slf4j
-@ActorRoute(methods = ACTOR_FS_DOWNLOAD)
+@ActorRoute(methods = ACTOR_FS_DOWNLOAD, poolName = ACTOR_FS_DOWNLOAD + "_Pool")
 public class DownloadActor extends TypedActor<DownloadMsg> {
 
     /**

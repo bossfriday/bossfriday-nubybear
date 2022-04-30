@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TRACKER;
 
 @Slf4j
-@ActorRoute(methods = ACTOR_FS_TRACKER)
+@ActorRoute(methods = ACTOR_FS_TRACKER, poolName = ACTOR_FS_TRACKER + "_Pool" )
 public class TrackerActor extends UntypedActor {
     @Override
     public void onReceive(Object msg) throws Exception {

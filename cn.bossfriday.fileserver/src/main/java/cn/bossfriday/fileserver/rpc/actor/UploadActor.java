@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_UPLOAD;
 
 @Slf4j
-@ActorRoute(methods = ACTOR_FS_UPLOAD)
+@ActorRoute(methods = ACTOR_FS_UPLOAD, poolName = ACTOR_FS_UPLOAD + "_Pool")
 public class UploadActor extends TypedActor<WriteTmpFileResult> {
     @Override
     public void onMessageReceived(WriteTmpFileResult msg) throws Exception {
