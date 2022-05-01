@@ -74,7 +74,7 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public void apply(RecoverableTmpFile recoverableTmpFile) throws Exception {
+    public Long apply(RecoverableTmpFile recoverableTmpFile) throws Exception {
         byte[] metaDataBytes = null;
         FileChannel storageFileChannel = null;
         FileChannel tmpFileChannel = null;
@@ -90,6 +90,7 @@ public class StorageHandler implements IStorageHandler {
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())
                     .build().serialize();
+            long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getNamespace(),recoverableTmpFile.getTime(),recoverableTmpFile.getOffset());
 
             // 存储元数据（不包含临时文件本身）
             storageFileChannel = getFileChannel(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime());
@@ -99,7 +100,8 @@ public class StorageHandler implements IStorageHandler {
             long tmpFileDataOffset = recoverableTmpFile.getOffset() + metaDataBytes.length;
             tmpFileChannel = new RandomAccessFile(recoverableTmpFile.getFilePath(), "r").getChannel();
             storageFileChannel.transferFrom(tmpFileChannel, tmpFileDataOffset, tmpFileChannel.size());
-            log.info("RecoverableTmpFile apply done: " + recoverableTmpFile.getFileTransactionId());
+
+            return metaIndexHash64;
         } finally {
             try {
                 if (storageFileChannel != null) {
@@ -124,8 +126,8 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public String getRecoverableTmpFileName(MetaDataIndex metaDataIndex, String fileExtName) throws Exception {
-        return Base58Util.encode(metaDataIndex.serialize()) + "." + fileExtName;
+    public String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws Exception {
+        return Base58Util.encode(metaDataIndex.serialize()) + "." + metaDataIndex.getFileExtName();
     }
 
     @Override

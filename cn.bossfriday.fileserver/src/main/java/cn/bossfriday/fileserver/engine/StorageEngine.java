@@ -27,7 +27,8 @@ public class StorageEngine extends BaseStorageEngine {
     private volatile static StorageEngine instance = null;
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
+    private LRUHashMap<Long, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
+    private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
 
     @Getter
     private File baseDir;   // 存储根目录
@@ -77,10 +78,12 @@ public class StorageEngine extends BaseStorageEngine {
 
     @Override
     protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) {
-        String fileTransactionId = "";
+        String fileTransactionId = event.getFileTransactionId();
         try {
             IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(event.getStoreEngineVersion());
-            storageHandler.apply(event);
+            long metaDataIndexHash64 = storageHandler.apply(event);
+            recoverableTmpFileHashMap.remove(metaDataIndexHash64);
+            log.info("RecoverableTmpFile apply done: " + fileTransactionId);
         } catch (Exception ex) {
             log.error("onRecoverableTmpFileEvent() error!" + fileTransactionId, ex);
         }
@@ -129,7 +132,7 @@ public class StorageEngine extends BaseStorageEngine {
                     .fileExtName(data.getFileExtName())
                     .build();
 
-            String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(metaDataIndex, data.getFileExtName());
+            String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(metaDataIndex);
             String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
             RecoverableTmpFile recoverableTmpFile = RecoverableTmpFile.builder()
                     .fileTransactionId(fileTransactionId)
@@ -142,6 +145,8 @@ public class StorageEngine extends BaseStorageEngine {
                     .fileTotalSize(data.getFileTotalSize())
                     .filePath(recoverableTmpFilePath)
                     .build();
+
+            recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
             this.publishEvent(recoverableTmpFile);
 
             return metaDataIndex;
@@ -155,11 +160,25 @@ public class StorageEngine extends BaseStorageEngine {
     /**
      * 分片下载
      */
-    public ChunkedMetaData chunkedDownload(MetaDataIndex metaDataIndex, long position, int length) throws Exception {
+    public ChunkedMetaData chunkedDownload(long metaDataIndexHash64, MetaDataIndex metaDataIndex, long position, int length) throws Exception {
         if (metaDataIndex == null)
             throw new BizException("MetaDataIndex is null!");
 
-        MetaData metaData = getMetaData(metaDataIndex);
+        // 如果临时文件没有落盘则开始自旋（临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式）
+        for (int i = 0; ; i++) {
+            if (!recoverableTmpFileHashMap.containsKey(metaDataIndexHash64)) {
+                break;
+            }
+
+            if (recoverableTmpFileHashMap.size() > 10000) {
+                // 告警：这种情况经常发生则建议横向扩容（todo:这里hardCode，可以做成配置及对接业务监控等）
+                log.error("recoverableTmpFileHashMap.size() > 10000");
+            }
+
+            Thread.sleep(i);
+        }
+
+        MetaData metaData = getMetaData(metaDataIndexHash64, metaDataIndex);
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
         byte[] chunkedData = storageHandler.chunkedDownload(metaDataIndex, metaData.getFileTotalSize(), position, length);
@@ -175,17 +194,17 @@ public class StorageEngine extends BaseStorageEngine {
      * getMetaData
      * 无锁：1：MetaData只读不写；2：同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
      */
-    public MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception {
+    public MetaData getMetaData(long metaDataIndexHash64, MetaDataIndex metaDataIndex) throws Exception {
         if (metaDataIndex == null)
             throw new BizException("MetaDataIndex is null!");
 
-        if (metaDataMap.containsKey(metaDataIndex))
-            return metaDataMap.get(metaDataIndex);
+        if (metaDataMap.containsKey(metaDataIndexHash64))
+            return metaDataMap.get(metaDataIndexHash64);
 
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
         MetaData metaData = storageHandler.getMetaData(metaDataIndex);
-        metaDataMap.putIfAbsent(metaDataIndex, metaData);
+        metaDataMap.putIfAbsent(metaDataIndexHash64, metaData);
 
         return metaData;
     }

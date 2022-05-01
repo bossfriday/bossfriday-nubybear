@@ -8,6 +8,7 @@ import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaData;
+import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
 import cn.bossfriday.fileserver.rpc.module.DownloadResult;
 import lombok.extern.slf4j.Slf4j;
@@ -19,19 +20,16 @@ import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZ
 @ActorRoute(methods = ACTOR_FS_DOWNLOAD, poolName = ACTOR_FS_DOWNLOAD + "_Pool")
 public class DownloadActor extends TypedActor<DownloadMsg> {
 
-    /**
-     * todo:从tracker —> DownloadActor 确保是同一个线程。
-     *
-     * @param msg
-     * @throws Exception
-     */
     @Override
     public void onMessageReceived(DownloadMsg msg) throws Exception {
         String fileTransactionId = "";
         DownloadResult result = null;
         try {
             fileTransactionId = msg.getFileTransactionId();
-            MetaData metaData = StorageEngine.getInstance().getMetaData(msg.getMetaDataIndex());
+            MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
+            long metaDataIndexHash64 = MetaDataIndex.hash64(metaDataIndex.getNamespace(),metaDataIndex.getTime(), metaDataIndex.getOffset());
+
+            MetaData metaData = StorageEngine.getInstance().getMetaData(metaDataIndexHash64, metaDataIndex);
             long fileTotalSize = metaData.getFileTotalSize();
             long chunkIndex = msg.getChunkIndex();
             int chunkSize = DOWNLOAD_CHUNK_SIZE;
@@ -46,7 +44,7 @@ public class DownloadActor extends TypedActor<DownloadMsg> {
                 length = DOWNLOAD_CHUNK_SIZE - x;
             }
 
-            ChunkedMetaData chunkedMetaData = StorageEngine.getInstance().chunkedDownload(msg.getMetaDataIndex(), position, length);
+            ChunkedMetaData chunkedMetaData = StorageEngine.getInstance().chunkedDownload(metaDataIndexHash64, metaDataIndex, position, length);
 
             result = DownloadResult.builder()
                     .fileTransactionId(fileTransactionId)

@@ -31,17 +31,16 @@ public interface IStorageHandler {
      * @param recoverableTmpFile
      * @throws Exception
      */
-    void apply(RecoverableTmpFile recoverableTmpFile) throws Exception;
+    Long apply(RecoverableTmpFile recoverableTmpFile) throws Exception;
 
     /**
      * getRecoverableTmpFileName（获取可直接落盘/恢复临时文件）
      *
      * @param metaDataIndex
-     * @param fileExtName
      * @return
      * @throws Exception
      */
-    String getRecoverableTmpFileName(MetaDataIndex metaDataIndex, String fileExtName) throws Exception;
+    String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws Exception;
 
     /**
      * recoverableTmpFileName（意外恢复使用）

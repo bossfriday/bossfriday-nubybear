@@ -113,6 +113,20 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     }
 
     /**
+     * hash64
+     */
+    public long hash64() throws Exception {
+        return hash64(this.namespace, this.time, this.offset);
+    }
+
+    /**
+     * hash64
+     */
+    public static long hash64(String namespace, int time, long offset) throws Exception {
+        return MurmurHashUtil.hash64(namespace + time + offset);
+    }
+
+    /**
      * hash（业务逻辑验证和使用，仅为使下载地址的生成散列更开）
      */
     private static int hash(String clusterNode, String namespace, int time, long offset) throws Exception {
