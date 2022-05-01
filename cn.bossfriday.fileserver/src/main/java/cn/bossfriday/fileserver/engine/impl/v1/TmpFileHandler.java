@@ -105,6 +105,19 @@ public class TmpFileHandler implements ITmpFileHandler {
         return newFile.getAbsolutePath();
     }
 
+    @Override
+    public boolean deleteIngTmpFile(String fileTransactionId) {
+        File tmpFile = getTmpFile(fileTransactionId);
+        if (tmpFile.exists()) {
+            boolean b = tmpFile.delete();
+            if (b) {
+                log.info("deleteIngTmpFile done: " + fileTransactionId);
+            }
+        }
+
+        return true;
+    }
+
     private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws Exception {
         String fileTransactionId = msg.getFileTransactionId();
         if (tmpFileChannelMap.containsKey(fileTransactionId))

@@ -13,13 +13,27 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.net.URLEncoder;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class FileUploadTest {
     public static void main(String[] args) throws Exception {
+        ExecutorService threadPool = Executors.newFixedThreadPool(8);
         for(int i=0;i<10;i++) {
-            upload();
+            threadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        upload();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
         }
+
+        threadPool.shutdown();
     }
 
     private static void upload() throws Exception {

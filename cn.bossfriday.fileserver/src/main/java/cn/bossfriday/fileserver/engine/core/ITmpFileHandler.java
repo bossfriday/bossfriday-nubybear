@@ -22,4 +22,11 @@ public interface ITmpFileHandler {
      * @throws Exception
      */
     String rename(String transferCompletedTmpFilePath, String recoverableTmpFileName) throws Exception;
+
+    /**
+     * deleteIngTmpFile（上传意外中断删除ing临时文件）
+     * @param fileTransactionId
+     * @return
+     */
+    boolean deleteIngTmpFile(String fileTransactionId);
 }

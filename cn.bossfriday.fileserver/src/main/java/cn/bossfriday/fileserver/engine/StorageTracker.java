@@ -194,4 +194,12 @@ public class StorageTracker {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
         }
     }
+
+    /**
+     * onDeleteTmpFileMsg（上传意外中断删除ing临时文件）
+     */
+    public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) throws Exception {
+        RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
+        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
+    }
 }

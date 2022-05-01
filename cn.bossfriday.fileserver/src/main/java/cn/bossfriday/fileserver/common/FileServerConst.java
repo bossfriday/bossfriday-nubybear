@@ -22,6 +22,7 @@ public class FileServerConst {
      */
     public static final String ACTOR_FS_TRACKER = "fs_tracker";
     public static final String ACTOR_FS_TMP_FILE = "fs_tmpFile";
+    public static final String ACTOR_FS_DEL_TMP_FILE = "fs_delTmpFile";
     public static final String ACTOR_FS_UPLOAD = "fs_up";
     public static final String ACTOR_FS_DOWNLOAD = "fs_down";
 

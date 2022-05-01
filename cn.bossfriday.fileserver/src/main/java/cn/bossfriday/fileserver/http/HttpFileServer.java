@@ -28,7 +28,7 @@ public class HttpFileServer {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup);
             b.channel(NioServerSocketChannel.class);
-            b.handler(new LoggingHandler(LogLevel.INFO));
+            b.handler(new LoggingHandler(LogLevel.ERROR));
             b.option(ChannelOption.SO_BACKLOG, 1024);
             b.option(ChannelOption.SO_REUSEADDR, true);
             b.option(ChannelOption.SO_RCVBUF, 1024*1024*10);

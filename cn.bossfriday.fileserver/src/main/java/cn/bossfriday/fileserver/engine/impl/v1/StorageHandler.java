@@ -90,7 +90,7 @@ public class StorageHandler implements IStorageHandler {
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())
                     .build().serialize();
-            long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getNamespace(),recoverableTmpFile.getTime(),recoverableTmpFile.getOffset());
+            long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime(), recoverableTmpFile.getOffset());
 
             // 存储元数据（不包含临时文件本身）
             storageFileChannel = getFileChannel(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime());

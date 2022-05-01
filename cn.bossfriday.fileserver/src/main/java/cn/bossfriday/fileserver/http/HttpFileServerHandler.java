@@ -9,6 +9,7 @@ import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.rpc.module.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import io.netty.buffer.ByteBuf;
@@ -50,7 +51,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         try {
             if (msg instanceof HttpRequest) {
                 try {
-                    log.info("-------------HttpRequest begin-------------");
                     HttpRequest request = this.request = (HttpRequest) msg;
                     isKeepAlive = HttpHeaders.isKeepAlive(request);
                     String userAgent = getHeaderValue("USER-AGENT");
@@ -128,7 +128,12 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        if(StringUtils.isEmpty(fileTransactionId)) {
+            return;
+        }
+
         log.info("channelInactive: " + fileTransactionId);
+        StorageTracker.getInstance().onDeleteTmpFileMsg(DeleteTmpFileMsg.builder().fileTransactionId(fileTransactionId).storageEngineVersion(version).build());
     }
 
     @Override
