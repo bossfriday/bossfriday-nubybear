@@ -11,12 +11,16 @@ public class Const {
     public static final String GUID_HOST = "host";
     public static final String GUID_PORT = "port";
     public static final String GUID_VIRTUAL_NODES_NUM = "virtualNodesNum";
+    public static final String GUID_FILE_SERVER_ROOT = "fileServerRoot";
+    public static final String GUID_FILE_LOCAL_FILE_NAME = "localFileName";
     public static final String GUI_BEHAVIOR_NAME = "behaviorName";
 
     /**
      * behaviors
      */
     public static final String GUI_BEHAVIOR_ACTOR_RPC = "actorRpc";
+    public static final String GUI_BEHAVIOR_FILE_UPLOAD = "fileUpload";
+    public static final String GUI_BEHAVIOR_FILE_DOWNLOAD = "fileDownload";
 
     /**
      * Foo

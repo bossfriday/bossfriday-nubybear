@@ -21,6 +21,9 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
     private JTextField nodeName;
     private JTextField virtualNodesNum;
 
+    private JTextField fileServerRoot;
+    private JTextField localFileName;
+
     private JLabeledChoice behaviorName;
 
     public NubyBearSamplerGUI() {
@@ -31,6 +34,7 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
         settingPanel.add(createSystemComponent());
         settingPanel.add(createRpcAddress());
         settingPanel.add(createNode());
+        settingPanel.add(createFileServer());
         settingPanel.add(getBehaviorName());
 
         JPanel dataPanel = new JPanel(new BorderLayout(5, 0));
@@ -71,6 +75,8 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
         testElement.setProperty(GUID_HOST, rpcHost.getText());
         testElement.setProperty(GUID_PORT, rpcPort.getText());
         testElement.setProperty(GUID_VIRTUAL_NODES_NUM, virtualNodesNum.getText());
+        testElement.setProperty(GUID_FILE_SERVER_ROOT, fileServerRoot.getText());
+        testElement.setProperty(GUID_FILE_LOCAL_FILE_NAME, localFileName.getText());
         testElement.setProperty(GUI_BEHAVIOR_NAME, behaviorName.getText());
 
     }
@@ -93,6 +99,8 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
         rpcHost.setText("127.0.0.1");
         rpcPort.setText("18080");
         virtualNodesNum.setText("100");
+        fileServerRoot.setText("127.0.0.1:18086");
+        localFileName.setText("1.jpg");
         behaviorName.setText("");
     }
 
@@ -109,6 +117,8 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
         rpcHost.setText(element.getPropertyAsString(GUID_HOST));
         rpcPort.setText(element.getPropertyAsString(GUID_PORT));
         virtualNodesNum.setText(element.getPropertyAsString(GUID_VIRTUAL_NODES_NUM));
+        fileServerRoot.setText(element.getPropertyAsString(GUID_FILE_SERVER_ROOT));
+        localFileName.setText(element.getPropertyAsString(GUID_FILE_LOCAL_FILE_NAME));
         behaviorName.setText(element.getPropertyAsString(GUI_BEHAVIOR_NAME));
     }
 
@@ -174,6 +184,25 @@ public class NubyBearSamplerGUI extends AbstractSamplerGui {
         panel.add(nodeName, BorderLayout.WEST);
         panel.add(label2, BorderLayout.WEST);
         panel.add(virtualNodesNum, BorderLayout.WEST);
+
+        return panel;
+    }
+
+    protected Component createFileServer() {
+        fileServerRoot = new JTextField(20);
+        JLabel label1 = new JLabel("FileServerRoot: ");
+        label1.setLabelFor(nodeName);
+
+        localFileName = new JTextField(10);
+        JLabel label2 = new JLabel("    LocalFileName: ");
+        label2.setLabelFor(localFileName);
+
+        JPanel panel = new HorizontalPanel();
+        panel.setLayout(new FlowLayout(0, 0, 0));
+        panel.add(label1, BorderLayout.WEST);
+        panel.add(fileServerRoot, BorderLayout.WEST);
+        panel.add(label2, BorderLayout.WEST);
+        panel.add(localFileName, BorderLayout.WEST);
 
         return panel;
     }

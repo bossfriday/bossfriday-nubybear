@@ -1,6 +1,7 @@
 package cn.bossfriday.jmeter.sampler;
 
 import cn.bossfriday.jmeter.common.SamplerConfig;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.jmeter.samplers.SampleResult;
 
 import org.apache.jorphan.logging.LoggingManager;
@@ -10,9 +11,17 @@ public abstract class BaseSampler {
     protected static final Logger log = LoggingManager.getLoggerForClass();
     protected SamplerConfig config;
     public boolean isTestStartedError = false;
+    protected static final int sampleTimeoutSecond = 10;
+    protected static RequestConfig httpRequestConfig;
+    protected static String sampleLabel;
 
     public BaseSampler(SamplerConfig config) {
         this.config = config;
+        sampleLabel = config.getBehaviorName();
+        httpRequestConfig = RequestConfig.custom().setConnectTimeout(sampleTimeoutSecond * 1000)
+                .setConnectionRequestTimeout(sampleTimeoutSecond * 1000)
+                .setSocketTimeout(sampleTimeoutSecond * 1000)
+                .build();
     }
 
     /**

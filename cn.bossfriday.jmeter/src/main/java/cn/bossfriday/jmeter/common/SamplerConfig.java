@@ -30,5 +30,13 @@ public class SamplerConfig {
 
     @Getter
     @Setter
+    private String fileServerRoot;
+
+    @Getter
+    @Setter
+    private String loalFileName;
+
+    @Getter
+    @Setter
     private String behaviorName;
 }

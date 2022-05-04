@@ -242,6 +242,16 @@ public class StorageEngine extends BaseStorageEngine {
         }
     }
 
+    /**
+     * loadRecoverableTmpFile
+     * todo:
+     * 1.加载RecoverableTmpFile集合
+     * 2.RecoverableTmpFile集合排序：按照offset排序（必须保障顺序）
+     */
+    private void loadRecoverableTmpFile() {
+
+    }
+
     private static String getStorageIndexMapKey(String namespace, int storageEngineVersion) {
         return namespace + "-" + storageEngineVersion;
     }

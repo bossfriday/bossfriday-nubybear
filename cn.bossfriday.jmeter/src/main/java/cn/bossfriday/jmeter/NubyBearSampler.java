@@ -47,6 +47,8 @@ public class NubyBearSampler extends AbstractSampler implements TestStateListene
             config.setHost(getHost());
             config.setPort(getPort());
             config.setVirtualNodesNum(getVirtualNodesNum());
+            config.setFileServerRoot(getFileServerRoot());
+            config.setLoalFileName(getLocalFileName());
             config.setBehaviorName(getBehaviorName());
 
             sampler = NubyBearSamplerBuilder.getSampler(config);
@@ -95,6 +97,14 @@ public class NubyBearSampler extends AbstractSampler implements TestStateListene
 
     public Integer getVirtualNodesNum() {
         return Integer.parseInt(this.getPropertyAsString(GUID_VIRTUAL_NODES_NUM));
+    }
+
+    public String getFileServerRoot() {
+        return this.getPropertyAsString(GUID_FILE_SERVER_ROOT);
+    }
+
+    public String getLocalFileName() {
+        return this.getPropertyAsString(GUID_FILE_LOCAL_FILE_NAME);
     }
 
     public String getBehaviorName() {
