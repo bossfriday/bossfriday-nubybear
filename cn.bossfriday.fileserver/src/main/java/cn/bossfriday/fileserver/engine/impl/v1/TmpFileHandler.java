@@ -46,6 +46,11 @@ public class TmpFileHandler implements ITmpFileHandler {
         String fileTransactionId = msg.getFileTransactionId();
         FileChannel tmpFileAccess = null;
         WriteTmpFileResult result = null;
+        int chunkedDataSize = msg.getData().length;
+        if (chunkedDataSize == 0) {
+            log.warn("chunkedDataSize=0: " + fileTransactionId);
+            return null;
+        }
 
         try {
             FileTransactionContext ctx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
