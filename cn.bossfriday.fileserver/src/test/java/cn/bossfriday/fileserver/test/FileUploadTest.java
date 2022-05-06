@@ -13,9 +13,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,6 +39,11 @@ public class FileUploadTest {
         threadPool.shutdown();
     }
 
+    /**
+     * 下载
+     * 直接用浏览器就能下载（这里只是为了做些验证）
+     * @throws Exception
+     */
     private static void download() throws Exception {
         CloseableHttpClient httpClient = null;
         HttpGet httpGet = null;
@@ -57,14 +60,8 @@ public class FileUploadTest {
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 in = entity.getContent();
-                byte[] buffer = new byte[4096];
-                int readLength = 0;
-//                while ((readLength = in.read(buffer)) > 0) {
-//
-//                }
-
                 while (in.read()>0) {
-
+                    // 空转（本地不存储文件）
                 }
             }
         } finally {
@@ -95,6 +92,10 @@ public class FileUploadTest {
         }
     }
 
+    /**
+     * 上传
+     * @throws Exception
+     */
     private static void upload() throws Exception {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;

@@ -39,7 +39,7 @@ public class StorageEngine extends BaseStorageEngine {
     private HashMap<String, StorageNamespace> namespaceMap;    // 存储空间
 
     private StorageEngine() {
-        super(EACH_RECEIVE_QUEUE_SIZE);
+        super(128 * 1024);
         init();
     }
 
@@ -64,6 +64,7 @@ public class StorageEngine extends BaseStorageEngine {
     public void start() throws Exception {
         // todo:临时文件落盘恢复、过期文件清理任务启动（包含过期临时文件清理）、临时文件落盘……
         super.start();
+        loadRecoverableTmpFile();       // 服务非正常停止可能导致RecoverableTmpFile未落盘
         loadStorageIndex();
         log.info("StorageEngine start done: " + FileServerConfigManager.getCurrentClusterNodeName());
     }

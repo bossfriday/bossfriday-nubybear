@@ -77,9 +77,16 @@ public class FileTransactionContextManager {
             return;
         }
 
-        if (existed(fileTransactionId)) {
-            contextMap.remove(fileTransactionId);
-            log.info("remove context done: " + fileTransactionId);
+        FileTransactionContext context = null;
+        try {
+            if (existed(fileTransactionId)) {
+                context = contextMap.get(fileTransactionId);
+                contextMap.remove(fileTransactionId);
+                log.info("remove context done: " + fileTransactionId);
+            }
+        } finally {
+            if(context != null)
+                context = null;
         }
     }
 }

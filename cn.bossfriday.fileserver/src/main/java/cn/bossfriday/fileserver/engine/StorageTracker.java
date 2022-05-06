@@ -169,13 +169,13 @@ public class StorageTracker {
                         chunkedStream.close();
                     } catch (Exception e) {
                         log.warn("close inputStream or chunkedStream error!", e);
-                    }
-
-                    if (msg.getChunkIndex() == msg.getChunkCount() - 1) {
-                        // 最后1个分片完成
-                        FileTransactionContextManager.getInstance().removeContext(tid);
-                        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-                        log.info("download process done: " + tid);
+                    } finally {
+                        if (msg.getChunkIndex() == msg.getChunkCount() - 1) {
+                            // 最后1个分片完成
+                            FileTransactionContextManager.getInstance().removeContext(tid);
+                            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+                            log.info("download process done: " + tid);
+                        }
                     }
                 }
             });

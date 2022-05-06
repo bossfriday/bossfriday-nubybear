@@ -4,6 +4,7 @@ import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.TypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.fileserver.engine.StorageDispatcher;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
@@ -17,6 +18,21 @@ import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
 public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
     @Override
     public void onMessageReceived(WriteTmpFileMsg msg) throws Exception {
+        ActorRef sender = this.getSender();
+        /**
+         * 为了保障临时文件顺序写盘，每个事务使用唯一线程。
+         * 实际上多线程写临时文件的结果也是正确的（因为提前计算好了offset）
+         * 这里主要目的为：对磁盘友好
+         */
+        StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(new Runnable() {
+            @Override
+            public void run() {
+                process(sender, msg);
+            }
+        });
+    }
+
+    private void process(ActorRef sender, WriteTmpFileMsg msg) {
         WriteTmpFileResult result = null;
         try {
             ITmpFileHandler handler = StorageHandlerFactory.getTmpFileHandler(msg.getStorageEngineVersion());
@@ -25,11 +41,13 @@ public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
             log.error("WriteTmpFileActor process error!", ex);
             result = new WriteTmpFileResult(msg.getFileTransactionId(), OperationResult.SystemError);
         } finally {
-            if (result != null) {
-                this.getSender().tell(result, ActorRef.noSender());
+            try {
+                if (result != null) {
+                    sender.tell(result, ActorRef.noSender());
+                }
+            } catch (Exception e) {
+                log.error("tell error!", e);
             }
-
-            msg = null;
         }
     }
 }

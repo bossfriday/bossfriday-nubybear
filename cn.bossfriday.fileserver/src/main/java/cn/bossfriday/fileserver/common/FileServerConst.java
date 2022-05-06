@@ -6,7 +6,7 @@ public class FileServerConst {
      */
     public static final int DEFAULT_STORAGE_ENGINE_VERSION = 1;
     public static final int MAX_STORAGE_VERSION = 255;
-    public static final int DOWNLOAD_CHUNK_SIZE = 64 * 1024;     // 64K
+    public static final int DOWNLOAD_CHUNK_SIZE = 32 * 1024;
     public static final String STORAGE_FILE_EXTENSION_NAME = "data";
 
     /**

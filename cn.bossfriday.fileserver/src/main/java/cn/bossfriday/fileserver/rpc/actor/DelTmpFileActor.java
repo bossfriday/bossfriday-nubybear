@@ -21,8 +21,6 @@ public class DelTmpFileActor extends TypedActor<DeleteTmpFileMsg> {
             handler.deleteIngTmpFile(fileTransactionId);
         } catch (Exception ex) {
             log.error("DelTmpFileActor process error!", ex);
-        } finally {
-            msg = null;
         }
     }
 }

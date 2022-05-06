@@ -17,7 +17,7 @@ public class Bootstrap extends ServiceBootstrap {
 
     @Override
     protected void stop() throws Exception {
-
+        StorageEngine.getInstance().stop();
     }
 
     public static void main(String[] args) {

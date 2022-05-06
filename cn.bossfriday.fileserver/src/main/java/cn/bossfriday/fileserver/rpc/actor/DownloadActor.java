@@ -59,7 +59,6 @@ public class DownloadActor extends TypedActor<DownloadMsg> {
             result = new DownloadResult(msg.getFileTransactionId(), OperationResult.SystemError);
         } finally {
             this.getSender().tell(result, ActorRef.noSender());
-            msg = null;
         }
     }
 }
