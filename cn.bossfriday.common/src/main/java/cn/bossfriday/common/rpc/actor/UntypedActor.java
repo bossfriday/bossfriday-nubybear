@@ -46,11 +46,18 @@ public abstract class UntypedActor {
         this.setSender(sender);
         this.setSelf(self);
 
+        Object msgObj = null;
         try {
-            Object msgObj = actorSystem.getMsgDecoder().decode(message.getPayloadData());
+            msgObj = actorSystem.getMsgDecoder().decode(message.getPayloadData());
             this.onReceive(msgObj);
         } catch (Throwable e) {
             this.onFailed(e);
+        } finally {
+            if (msgObj != null) {
+                msgObj = null;
+            }
+
+            message = null;
         }
     }
 

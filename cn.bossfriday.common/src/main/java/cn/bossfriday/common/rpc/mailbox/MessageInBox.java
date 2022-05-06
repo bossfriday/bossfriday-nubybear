@@ -1,13 +1,16 @@
 package cn.bossfriday.common.rpc.mailbox;
 
-import cn.bossfriday.common.Const;
-import cn.bossfriday.common.rpc.transport.NettyServer;
 import cn.bossfriday.common.rpc.dispatch.ActorDispatcher;
 import cn.bossfriday.common.rpc.interfaces.IMsgHandler;
+import cn.bossfriday.common.rpc.transport.NettyServer;
 import cn.bossfriday.common.rpc.transport.RpcMessage;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.LinkedBlockingQueue;
+
+import static cn.bossfriday.common.Const.SLOW_QUEUE_THRESHOLD;
 
 @Slf4j
 public class MessageInBox extends MailBox {
@@ -15,8 +18,7 @@ public class MessageInBox extends MailBox {
     private ActorDispatcher dispatcher;
 
     public MessageInBox(int size, int port, ActorDispatcher actorDispatcher) {
-        super(size);
-
+        super(new LinkedBlockingQueue<RpcMessage>(size));
         this.dispatcher = actorDispatcher;
         this.server = new NettyServer(port, new IMsgHandler() {
             @Override
@@ -43,8 +45,8 @@ public class MessageInBox extends MailBox {
     public void process(RpcMessage msg) throws Exception {
         if (msg.getTimestamp() > 0) {
             long currentTimestamp = System.currentTimeMillis();
-            if (currentTimestamp - msg.getTimestamp() > Const.SLOW_QUEUE_THRESHOLD) {
-                log.warn("slow rpc, " + currentTimestamp + " - " + msg.getTimestamp() + " > " + Const.SLOW_QUEUE_THRESHOLD);
+            if (currentTimestamp - msg.getTimestamp() > SLOW_QUEUE_THRESHOLD) {
+                log.warn("slow rpc, " + currentTimestamp + " - " + msg.getTimestamp() + " > " + SLOW_QUEUE_THRESHOLD);
             }
         }
 
@@ -55,7 +57,7 @@ public class MessageInBox extends MailBox {
     public void stop() {
         try {
             super.isStart = false;
-            super.queue.shutdown();
+            super.queue.clear();
 
             if (this.server != null)
                 this.server.close();

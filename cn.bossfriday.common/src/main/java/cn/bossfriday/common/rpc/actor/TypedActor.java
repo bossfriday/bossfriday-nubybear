@@ -8,10 +8,6 @@ public abstract class TypedActor<T> extends UntypedActor {
 
     @Override
     public void onReceive(Object msg) throws Exception {
-        try {
-            onMessageReceived((T) msg);
-        } finally {
-            msg = null;
-        }
+        onMessageReceived((T) msg);
     }
 }
