@@ -31,14 +31,14 @@ nubybear是我家孩子的一只棕熊毛绒玩偶，没有其他意思。 该�
 【doing】**一个用Java开发的分布式高性能文件服务**，开源出来给有缘人抄作业吧。
 
 ## 3.1 设计预期
-* 【效率】使用netty实现http file server。
+* 【效率】使用netty实现http file server（不聚合httpRequest为FullHttpRequest）。--这些天又回顾了Netty的官方示例，在一些问题的解决中一度也是很苦恼（之前写的文件服务使用了HttpObjectAggregator聚合）
 * 【效率】使用ActorRpc做为RPC组件。
-* 【效率】文件存储落盘采用：零拷贝+顺序写盘，以最大化提升落盘速度。临时文件写入使用零拷贝、存储文件读取采用带环形缓存区RandomAccessFile操作（存储文件读取暂时排除使用MappedByteBuffer，完成后看压测结果再决定）。
-* 【服务器资源占用】thunk读写机制保障内存占用较小：thunk by thunk发送下载数据、thunk by thunk处理上传数据（不聚合httpRequest为FullHttpRequest）。
+* 【效率】文件存储落盘采用：零拷贝+顺序写盘，以最大化提升落盘速度。临时文件写入使用零拷贝、存储文件读取采用带环形缓存区RandomAccessFile操作（存储文件读取暂时排除使用MappedByteBuffer，因为MappedByteBuffer使用不当会导致JVM Crash，完成后看压测结果再决定）。--存储文件读取最没有使用带Buffer的RandomAccessFile，而是同样使用零拷贝。当前读写均使用零拷贝，写均保障顺序写盘。
+* 【服务器资源占用】thunk读写机制保障内存占用较小：thunk by thunk发送下载数据、thunk by thunk处理上传数据。 --由于ActorDispatcher内部封装了线程池，保障不了thunkData的串行处理，目前是应用层面做了处理（详见：StorageDispatcher），有点纠结是否将该逻辑下层到RPC层面。好像有人吐槽这是Actor模型的一个弊端，其实根据资源ID去保障执行线程的一致性，这个问题就解了。
 * 【功能】功能规划：普通上传、Base64上传（客户端截屏使用）、普通下载、文件删除、支持2G以上大文件上传下载（断点上传、下载）
+* 【扩展】主要步骤使用接口束行，依据版本获取实例，如果找不到则使用默认实现。这样做目的是为了达到类似装饰者模式的效果。
 * 【安全】文件下载地址防止暴力穷举。
 * 【安全】文件内容以一定数据结构存储与落盘文件中，服务端无法直接还远原始文件。
-* 【扩展】支持基于引擎版本的多实现。
 
 # 4. cn.bossfriday.jmeter
 * actor-rpc压力测试   
