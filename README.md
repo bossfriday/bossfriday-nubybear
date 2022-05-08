@@ -14,10 +14,12 @@
 ### 上传
 * 秒吞吐量：2455.19
 * 平均延时：27.53 毫秒
+[![O1lfyt.png](https://s1.ax1x.com/2022/05/08/O1lfyt.png)](https://imgtu.com/i/O1lfyt)
 
 ### 下载
 * 秒吞吐量：3513.70
 * 响应平均延时：2.64 毫秒
+[![O11Tnx.png](https://s1.ax1x.com/2022/05/08/O11Tnx.png)](https://imgtu.com/i/O11Tnx)
 
 
 # 1. 整体说明
