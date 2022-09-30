@@ -11,12 +11,12 @@
 * 压测工具：JMeter
 * 网络环境：内网（使用1台与文件服务内网互通的打压机压测）
 
-### 上传
+### 100K文件上传
 * 秒吞吐量：2455.19
 * 平均延时：27.53 毫秒
 [![O1lfyt.png](https://s1.ax1x.com/2022/05/08/O1lfyt.png)](https://imgtu.com/i/O1lfyt)
 
-### 下载
+### 100K文件下载
 * 秒吞吐量：3513.70
 * 响应平均延时：2.64 毫秒
 [![O11Tnx.png](https://s1.ax1x.com/2022/05/08/O11Tnx.png)](https://imgtu.com/i/O11Tnx)
