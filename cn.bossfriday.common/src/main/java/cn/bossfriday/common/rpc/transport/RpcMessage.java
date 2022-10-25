@@ -4,6 +4,11 @@ import cn.bossfriday.common.utils.UUIDUtil;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * RpcMessage
+ *
+ * @author chenx
+ */
 @Data
 public class RpcMessage {
     /**
@@ -64,8 +69,9 @@ public class RpcMessage {
      * getSessionString
      */
     public String getSessionString() {
-        if (this.session == null || this.session.length == 0)
+        if (this.session == null || this.session.length == 0) {
             throw new RuntimeException("Message.session is null or empty!");
+        }
 
         return UUIDUtil.getShortString(this.session);
     }
@@ -74,7 +80,7 @@ public class RpcMessage {
      * hasSource
      */
     public boolean hasSource() {
-        return StringUtils.isNotEmpty(sourceHost) && sourcePort > 0 && !"0.0.0.0".equals(sourceHost);
+        return StringUtils.isNotEmpty(this.sourceHost) && this.sourcePort > 0 && !"0.0.0.0".equals(this.sourceHost);
     }
 
     /**

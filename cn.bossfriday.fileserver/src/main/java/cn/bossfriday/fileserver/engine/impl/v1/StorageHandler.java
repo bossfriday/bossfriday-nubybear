@@ -26,7 +26,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTEN
 public class StorageHandler implements IStorageHandler {
 
     protected final ReentrantReadWriteLock fileChannelLock = new ReentrantReadWriteLock();
-    protected LRUHashMap<String, FileChannel> storageFileChannelMap = new LRUHashMap<>(1000, new F.Action2<String, FileChannel>() {
+    protected LruHashMap<String, FileChannel> storageFileChannelMap = new LruHashMap<>(1000, new Func.Action2<String, FileChannel>() {
 
         @Override
         public void invoke(String key, FileChannel fileChannel) {
@@ -38,7 +38,7 @@ public class StorageHandler implements IStorageHandler {
         }
     }, 1000 * 60 * 60L * 8);
 
-    protected LRUHashMap<MetaDataIndex, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
+    protected LruHashMap<MetaDataIndex, MetaData> metaDataMap = new LruHashMap<>(10000, null, 1000 * 60 * 60L * 8);
 
     @Override
     public StorageIndex getStorageIndex(String namespace) throws Exception {
@@ -56,16 +56,18 @@ public class StorageHandler implements IStorageHandler {
 
     @Override
     public StorageIndex ask(StorageIndex storageIndex, long dataLength) throws Exception {
-        if (storageIndex == null)
+        if (storageIndex == null) {
             throw new BizException("storageIndex is null");
+        }
 
-        if (dataLength <= 0)
+        if (dataLength <= 0) {
             throw new BizException("dataLength <= 0");
+        }
 
         int currentTime = Integer.parseInt(DateUtil.date2Str(new Date(), DateUtil.DEFAULT_DATE_HYPHEN_FORMAT));
         if (storageIndex.getTime() != currentTime) {
             // 如果跨天，则重新初始化 StorageIndex
-            storageIndex = getStorageIndex(storageIndex.getNamespace());
+            storageIndex = this.getStorageIndex(storageIndex.getNamespace());
         }
 
         storageIndex.addOffset(dataLength);
@@ -80,8 +82,9 @@ public class StorageHandler implements IStorageHandler {
         FileChannel tmpFileChannel = null;
 
         try {
-            if (recoverableTmpFile == null)
+            if (recoverableTmpFile == null) {
                 throw new BizException("RecoverableTmpFile is null");
+            }
 
             metaDataBytes = MetaData.builder()
                     .storeEngineVersion(recoverableTmpFile.getStoreEngineVersion())
@@ -93,7 +96,7 @@ public class StorageHandler implements IStorageHandler {
             long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime(), recoverableTmpFile.getOffset());
 
             // 存储元数据（不包含临时文件本身）
-            storageFileChannel = getFileChannel(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime());
+            storageFileChannel = this.getFileChannel(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime());
             FileUtil.transferFrom(storageFileChannel, metaDataBytes, recoverableTmpFile.getOffset());
 
             // 存储临时文件
@@ -138,16 +141,19 @@ public class StorageHandler implements IStorageHandler {
 
     @Override
     public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws Exception {
-        if (position < 0 && length <= 0)
+        if (position < 0 && length <= 0) {
             throw new BizException("invalid position or length: " + position + "/" + length);
+        }
 
-        if (position >= fileTotalSize)
+        if (position >= fileTotalSize) {
             throw new BizException("invalid position: position(" + position + ") >= fileTotalSize(" + fileTotalSize + ")");
+        }
 
-        if (position + length > fileTotalSize)
+        if (position + length > fileTotalSize) {
             throw new BizException("invalid position and length: position(" + position + ") + length(" + length + ") > fileTotalSize(" + fileTotalSize + ")");
+        }
 
-        FileChannel storageFileChannel = getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
         long chunkedFileDataBeginOffset = metaDataIndex.getOffset() + metaDataIndex.getMetaDataLength() + position;
 
         return FileUtil.transferTo(storageFileChannel, chunkedFileDataBeginOffset, length, false);
@@ -155,7 +161,7 @@ public class StorageHandler implements IStorageHandler {
 
     @Override
     public MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception {
-        FileChannel storageFileChannel = getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
         byte[] metaDataBytes = null;
         try {
             metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
@@ -170,23 +176,24 @@ public class StorageHandler implements IStorageHandler {
      */
     protected FileChannel getFileChannel(String namespace, int time) throws Exception {
         String key = namespace + "-" + time;
-        fileChannelLock.readLock().lock();
+        this.fileChannelLock.readLock().lock();
         try {
-            if (storageFileChannelMap.containsKey(key))
-                return storageFileChannelMap.get(key);
+            if (this.storageFileChannelMap.containsKey(key)) {
+                return this.storageFileChannelMap.get(key);
+            }
         } finally {
-            fileChannelLock.readLock().unlock();
+            this.fileChannelLock.readLock().unlock();
         }
 
-        fileChannelLock.writeLock().lock();
+        this.fileChannelLock.writeLock().lock();
         try {
             File storageFile = getStorageFile(namespace, time);
             FileChannel fileChannel = new RandomAccessFile(storageFile, "rw").getChannel();
-            storageFileChannelMap.put(key, fileChannel);
+            this.storageFileChannelMap.put(key, fileChannel);
 
             return fileChannel;
         } finally {
-            fileChannelLock.writeLock().unlock();
+            this.fileChannelLock.writeLock().unlock();
         }
     }
 

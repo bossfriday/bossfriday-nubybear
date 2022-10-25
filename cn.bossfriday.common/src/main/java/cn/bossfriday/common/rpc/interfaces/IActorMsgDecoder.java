@@ -1,5 +1,10 @@
 package cn.bossfriday.common.rpc.interfaces;
 
+/**
+ * IActorMsgDecoder
+ *
+ * @author chenx
+ */
 public interface IActorMsgDecoder {
     /**
      * decode

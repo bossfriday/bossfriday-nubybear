@@ -1,25 +1,32 @@
 package cn.bossfriday.common.rpc.dispatch;
 
-import cn.bossfriday.common.rpc.actor.UntypedActor;
+import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.rpc.ActorSystem;
+import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.rpc.actor.pool.ActorPool;
 import cn.bossfriday.common.rpc.interfaces.IExecutor;
-import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.transport.RpcMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.ExecutorService;
 
+/**
+ * ActorExecutor
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ActorExecutor implements IExecutor {
+
     private ExecutorService processThreadPool = null;
-    private Class<? extends UntypedActor> actorCls = null;
+    private Class<? extends BaseUntypedActor> actorCls = null;
     private int min;
     private int max;
     private String method;
     private ActorPool actorPool;
 
-    public ActorExecutor(int min, int max, String method, Class<? extends UntypedActor> cls, Object... args) {
+    public ActorExecutor(int min, int max, String method, Class<? extends BaseUntypedActor> cls, Object... args) {
         this(min, max, method, ActorDispatcher.DEFAULT_THREAD_POOL, cls, args);
     }
 
@@ -27,10 +34,11 @@ public class ActorExecutor implements IExecutor {
                          int max,
                          String method,
                          ExecutorService threadPool,
-                         Class<? extends UntypedActor> cls,
+                         Class<? extends BaseUntypedActor> cls,
                          Object... args) {
-        if (StringUtils.isEmpty(method))
-            throw new RuntimeException("ActorExecutor.method is null or empty!");
+        if (StringUtils.isEmpty(method)) {
+            throw new BizException("ActorExecutor.method is null or empty!");
+        }
 
         this.processThreadPool = threadPool;
         this.actorCls = cls;
@@ -43,9 +51,9 @@ public class ActorExecutor implements IExecutor {
     @Override
     public void process(RpcMessage message, ActorSystem actorSystem) {
         this.processThreadPool.execute(() -> {
-            UntypedActor actor = null;
+            BaseUntypedActor actor = null;
             try {
-                actor = actorPool.borrowObject();
+                actor = this.actorPool.borrowObject();
                 if (actor != null) {
                     actor.onReceive(message, actorSystem);
                 }
@@ -54,7 +62,7 @@ public class ActorExecutor implements IExecutor {
             } finally {
                 if (actor != null) {
                     actor.clean();
-                    actorPool.returnObject(actor);
+                    this.actorPool.returnObject(actor);
                 }
             }
         });

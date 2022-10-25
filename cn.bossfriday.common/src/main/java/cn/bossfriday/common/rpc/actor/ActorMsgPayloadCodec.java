@@ -8,8 +8,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
+/**
+ * ActorMsgPayloadCodec
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ActorMsgPayloadCodec {
+
+    private ActorMsgPayloadCodec() {
+
+    }
+
     /**
      * encode
      *
@@ -36,7 +46,7 @@ public class ActorMsgPayloadCodec {
             }
         }
 
-        return null;
+        return new byte[0];
     }
 
     /**

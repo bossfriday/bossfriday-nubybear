@@ -1,6 +1,6 @@
 package cn.bossfriday.jmeter.sampler;
 
-import cn.bossfriday.common.ServiceBootstrap;
+import cn.bossfriday.common.AbstractServiceBootstrap;
 import cn.bossfriday.common.conf.ServiceConfig;
 import cn.bossfriday.common.router.ClusterNode;
 import cn.bossfriday.common.router.ClusterRouterFactory;
@@ -22,7 +22,7 @@ import static cn.bossfriday.jmeter.common.Const.FOO_SERVER_METHOD_NAME;
 public class RpcSampler extends BaseSampler {
     private static AtomicInteger sampleIndex;
     private static ActorRef sender;
-    private static ServiceBootstrap serviceBootstrap;
+    private static AbstractServiceBootstrap serviceBootstrap;
     private static ServiceConfig serviceConfig;
     private static String sampleLabel;
 
@@ -34,19 +34,19 @@ public class RpcSampler extends BaseSampler {
     public void testStarted() {
         try {
             sampleIndex = new AtomicInteger(0);
-            sampleLabel = config.getBehaviorName();
+            sampleLabel = this.config.getBehaviorName();
 
             // init serviceBootstrap
-            ClusterNode clusterNode = new ClusterNode(config.getNodeName(), config.getVirtualNodesNum(), config.getHost(), config.getPort());
-            serviceConfig = new ServiceConfig(config.getSystemName(), config.getZkAddress(), clusterNode, null);
-            serviceBootstrap = new ServiceBootstrap() {
+            ClusterNode clusterNode = new ClusterNode(this.config.getNodeName(), this.config.getVirtualNodesNum(), this.config.getHost(), this.config.getPort());
+            serviceConfig = new ServiceConfig(this.config.getSystemName(), this.config.getZkAddress(), clusterNode, null);
+            serviceBootstrap = new AbstractServiceBootstrap() {
                 @Override
-                protected void start() throws Exception {
+                protected void start() {
 
                 }
 
                 @Override
-                protected void stop() throws Exception {
+                protected void stop() {
 
                 }
             };
@@ -65,8 +65,9 @@ public class RpcSampler extends BaseSampler {
     public SampleResult sample() {
         SampleResult result = new SampleResult();
         result.setSampleLabel(sampleLabel);
-        if (isTestStartedError)
-            return sampleFailedByTestStartedError();
+        if (this.isTestStartedError) {
+            return this.sampleFailedByTestStartedError();
+        }
 
         try {
             int i = sampleIndex.getAndIncrement();

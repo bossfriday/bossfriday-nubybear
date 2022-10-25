@@ -2,7 +2,17 @@ package cn.bossfriday.common.router;
 
 import cn.bossfriday.common.utils.UUIDUtil;
 
+/**
+ * RoutableBeanFactory
+ *
+ * @author chenx
+ */
 public class RoutableBeanFactory {
+
+    private RoutableBeanFactory() {
+
+    }
+
     /**
      * 随机路由
      *
@@ -13,7 +23,7 @@ public class RoutableBeanFactory {
     public static RoutableBean buildRandomRouteBean(String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
         String routeKey = UUIDUtil.getShortString();
-        byte routeType = RouteType.RandomRoute.getValue();
+        byte routeType = RouteType.RANDOM_ROUTE.getValue();
 
         return new RoutableBean(appId, routeKey, method, null, null, msg, routeType);
     }
@@ -28,7 +38,7 @@ public class RoutableBeanFactory {
      */
     public static RoutableBean buildKeyRouteBean(String routeKey, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
-        byte routeType = RouteType.KeyRoute.getValue();
+        byte routeType = RouteType.KEY_ROUTE.getValue();
 
         return new RoutableBean(appId, routeKey, method, null, null, msg, routeType);
     }
@@ -43,7 +53,7 @@ public class RoutableBeanFactory {
      */
     public static RoutableBean buildResourceIdRouteBean(String resourceId, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
-        byte routeType = RouteType.ResourceIdRoute.getValue();
+        byte routeType = RouteType.RESOURCE_ID_ROUTE.getValue();
 
         return new RoutableBean(appId, null, method, resourceId, null, msg, routeType);
     }
@@ -58,7 +68,7 @@ public class RoutableBeanFactory {
      */
     public static RoutableBean buildForceRouteBean(String clusterNodeName, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
-        byte routeType = RouteType.ForceRoute.getValue();
+        byte routeType = RouteType.FORCE_ROUTE.getValue();
 
         return new RoutableBean(appId, null, method, null, clusterNodeName, msg, routeType);
     }

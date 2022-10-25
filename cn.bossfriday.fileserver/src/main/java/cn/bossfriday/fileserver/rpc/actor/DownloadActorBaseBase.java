@@ -3,7 +3,7 @@ package cn.bossfriday.fileserver.rpc.actor;
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.common.rpc.actor.TypedActor;
+import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
@@ -18,16 +18,16 @@ import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZ
 
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_DOWNLOAD, poolName = ACTOR_FS_DOWNLOAD + "_Pool")
-public class DownloadActor extends TypedActor<DownloadMsg> {
+public class DownloadActorBaseBase extends BaseTypedActorBase<DownloadMsg> {
 
     @Override
-    public void onMessageReceived(DownloadMsg msg) throws Exception {
+    public void onMessageReceived(DownloadMsg msg) {
         String fileTransactionId = "";
         DownloadResult result = null;
         try {
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
-            long metaDataIndexHash64 = MetaDataIndex.hash64(metaDataIndex.getNamespace(),metaDataIndex.getTime(), metaDataIndex.getOffset());
+            long metaDataIndexHash64 = MetaDataIndex.hash64(metaDataIndex.getNamespace(), metaDataIndex.getTime(), metaDataIndex.getOffset());
 
             MetaData metaData = StorageEngine.getInstance().getMetaData(metaDataIndexHash64, metaDataIndex);
             long fileTotalSize = metaData.getFileTotalSize();
@@ -38,8 +38,9 @@ public class DownloadActor extends TypedActor<DownloadMsg> {
             int length = chunkSize;
             if (chunkIndex + 1 >= chunkCount) {
                 int x = (int) (chunkCount * DOWNLOAD_CHUNK_SIZE - fileTotalSize);
-                if (x < 0)
+                if (x < 0) {
                     throw new BizException("invalid chunkCount: (chunkCount * chunkSize - fileTotalSize) < 0");
+                }
 
                 length = DOWNLOAD_CHUNK_SIZE - x;
             }

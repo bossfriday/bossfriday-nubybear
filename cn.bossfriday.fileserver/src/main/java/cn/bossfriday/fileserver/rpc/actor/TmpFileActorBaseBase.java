@@ -2,7 +2,7 @@ package cn.bossfriday.fileserver.rpc.actor;
 
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.common.rpc.actor.TypedActor;
+import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageDispatcher;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
@@ -15,9 +15,9 @@ import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
 
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_TMP_FILE, poolName = ACTOR_FS_TMP_FILE + "_Pool")
-public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
+public class TmpFileActorBaseBase extends BaseTypedActorBase<WriteTmpFileMsg> {
     @Override
-    public void onMessageReceived(WriteTmpFileMsg msg) throws Exception {
+    public void onMessageReceived(WriteTmpFileMsg msg) {
         ActorRef sender = this.getSender();
         /**
          * 为了保障临时文件顺序写盘，每个事务使用唯一线程。
@@ -27,7 +27,7 @@ public class TmpFileActor extends TypedActor<WriteTmpFileMsg> {
         StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(new Runnable() {
             @Override
             public void run() {
-                process(sender, msg);
+                TmpFileActorBaseBase.this.process(sender, msg);
             }
         });
     }

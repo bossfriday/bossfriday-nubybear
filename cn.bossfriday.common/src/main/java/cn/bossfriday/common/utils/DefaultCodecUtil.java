@@ -1,71 +1,60 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.rpc.exception.SysException;
+import cn.bossfriday.common.exception.BizException;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
+/**
+ * DefaultCodecUtil
+ *
+ * @author chenx
+ */
 public class DefaultCodecUtil {
-    /**
-     * encode
-     */
-    public static byte[] encode(Object obj) throws SysException {
-        if (obj != null) {
-            ByteArrayOutputStream bos = null;
-            ObjectOutputStream oos = null;
-            try {
-                bos = new ByteArrayOutputStream();
-                oos = new ObjectOutputStream(bos);
-                oos.writeObject(obj);
-                oos.flush();
-                byte[] ret = bos.toByteArray();
 
-                return ret;
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (oos != null)
-                        oos.close();
-                    if (bos != null)
-                        bos.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    private DefaultCodecUtil() {
 
-        throw new SysException("Encode error!");
     }
 
     /**
-     * decode（default decode）
+     * encode
+     *
+     * @param obj
+     * @return
+     * @throws BizException
+     * @throws IOException
      */
-    public static Object decode(byte[] bytes) throws SysException {
-        if (bytes != null && bytes.length > 0) {
-            ByteArrayInputStream bis = null;
-            ObjectInputStream ois = null;
-            try {
-                bis = new ByteArrayInputStream(bytes);
-                ois = new ObjectInputStream(bis);
-                Object ret = ois.readObject();
-                return ret;
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (ois != null)
-                        ois.close();
-                    if (bis != null)
-                        bis.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+    public static byte[] encode(Object obj) throws BizException, IOException {
+        if (obj != null) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+                oos.writeObject(obj);
+                oos.flush();
+
+                return bos.toByteArray();
             }
         }
 
-        throw new SysException("Decode error!");
+        throw new BizException("DefaultCodecUtil.encode() error!");
+    }
+
+    /**
+     * decode
+     *
+     * @param bytes
+     * @return
+     * @throws BizException
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static Object decode(byte[] bytes) throws BizException, IOException, ClassNotFoundException {
+        if (bytes != null && bytes.length > 0) {
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+                 ObjectInputStream ois = new ObjectInputStream(bis)) {
+
+                return ois.readObject();
+            }
+        }
+
+        throw new BizException("DefaultCodecUtil.decode() error!");
     }
 }

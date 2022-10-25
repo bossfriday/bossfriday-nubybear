@@ -1,14 +1,28 @@
 package cn.bossfriday.common.router;
 
 import cn.bossfriday.common.conf.ServiceConfig;
+import cn.bossfriday.common.exception.BizException;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * ClusterRouterFactory
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ClusterRouterFactory {
+
     private static volatile ClusterRouter clusterRouter;
+
+    private ClusterRouterFactory() {
+
+    }
 
     /**
      * build
+     *
+     * @param serviceConfig
+     * @throws Exception
      */
     public static void build(ServiceConfig serviceConfig) throws Exception {
         if (clusterRouter == null) {
@@ -27,10 +41,13 @@ public class ClusterRouterFactory {
 
     /**
      * getClusterRouter
+     *
+     * @return
      */
-    public static ClusterRouter getClusterRouter() throws Exception {
-        if (clusterRouter == null)
-            throw new Exception("plz invoke build() firstly!");
+    public static ClusterRouter getClusterRouter() {
+        if (clusterRouter == null) {
+            throw new BizException("plz invoke build() firstly!");
+        }
 
         return clusterRouter;
     }

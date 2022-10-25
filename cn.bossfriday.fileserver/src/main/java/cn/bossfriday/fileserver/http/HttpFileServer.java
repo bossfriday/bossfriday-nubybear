@@ -23,7 +23,7 @@ public class HttpFileServer {
     public static void start() throws Exception {
         int port = FileServerConfigManager.getFileServerConfig().getHttpPort();
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(1);
         try {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup);

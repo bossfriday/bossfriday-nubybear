@@ -6,15 +6,22 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * NettyClientHandler
+ *
+ * @author chenx
+ */
 public class NettyClientHandler extends SimpleChannelInboundHandler<RpcMessage> {
+
     private NettyClient client;
-    public NettyClientHandler(NettyClient client){
+
+    public NettyClientHandler(NettyClient client) {
         this.client = client;
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RpcMessage msg) throws Exception {
-
+    protected void channelRead0(ChannelHandlerContext ctx, RpcMessage msg) {
+        // default implementation ignored
     }
 
     @Override
@@ -23,7 +30,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcMessage> 
         eventLoop.schedule(new Runnable() {
             @Override
             public void run() {
-                client.connect();
+                NettyClientHandler.this.client.connect();
             }
         }, 1L, TimeUnit.SECONDS);
 

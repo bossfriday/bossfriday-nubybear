@@ -4,7 +4,13 @@ import cn.bossfriday.common.rpc.interfaces.IMsgHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+/**
+ * NettyServerHandler
+ *
+ * @author chenx
+ */
 public class NettyServerHandler extends SimpleChannelInboundHandler<RpcMessage> {
+    
     private IMsgHandler handler;
 
     public NettyServerHandler(IMsgHandler handler) {

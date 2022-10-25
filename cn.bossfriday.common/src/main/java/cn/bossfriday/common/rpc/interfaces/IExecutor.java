@@ -3,6 +3,11 @@ package cn.bossfriday.common.rpc.interfaces;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.transport.RpcMessage;
 
+/**
+ * IExecutor
+ *
+ * @author chenx
+ */
 public interface IExecutor {
     /**
      * process

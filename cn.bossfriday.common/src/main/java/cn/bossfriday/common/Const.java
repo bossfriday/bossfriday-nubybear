@@ -1,16 +1,26 @@
 package cn.bossfriday.common;
 
+/**
+ * Const
+ *
+ * @author chenx
+ */
 public class Const {
-    private static final int cpuProcessors;
+
+    private static final int CPUS;
 
     static {
-        cpuProcessors = Runtime.getRuntime().availableProcessors();
+        CPUS = Runtime.getRuntime().availableProcessors();
+    }
+
+    private Const() {
+
     }
 
     /**
      * common
      */
-    public static final int CPU_PROCESSORS = cpuProcessors;
+    public static final int CPU_PROCESSORS = CPUS;
 
     /**
      * thread pool name
@@ -32,7 +42,7 @@ public class Const {
      */
     public static final int EACH_RECEIVE_QUEUE_SIZE = 1024 * 1024;
     public static final int EACH_SEND_QUEUE_SIZE = 1024 * 1024;
-    public static final int SLOW_QUEUE_THRESHOLD = 500; // ms
+    public static final int SLOW_QUEUE_THRESHOLD = 500;
 
     /**
      * zk

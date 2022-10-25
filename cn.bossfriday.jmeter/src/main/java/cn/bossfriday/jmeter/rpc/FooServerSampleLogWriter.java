@@ -3,14 +3,16 @@ package cn.bossfriday.jmeter.rpc;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 
 public class FooServerSampleLogWriter {
+
     private static final Logger log = LoggingManager.getLoggerForClass();
     private static BufferedWriter bw;
+
+    private FooServerSampleLogWriter() {
+        
+    }
 
     static {
         try {
@@ -36,7 +38,7 @@ public class FooServerSampleLogWriter {
      * @param line
      * @throws Exception
      */
-    public static void writeSampleResultLog(BufferedWriter bw, String line) throws Exception {
+    public static void writeSampleResultLog(BufferedWriter bw, String line) throws IOException {
         bw.write(line + "\r\n");
         bw.flush();
     }
@@ -47,8 +49,8 @@ public class FooServerSampleLogWriter {
                                             String responseCode,
                                             String responseMessage,
                                             String threadName,
-                                            boolean success) throws Exception {
-        String line = getLineContent(timeStamp, elapsed,label,responseCode,responseMessage,threadName,success);
+                                            boolean success) throws IOException {
+        String line = getLineContent(timeStamp, elapsed, label, responseCode, responseMessage, threadName, success);
         bw.write(line + "\r\n");
         bw.flush();
     }

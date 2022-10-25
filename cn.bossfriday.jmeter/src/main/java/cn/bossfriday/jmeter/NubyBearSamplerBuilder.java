@@ -1,6 +1,5 @@
 package cn.bossfriday.jmeter;
 
-import cn.bossfriday.common.rpc.actor.UntypedActor;
 import cn.bossfriday.jmeter.common.SamplerConfig;
 import cn.bossfriday.jmeter.sampler.BaseSampler;
 import org.reflections.Reflections;
@@ -68,8 +67,9 @@ public class NubyBearSamplerBuilder {
      */
     public static BaseSampler getSampler(SamplerConfig config) throws Exception {
         String behaviorName = config.getBehaviorName();
-        if (!clazzMap.containsKey(config.getBehaviorName()))
+        if (!clazzMap.containsKey(config.getBehaviorName())) {
             throw new Exception("invalid behaviorName!(" + behaviorName + ")");
+        }
 
         return (BaseSampler) clazzMap.get(behaviorName).getConstructor(SamplerConfig.class).newInstance(config);
     }

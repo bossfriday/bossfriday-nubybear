@@ -1,11 +1,21 @@
 package cn.bossfriday.common.utils;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 
+/**
+ * Base58Util
+ *
+ * @author chenx
+ */
 public class Base58Util {
+
     private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     private static final int[] INDEXES = new int[128];
+
+    private Base58Util() {
+
+    }
 
     static {
         for (int i = 0; i < INDEXES.length; i++) {
@@ -18,7 +28,6 @@ public class Base58Util {
 
     /**
      * encode
-     * Encodes the given bytes in base58. No checksum is appended.
      *
      * @param input
      * @return
@@ -59,11 +68,7 @@ public class Base58Util {
         }
 
         byte[] output = copyOfRange(temp, j, temp.length);
-        try {
-            return new String(output, "US-ASCII");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);  // Cannot happen.
-        }
+        return new String(output, StandardCharsets.US_ASCII);
     }
 
     /**
@@ -133,13 +138,17 @@ public class Base58Util {
         return new BigInteger(1, decode(input));
     }
 
-    //
-    // number -> number / 58, returns number % 58
-    //
+    /**
+     * number -> number / 58, returns number % 58
+     *
+     * @param number
+     * @param startAt
+     * @return
+     */
     private static byte divmod58(byte[] number, int startAt) {
         int remainder = 0;
         for (int i = startAt; i < number.length; i++) {
-            int digit256 = (int) number[i] & 0xFF;
+            int digit256 = number[i] & 0xFF;
             int temp = remainder * 256 + digit256;
 
             number[i] = (byte) (temp / 58);
@@ -150,13 +159,17 @@ public class Base58Util {
         return (byte) remainder;
     }
 
-    //
-    // number -> number / 256, returns number % 256
-    //
+    /**
+     * number -> number / 256, returns number % 256
+     *
+     * @param number58
+     * @param startAt
+     * @return
+     */
     private static byte divmod256(byte[] number58, int startAt) {
         int remainder = 0;
         for (int i = startAt; i < number58.length; i++) {
-            int digit58 = (int) number58[i] & 0xFF;
+            int digit58 = number58[i] & 0xFF;
             int temp = remainder * 58 + digit58;
 
             number58[i] = (byte) (temp / 256);
@@ -167,6 +180,14 @@ public class Base58Util {
         return (byte) remainder;
     }
 
+    /**
+     * copyOfRange
+     *
+     * @param source
+     * @param from
+     * @param to
+     * @return
+     */
     private static byte[] copyOfRange(byte[] source, int from, int to) {
         byte[] range = new byte[to - from];
         System.arraycopy(source, from, range, 0, range.length);

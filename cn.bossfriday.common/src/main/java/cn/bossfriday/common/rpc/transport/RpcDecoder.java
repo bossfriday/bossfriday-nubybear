@@ -6,10 +6,18 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
 
+import static cn.bossfriday.common.utils.ByteUtil.INT_BYTES_LENGTH;
+
+/**
+ * RpcDecoder
+ *
+ * @author chenx
+ */
 public class RpcDecoder extends ByteToMessageDecoder {
+
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        if (in.readableBytes() < 4) {
+        if (in.readableBytes() < INT_BYTES_LENGTH) {
             return;
         }
 

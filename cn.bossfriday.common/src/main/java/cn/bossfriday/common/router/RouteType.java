@@ -1,13 +1,31 @@
 package cn.bossfriday.common.router;
 
+/**
+ * RouteType
+ *
+ * @author chenx
+ */
 public enum RouteType {
-    RandomRoute((byte) 0),  // 随机路由
 
-    KeyRoute((byte) 1),   // 指定Key路由
+    /**
+     * 随机路由
+     */
+    RANDOM_ROUTE((byte) 0),
 
-    ResourceIdRoute((byte) 2), // 资源Id路由
+    /**
+     * 指定Key路由
+     */
+    KEY_ROUTE((byte) 1),
 
-    ForceRoute((byte) 3); // 强制路由
+    /**
+     * 资源Id路由
+     */
+    RESOURCE_ID_ROUTE((byte) 2),
+
+    /**
+     * 强制路由
+     */
+    FORCE_ROUTE((byte) 3);
 
     private final byte value;
 

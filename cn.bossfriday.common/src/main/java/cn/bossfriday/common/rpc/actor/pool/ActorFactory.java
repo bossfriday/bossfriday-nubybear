@@ -1,44 +1,50 @@
 package cn.bossfriday.common.rpc.actor.pool;
 
-import cn.bossfriday.common.rpc.actor.UntypedActor;
+import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 import java.lang.reflect.Constructor;
 
-public class ActorFactory extends BasePooledObjectFactory<UntypedActor> {
-    private Class<? extends UntypedActor> cls;
+/**
+ * ActorFactory
+ *
+ * @author chenx
+ */
+public class ActorFactory extends BasePooledObjectFactory<BaseUntypedActor> {
+
+    private Class<? extends BaseUntypedActor> cls;
     private Object[] args;
 
-    public ActorFactory(Class<? extends UntypedActor> cls, Object[] args) {
+    public ActorFactory(Class<? extends BaseUntypedActor> cls, Object[] args) {
         this.cls = cls;
         this.args = args;
     }
 
     @Override
-    public UntypedActor create() throws Exception {
+    public BaseUntypedActor create() throws Exception {
         if (this.cls != null) {
-            UntypedActor untypedActor = null;
-            if (args != null && args.length > 0) {
-                Class<?>[] clsArray = new Class<?>[args.length];
-                for (int i = 0; i < args.length; i++) {
-                    clsArray[i] = args[i].getClass();
+            BaseUntypedActor baseUntypedActor = null;
+            if (this.args != null && this.args.length > 0) {
+                Class<?>[] clsArray = new Class<?>[this.args.length];
+                for (int i = 0; i < this.args.length; i++) {
+                    clsArray[i] = this.args[i].getClass();
                 }
-                Constructor<? extends UntypedActor> constructor = this.cls.getConstructor(clsArray);
-                untypedActor = constructor.newInstance(args);
+                Constructor<? extends BaseUntypedActor> constructor = this.cls.getConstructor(clsArray);
+                baseUntypedActor = constructor.newInstance(this.args);
             } else {
-                untypedActor = cls.newInstance();
+                baseUntypedActor = this.cls.newInstance();
             }
 
-            return untypedActor;
+            return baseUntypedActor;
         }
 
         return null;
     }
 
     @Override
-    public PooledObject<UntypedActor> wrap(UntypedActor obj) {
-        return new DefaultPooledObject<UntypedActor>(obj);
+    public PooledObject<BaseUntypedActor> wrap(BaseUntypedActor obj) {
+        return new DefaultPooledObject<>(obj);
     }
 }

@@ -3,7 +3,7 @@ package cn.bossfriday.fileserver.rpc.actor;
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.common.rpc.actor.TypedActor;
+import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
@@ -15,9 +15,9 @@ import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_UPLOAD;
 
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_UPLOAD, poolName = ACTOR_FS_UPLOAD + "_Pool")
-public class UploadActor extends TypedActor<WriteTmpFileResult> {
+public class UploadActorBaseBase extends BaseTypedActorBase<WriteTmpFileResult> {
     @Override
-    public void onMessageReceived(WriteTmpFileResult msg) throws Exception {
+    public void onMessageReceived(WriteTmpFileResult msg) {
 
         String fileTransactionId = "";
         UploadResult result = null;

@@ -12,42 +12,50 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * NettyClient
+ *
+ * @author chenx
+ */
 @Slf4j
 public class NettyClient {
+
     private static final int QUEUE_FIX_SIZE = 10000;
     private static final int CONNECT_TIMEOUT_MILLIS = 10000;
-    private static final int RECONNECT_INTERVAL_SECOND = 5; // 重连时间间隔（秒）
+    private static final int RECONNECT_INTERVAL_SECOND = 5;
 
     private Bootstrap bootstrap;
-    private EventLoopGroup group;
     private Channel channel;
 
     private String host;
     private int port;
 
-    private final EvictingQueue<RpcMessage> sendQueue; // 使用有限队列防止异常下OOM
+    /**
+     * 使用有限队列防止异常下OOM
+     */
+    private final EvictingQueue<RpcMessage> sendQueue;
     private AtomicReference<ConnStatus> connState;
 
     public NettyClient(String host, int port) {
         this.host = host;
         this.port = port;
-        sendQueue = EvictingQueue.create(QUEUE_FIX_SIZE);
-        connState = new AtomicReference<>(ConnStatus.CLOSE);
+        this.sendQueue = EvictingQueue.create(QUEUE_FIX_SIZE);
+        this.connState = new AtomicReference<>(ConnStatus.CLOSE);
     }
 
     /**
      * connect
      */
     public void connect() {
-        if (connState.get() == ConnStatus.CONNECTING || connState.get() == ConnStatus.CONNECTED) {
+        if (this.connState.get() == ConnStatus.CONNECTING || this.connState.get() == ConnStatus.CONNECTED) {
             return;
         }
 
-        connState.set(ConnStatus.CONNECTING);
+        this.connState.set(ConnStatus.CONNECTING);
         NettyClient client = this;
-        bootstrap = new Bootstrap();
-        group = new NioEventLoopGroup();
-        bootstrap.group(group)
+        this.bootstrap = new Bootstrap();
+        EventLoopGroup group = new NioEventLoopGroup();
+        this.bootstrap.group(group)
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
@@ -64,49 +72,54 @@ public class NettyClient {
         ChannelFuture future = this.bootstrap.connect(this.host, this.port);
         future.addListener((ChannelFutureListener) channelFuture -> {
             if (!channelFuture.isSuccess()) {
-                log.warn("NettyClient.connect() failed, prepare to reconnect, target:" + host + ":" + port);
-                connState.set(ConnStatus.CLOSE);
+                log.warn("NettyClient.connect() failed, prepare to reconnect, target:" + this.host + ":" + this.port);
+                this.connState.set(ConnStatus.CLOSE);
                 final EventLoop loop = channelFuture.channel().eventLoop();
                 loop.schedule(new Runnable() {
                     @Override
                     public void run() {
-                        connect();
+                        NettyClient.this.connect();
                     }
                 }, RECONNECT_INTERVAL_SECOND, TimeUnit.SECONDS);
 
                 return;
             }
 
-            log.info("NettyClient.connect() success, target:" + host + ":" + port);
+            log.info("NettyClient.connect() success, target:" + this.host + ":" + this.port);
             this.channel = channelFuture.channel();
-            connState.set(ConnStatus.CONNECTED);
+            this.connState.set(ConnStatus.CONNECTED);
 
             // add close listener
-            channel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
-                connState.set(ConnStatus.CLOSE);    // 如果连接被动关闭,一直重连
-                connect();
+            this.channel.closeFuture().addListener((ChannelFutureListener) closeFuture -> {
+                // 如果连接被动关闭,一直重连
+                this.connState.set(ConnStatus.CLOSE);
+                this.connect();
             });
 
-            consumeQueue();
+            this.consumeQueue();
         });
     }
 
     /**
      * send
+     *
+     * @param message
      */
     public void send(RpcMessage message) {
-        switch (connState.get()) {
+        switch (this.connState.get()) {
             case CLOSE:
             case CONNECTING:
-                connect();
-                insertToQueue(message);
+                this.connect();
+                this.insertToQueue(message);
                 break;
             case CONNECTED:
-                write(message);
+                this.write(message);
                 break;
             case CLOSED:
                 log.warn("ignore send message, connState:CLOSED");
-                return;
+                break;
+            default:
+                log.warn("ignore send message, unimplemented ConnStatus!");
         }
     }
 
@@ -115,43 +128,57 @@ public class NettyClient {
      */
     public void close() {
         if (this.channel != null) {
-            connState.set(ConnStatus.CLOSED);
+            this.connState.set(ConnStatus.CLOSED);
             this.channel.close();
             this.channel = null;
             this.bootstrap = null;
         }
     }
 
+    /**
+     * consumeQueue
+     */
     private void consumeQueue() {
-        if (sendQueue.size() == 0) {
+        if (this.sendQueue.isEmpty()) {
             return;
         }
 
         RpcMessage message;
-        while ((message = sendQueue.poll()) != null) {
-            write(message);
+        while ((message = this.sendQueue.poll()) != null) {
+            this.write(message);
         }
     }
 
+    /**
+     * insertToQueue
+     *
+     * @param message
+     */
     private void insertToQueue(RpcMessage message) {
-        if (sendQueue.size() == QUEUE_FIX_SIZE)
+        if (this.sendQueue.size() == QUEUE_FIX_SIZE) {
             log.warn("The sendQueue is full and discard an old msg, session:=" + message.getSessionString());
+        }
 
-        sendQueue.offer(message);
+        this.sendQueue.offer(message);
     }
 
+    /**
+     * write
+     *
+     * @param message
+     */
     private void write(RpcMessage message) {
-        if (!channel.isActive()) {
-            connState.set(ConnStatus.CLOSE);
-            insertToQueue(message);
+        if (!this.channel.isActive()) {
+            this.connState.set(ConnStatus.CLOSE);
+            this.insertToQueue(message);
             return;
         }
 
         try {
             message.buildTimestamp();
-            channel.writeAndFlush(message).addListener(future -> {
+            this.channel.writeAndFlush(message).addListener(future -> {
                 if (!future.isSuccess()) {
-                    log.error("NettyClient.write() error, target:" + host + ":" + port, future.cause());
+                    log.error("NettyClient.write() error, target:" + this.host + ":" + this.port, future.cause());
                 }
             });
         } catch (Exception e) {
@@ -160,9 +187,24 @@ public class NettyClient {
     }
 
     enum ConnStatus {
-        CONNECTING, // 正在连接
-        CONNECTED,  // 已连接
-        CLOSE,  // 连接关闭（需要重新建立连接）
-        CLOSED // 连接被主动关闭
+        /**
+         * 正在连接
+         */
+        CONNECTING,
+
+        /**
+         * 已连接
+         */
+        CONNECTED,
+
+        /**
+         * 连接关闭（需要重新建立连接）
+         */
+        CLOSE,
+
+        /**
+         * 连接被主动关闭
+         */
+        CLOSED
     }
 }

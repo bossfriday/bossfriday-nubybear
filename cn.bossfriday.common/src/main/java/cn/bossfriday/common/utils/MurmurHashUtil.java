@@ -1,25 +1,49 @@
 package cn.bossfriday.common.utils;
 
+import cn.bossfriday.common.exception.BizException;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 
+/**
+ * MurmurHashUtil
+ *
+ * @author chenx
+ */
 public class MurmurHashUtil {
+
+    private static final int INT_BYTE_LENGTH = 4;
+    private static final int LONG_BYTE_LENGTH = 8;
+
+    private MurmurHashUtil() {
+
+    }
+
     /**
      * hash64
      *
      * @param key
      * @return
-     * @throws Exception
+     * @throws BizException
+     * @throws UnsupportedEncodingException
      */
-    public static long hash64(String key) throws Exception {
-        if (StringUtils.isEmpty(key))
-            throw new Exception("input key is null or empty!");
+    public static long hash64(String key) {
+        if (StringUtils.isEmpty(key)) {
+            throw new BizException("input key is null or empty!");
+        }
 
-        return hash64(key.getBytes("utf-8"));
+        return hash64(key.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * hash64
+     *
+     * @param key
+     * @return
+     */
     public static long hash64(byte[] key) {
         return hash64A(key, 0x1234ABCD);
     }
@@ -29,16 +53,24 @@ public class MurmurHashUtil {
      *
      * @param key
      * @return
-     * @throws Exception
+     * @throws BizException
+     * @throws UnsupportedEncodingException
      */
-    public static int hash32(String key) throws Exception {
-        if (StringUtils.isEmpty(key))
-            throw new Exception("input key is null or empty!");
+    public static int hash32(String key) {
+        if (StringUtils.isEmpty(key)) {
+            throw new BizException("input key is null or empty!");
+        }
 
-        return hash(key.getBytes("utf-8"), 0x1234ABCD);
+        return hash(key.getBytes(StandardCharsets.UTF_8), 0x1234ABCD);
     }
 
-    public static long hash32(byte[] key) {
+    /**
+     * hash32
+     *
+     * @param key
+     * @return
+     */
+    public static int hash32(byte[] key) {
         return hash(key, 0x1234ABCD);
     }
 
@@ -84,7 +116,7 @@ public class MurmurHashUtil {
         int h = seed ^ buf.remaining();
 
         int k;
-        while (buf.remaining() >= 4) {
+        while (buf.remaining() >= INT_BYTE_LENGTH) {
             k = buf.getInt();
 
             k *= m;
@@ -96,9 +128,7 @@ public class MurmurHashUtil {
         }
 
         if (buf.remaining() > 0) {
-            ByteBuffer finish = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-            // for big-endian version, use this first:
-            // finish.position(4-buf.remaining());
+            ByteBuffer finish = ByteBuffer.allocate(INT_BYTE_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
             finish.put(buf).rewind();
             h ^= finish.getInt();
             h *= m;
@@ -112,14 +142,37 @@ public class MurmurHashUtil {
         return h;
     }
 
+    /**
+     * hash64A
+     *
+     * @param data
+     * @param seed
+     * @return
+     */
     public static long hash64A(byte[] data, int seed) {
         return hash64A(ByteBuffer.wrap(data), seed);
     }
 
+    /**
+     * hash64A
+     *
+     * @param data
+     * @param offset
+     * @param length
+     * @param seed
+     * @return
+     */
     public static long hash64A(byte[] data, int offset, int length, int seed) {
         return hash64A(ByteBuffer.wrap(data, offset, length), seed);
     }
 
+    /**
+     * hash64A
+     *
+     * @param buf
+     * @param seed
+     * @return
+     */
     public static long hash64A(ByteBuffer buf, int seed) {
         ByteOrder byteOrder = buf.order();
         buf.order(ByteOrder.LITTLE_ENDIAN);
@@ -130,7 +183,7 @@ public class MurmurHashUtil {
         long h = seed ^ (buf.remaining() * m);
 
         long k;
-        while (buf.remaining() >= 8) {
+        while (buf.remaining() >= LONG_BYTE_LENGTH) {
             k = buf.getLong();
 
             k *= m;
@@ -142,9 +195,7 @@ public class MurmurHashUtil {
         }
 
         if (buf.remaining() > 0) {
-            ByteBuffer finish = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
-            // for big-endian version, do this first:
-            // finish.position(8-buf.remaining());
+            ByteBuffer finish = ByteBuffer.allocate(LONG_BYTE_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
             finish.put(buf).rewind();
             h ^= finish.getLong();
             h *= m;
@@ -155,6 +206,7 @@ public class MurmurHashUtil {
         h ^= h >>> r;
 
         buf.order(byteOrder);
+
         return h;
     }
 }

@@ -1,12 +1,26 @@
 package cn.bossfriday.common.utils;
 
+import cn.bossfriday.common.exception.BizException;
+
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * XmlParserUtil
+ *
+ * @author chenx
+ */
 public class XmlParserUtil {
+
+    private XmlParserUtil() {
+
+    }
+
     /**
      * parse
      *
@@ -15,7 +29,7 @@ public class XmlParserUtil {
      * @param <T>
      * @return
      */
-    public static <T> T parse(String path, Class<T> type) throws Exception {
+    public static <T> T parse(String path, Class<T> type) throws IOException, JAXBException {
         InputStream input;
         File file = new File(path);
         if (file.exists()) {
@@ -36,12 +50,14 @@ public class XmlParserUtil {
      * @return
      * @throws Exception
      */
-    public static <T> T parse(InputStream input, Class<T> type) throws Exception {
-        if (input == null)
-            throw new Exception("input is null!");
+    public static <T> T parse(InputStream input, Class<T> type) throws JAXBException, IOException {
+        if (input == null) {
+            throw new BizException("input is null!");
+        }
 
-        if (type == null)
-            throw new Exception("type is null!");
+        if (type == null) {
+            throw new BizException("type is null!");
+        }
 
         try {
             JAXBContext jaxbContext = JAXBContext.newInstance(type);
@@ -49,13 +65,7 @@ public class XmlParserUtil {
 
             return (T) um.unmarshal(input);
         } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (Exception e) {
-                    // ignore this exception
-                }
-            }
+            input.close();
         }
     }
 }

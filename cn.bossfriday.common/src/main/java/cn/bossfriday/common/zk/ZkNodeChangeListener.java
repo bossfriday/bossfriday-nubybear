@@ -1,6 +1,12 @@
 package cn.bossfriday.common.zk;
 
+/**
+ * ZkNodeChangeListener
+ *
+ * @author chenx
+ */
 public interface ZkNodeChangeListener {
+    
     /**
      * changed
      *

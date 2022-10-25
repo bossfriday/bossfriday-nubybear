@@ -1,18 +1,27 @@
 package cn.bossfriday.common.rpc.actor.pool;
 
-import cn.bossfriday.common.rpc.actor.UntypedActor;
+import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+/**
+ * ActorPool
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ActorPool {
-    private GenericObjectPool<UntypedActor> pool = null;
+
+    private GenericObjectPool<BaseUntypedActor> pool = null;
     private ActorFactory actorFactory = null;
+
+    @Getter
     private String method;
 
-    public ActorPool(int min, int max, String method, Class<? extends UntypedActor> cls, Object... args) {
-        GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+    public ActorPool(int min, int max, String method, Class<? extends BaseUntypedActor> cls, Object... args) {
+        GenericObjectPoolConfig config = new GenericObjectPoolConfig<>();
         config.setMinIdle(min);
         config.setMaxIdle(max);
         config.setMaxTotal(max);
@@ -22,17 +31,17 @@ public class ActorPool {
 
         this.method = method;
         this.actorFactory = new ActorFactory(cls, args);
-        this.pool = new GenericObjectPool<>(actorFactory, config);
+        this.pool = new GenericObjectPool<>(this.actorFactory, config);
     }
 
     /**
      * borrowObject
      */
-    public UntypedActor borrowObject() {
+    public BaseUntypedActor borrowObject() {
         try {
             return this.pool.borrowObject();
         } catch (Exception e) {
-            log.error("ActorPool.getObject() error!", e);
+            log.error("ActorPool.borrowObject() error!", e);
         }
 
         return null;
@@ -41,7 +50,7 @@ public class ActorPool {
     /**
      * returnObject
      */
-    public void returnObject(UntypedActor obj) {
+    public void returnObject(BaseUntypedActor obj) {
         this.pool.returnObject(obj);
     }
 

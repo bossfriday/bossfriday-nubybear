@@ -1,6 +1,12 @@
 package cn.bossfriday.common.zk;
 
+/**
+ * ZkChildrenChangeListener
+ *
+ * @author chenx
+ */
 public interface ZkChildrenChangeListener {
+    
     /**
      * added
      *

@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.rpc.actor;
 
 import cn.bossfriday.common.register.ActorRoute;
-import cn.bossfriday.common.rpc.actor.UntypedActor;
+import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.rpc.module.DownloadResult;
 import cn.bossfriday.fileserver.rpc.module.UploadResult;
@@ -11,10 +11,10 @@ import lombok.extern.slf4j.Slf4j;
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TRACKER;
 
 @Slf4j
-@ActorRoute(methods = ACTOR_FS_TRACKER, poolName = ACTOR_FS_TRACKER + "_Pool" )
-public class TrackerActor extends UntypedActor {
+@ActorRoute(methods = ACTOR_FS_TRACKER, poolName = ACTOR_FS_TRACKER + "_Pool")
+public class TrackerActorBase extends BaseUntypedActor {
     @Override
-    public void onReceive(Object msg) throws Exception {
+    public void onReceive(Object msg) {
         try {
             if (msg instanceof WriteTmpFileResult) {
                 StorageTracker.getInstance().onWriteTmpFileResultReceived((WriteTmpFileResult) msg);
@@ -26,7 +26,7 @@ public class TrackerActor extends UntypedActor {
                 return;
             }
 
-            if(msg instanceof DownloadResult) {
+            if (msg instanceof DownloadResult) {
                 StorageTracker.getInstance().onDownloadResult((DownloadResult) msg);
                 return;
             }

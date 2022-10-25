@@ -1,38 +1,54 @@
 package cn.bossfriday.common.utils;
 
-import java.util.HashMap;
+import cn.bossfriday.common.exception.BizException;
+
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * UUIDUtil
+ *
+ * @author chenx
+ */
 public class UUIDUtil {
-    private final static char[] DIGITS64 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_".toCharArray();
+
+    private static final char[] DIGITS64 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_".toCharArray();
+    private static final int UUID_SIGNIFICANT_BYTES_LENGTH = 8;
+    private static final int UUID_BYTES_LENGTH = 16;
+
+    private UUIDUtil() {
+
+    }
 
     /**
      * getUUID
      */
-    public static UUID getUUID() {
+    public static UUID getUuid() {
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        UUID uuid = new UUID(random.nextLong(), random.nextLong());
-
-        return uuid;
+        return new UUID(random.nextLong(), random.nextLong());
     }
 
     /**
-     * getUUIDBytes
+     * getUuidBytes
+     *
+     * @return
      */
-    public static byte[] getUUIDBytes() {
-        return toBytes(getUUID());
+    public static byte[] getUuidBytes() {
+        return toBytes(getUuid());
     }
 
     /**
-     * getUUIDBytes
+     * toBytes
+     *
+     * @param uuid
+     * @return
      */
     public static byte[] toBytes(UUID uuid) {
         long msb = uuid.getMostSignificantBits();
         long lsb = uuid.getLeastSignificantBits();
-        byte[] buffer = new byte[16];
+        byte[] buffer = new byte[UUID_BYTES_LENGTH];
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < UUID_SIGNIFICANT_BYTES_LENGTH; i++) {
             buffer[i] = (byte) ((msb >>> 8 * (7 - i)) & 0xFF);
             buffer[i + 8] = (byte) ((lsb >>> 8 * (7 - i)) & 0xFF);
         }
@@ -41,39 +57,53 @@ public class UUIDUtil {
 
     /**
      * getShortString
+     *
+     * @return
      */
     public static String getShortString() {
-        return getShortString((getUUID()));
+        return getShortString((getUuid()));
     }
 
     /**
      * getShortString
+     *
+     * @param u
+     * @return
      */
     public static String getShortString(UUID u) {
         if (u == null) {
-            u = getUUID();
+            u = getUuid();
         }
 
-        return toIDString(u.getMostSignificantBits()) + toIDString(u.getLeastSignificantBits());
+        return toIdString(u.getMostSignificantBits()) + toIdString(u.getLeastSignificantBits());
     }
 
     /**
      * getShortString
+     *
+     * @param bytes
+     * @return
      */
     public static String getShortString(byte[] bytes) {
-        UUID u = parseUUID(bytes);
+        UUID u = parseUuid(bytes);
         return getShortString(u);
     }
 
     /**
-     * toIDString
+     * toIdString
+     *
+     * @param l
+     * @return
      */
-    private static String toIDString(long l) {
-        char[] buf = "00000000000".toCharArray(); // 限定11位长度
+    private static String toIdString(long l) {
+        // 限定11位长度
+        char[] buf = "00000000000".toCharArray();
         int length = 11;
-        long least = 63L; // 0x0000003FL 00111111
+        // 0x0000003FL 00111111
         do {
-            buf[--length] = DIGITS64[(int) (l & least)]; // l & least取低6位
+            long least = 63L;
+            // l & least取低6位
+            buf[--length] = DIGITS64[(int) (l & least)];
             l >>>= 6;
         } while (l != 0);
 
@@ -81,35 +111,27 @@ public class UUIDUtil {
     }
 
     /**
-     * parseUUID
+     * parseUuid
+     *
+     * @param data
+     * @return
      */
-    public static UUID parseUUID(byte[] data) {
+    public static UUID parseUuid(byte[] data) {
         long msb = 0;
         long lsb = 0;
-        assert data.length == 16 : "data must be 16 bytes in length";
-        for (int i = 0; i < 8; i++)
-            msb = (msb << 8) | (data[i] & 0xff);
-        for (int i = 8; i < 16; i++)
-            lsb = (lsb << 8) | (data[i] & 0xff);
 
-        return new UUID(msb, lsb);
-    }
-
-    public static void main(String[] args) {
-        long begin = System.currentTimeMillis();
-        HashMap<String, String> map = new HashMap<>();
-        for (int i = 0; i < 1000000; i++) {
-            String key = getShortString();
-            // System.out.println(key);
-            if (map.containsKey(key)) {
-                System.out.println("duplicated key:" + key);
-                continue;
-            }
-
-            map.put(key, key);
-
+        if (data.length != UUID_BYTES_LENGTH) {
+            throw new BizException("data must be 16 bytes in length");
         }
 
-        System.out.println(System.currentTimeMillis() - begin);
+        for (int i = 0; i < UUID_SIGNIFICANT_BYTES_LENGTH; i++) {
+            msb = (msb << 8) | (data[i] & 0xff);
+        }
+
+        for (int i = UUID_SIGNIFICANT_BYTES_LENGTH; i < UUID_BYTES_LENGTH; i++) {
+            lsb = (lsb << 8) | (data[i] & 0xff);
+        }
+
+        return new UUID(msb, lsb);
     }
 }

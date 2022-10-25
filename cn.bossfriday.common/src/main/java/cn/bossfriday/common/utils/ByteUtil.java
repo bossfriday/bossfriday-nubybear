@@ -1,18 +1,95 @@
 package cn.bossfriday.common.utils;
 
+import cn.bossfriday.common.exception.BizException;
 import org.apache.commons.lang.StringUtils;
 
-import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 
+/**
+ * ByteUtil
+ *
+ * @author chenx
+ */
 public class ByteUtil {
-    private static final String CHARSET = "UTF-8";
+
+    public static final int MAX_VALUE_UNSIGNED_INT8 = 255;
+    public static final int MAX_VALUE_UNSIGNED_INT16 = 65535;
+    public static final int MAX_VALUE_UNSIGNED_INT24 = 16777215;
+
+    public static final int INT_16_BYTES_LENGTH = 2;
+    public static final int INT_24_BYTES_LENGTH = 3;
+    public static final int INT_48_BYTES_LENGTH = 6;
+    public static final int INT_BYTES_LENGTH = 4;
+    public static final int LONG_BYTES_LENGTH = 8;
+
+    private ByteUtil() {
+
+    }
 
     /**
-     * convert ip string to int
+     * bytesToUnsignedInt16
+     *
+     * @param bytes
+     * @return
+     * @throws BizException
+     */
+    public static int bytesToUnsignedInt16(byte[] bytes) throws BizException {
+        if (bytes.length != INT_16_BYTES_LENGTH) {
+            throw new BizException("bytes.length must be 2.");
+        }
+
+        return bytes[0] << 8 & 0xFF00 | bytes[1] & 0xFF;
+    }
+
+    /**
+     * unsignedInt16ToBytes
+     *
+     * @param value
+     * @return
+     */
+    public static byte[] unsignedInt16ToBytes(int value) {
+        byte[] bytes = new byte[INT_16_BYTES_LENGTH];
+        bytes[0] = (byte) ((value & 0xFF00) >> 8);
+        bytes[1] = (byte) (value & 0xFF);
+
+        return bytes;
+    }
+
+    /**
+     * bytesToUnsignedInt24
+     *
+     * @param bytes
+     * @return
+     * @throws BizException
+     */
+    public static int bytesToUnsignedInt24(byte[] bytes) throws BizException {
+        if (bytes.length != INT_24_BYTES_LENGTH) {
+            throw new BizException("bytes.length must be 3.");
+        }
+
+        return (bytes[2] & 0xFF) | ((bytes[1] & 0xFF) << 8) | ((bytes[0] & 0x0F) << 16);
+    }
+
+    /**
+     * unsignedInt24ToBytes
+     *
+     * @param value
+     * @return
+     */
+    public static byte[] unsignedInt24ToBytes(int value) {
+        byte[] bytes = new byte[INT_24_BYTES_LENGTH];
+        bytes[0] = (byte) ((value >> 16) & 0xFF);
+        bytes[1] = (byte) ((value >> 8) & 0xFF);
+        bytes[2] = (byte) (value & 0xFF);
+
+        return bytes;
+    }
+
+    /**
+     * ipToInt
      *
      * @param ip
-     * @return int
-     * @throws UnknownHostException
+     * @return
      */
     public static int ipToInt(String ip) {
         byte[] addr = ipToBytes(ip);
@@ -26,26 +103,26 @@ public class ByteUtil {
     }
 
     /**
-     * convert int to ip string
+     * intToIp
      *
      * @param ip
-     * @return xxx.xxx.xxx.xxx
+     * @return
      */
     public static String intToIp(int ip) {
-        byte[] addr = new byte[4];
-        addr[0] = (byte) ((ip >>> 24) & 0xFF);
-        addr[1] = (byte) ((ip >>> 16) & 0xFF);
-        addr[2] = (byte) ((ip >>> 8) & 0xFF);
-        addr[3] = (byte) (ip & 0xFF);
+        byte[] bytes = new byte[INT_BYTES_LENGTH];
+        bytes[0] = (byte) ((ip >>> 24) & 0xFF);
+        bytes[1] = (byte) ((ip >>> 16) & 0xFF);
+        bytes[2] = (byte) ((ip >>> 8) & 0xFF);
+        bytes[3] = (byte) (ip & 0xFF);
 
-        return bytesToIp(addr);
+        return bytesToIp(bytes);
     }
 
     /**
-     * convert byte array to ip string
+     * bytesToIp
      *
      * @param src
-     * @return xxx.xxx.xxx.xxx
+     * @return
      */
     public static String bytesToIp(byte[] src) {
         return (src[0] & 0xff) + "." + (src[1] & 0xff) + "." + (src[2] & 0xff) + "." + (src[3] & 0xff);
@@ -58,41 +135,44 @@ public class ByteUtil {
      * @return
      */
     public static byte[] ipToBytes(String ip) {
-        byte[] binIP = new byte[4];
-        String[] strs = StringUtils.split(ip, ".");
-        for (int i = 0; i < strs.length; i++) {
-            binIP[i] = (byte) Integer.parseInt(strs[i]);
+        byte[] bytes = new byte[INT_BYTES_LENGTH];
+        String[] strings = StringUtils.split(ip, ".");
+        for (int i = 0; i < strings.length; i++) {
+            bytes[i] = (byte) Integer.parseInt(strings[i]);
         }
 
-        return binIP;
+        return bytes;
     }
 
     /**
-     * stringToBytes
+     * string2Bytes
      *
      * @param str
      * @return
+     * @throws BizException
      */
-    public static byte[] string2Bytes(String str) throws Exception {
-        if (StringUtils.isEmpty(str))
-            throw new Exception("input string is empty!");
+    public static byte[] string2Bytes(String str) throws BizException {
+        if (StringUtils.isEmpty(str)) {
+            throw new BizException("input string is empty!");
+        }
 
-        return str.getBytes(CHARSET);
+        return str.getBytes(StandardCharsets.UTF_8);
     }
 
     /**
-     * toString
+     * bytes2String
      *
      * @param bytes
      * @return
+     * @throws BizException
      */
-    public static String bytes2String(byte[] bytes) throws Exception {
-        if (bytes == null)
-            throw new Exception("input bytes is null!");
+    public static String bytes2String(byte[] bytes) throws BizException {
+        if (bytes == null) {
+            throw new BizException("input bytes is null!");
+        }
 
-        return new String(bytes, CHARSET);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
-
 
     /**
      * substring
@@ -109,9 +189,15 @@ public class ByteUtil {
         return subBytes;
     }
 
+    /**
+     * int2Bytes
+     *
+     * @param num
+     * @return
+     */
     public static byte[] int2Bytes(int num) {
-        byte[] byteNum = new byte[4];
-        for (int ix = 0; ix < 4; ++ix) {
+        byte[] byteNum = new byte[INT_BYTES_LENGTH];
+        for (int ix = 0; ix < INT_BYTES_LENGTH; ++ix) {
             int offset = 32 - (ix + 1) * 8;
             byteNum[ix] = (byte) ((num >> offset) & 0xff);
         }
@@ -119,9 +205,15 @@ public class ByteUtil {
         return byteNum;
     }
 
+    /**
+     * bytes2Int
+     *
+     * @param byteNum
+     * @return
+     */
     public static int bytes2Int(byte[] byteNum) {
         int num = 0;
-        for (int ix = 0; ix < 4; ++ix) {
+        for (int ix = 0; ix < INT_BYTES_LENGTH; ++ix) {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
@@ -129,9 +221,15 @@ public class ByteUtil {
         return num;
     }
 
+    /**
+     * long2Bytes
+     *
+     * @param num
+     * @return
+     */
     public static byte[] long2Bytes(long num) {
-        byte[] byteNum = new byte[8];
-        for (int ix = 0; ix < 8; ++ix) {
+        byte[] byteNum = new byte[LONG_BYTES_LENGTH];
+        for (int ix = 0; ix < LONG_BYTES_LENGTH; ++ix) {
             int offset = 64 - (ix + 1) * 8;
             byteNum[ix] = (byte) ((num >> offset) & 0xff);
         }
@@ -139,9 +237,15 @@ public class ByteUtil {
         return byteNum;
     }
 
+    /**
+     * bytes2Long
+     *
+     * @param byteNum
+     * @return
+     */
     public static long bytes2Long(byte[] byteNum) {
         long num = 0;
-        for (int ix = 0; ix < 8; ++ix) {
+        for (int ix = 0; ix < LONG_BYTES_LENGTH; ++ix) {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }
@@ -149,9 +253,15 @@ public class ByteUtil {
         return num;
     }
 
+    /**
+     * number482Bytes
+     *
+     * @param num
+     * @return
+     */
     public static byte[] number482Bytes(long num) {
-        byte[] byteNum = new byte[6];
-        for (int ix = 0; ix < 6; ++ix) {
+        byte[] byteNum = new byte[INT_48_BYTES_LENGTH];
+        for (int ix = 0; ix < INT_48_BYTES_LENGTH; ++ix) {
             int offset = 48 - (ix + 1) * 8;
             byteNum[ix] = (byte) ((num >> offset) & 0xff);
         }
@@ -159,9 +269,15 @@ public class ByteUtil {
         return byteNum;
     }
 
+    /**
+     * bytes2number48
+     *
+     * @param byteNum
+     * @return
+     */
     public static long bytes2number48(byte[] byteNum) {
         long num = 0;
-        for (int ix = 0; ix < 6; ++ix) {
+        for (int ix = 0; ix < INT_48_BYTES_LENGTH; ++ix) {
             num <<= 8;
             num |= (byteNum[ix] & 0xff);
         }

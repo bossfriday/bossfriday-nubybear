@@ -1,69 +1,70 @@
 package cn.bossfriday.common.hashing;
 
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
- * 一致性哈希路由
+ * ConsistentHashRouter(一致性哈希路由)
  * Hash算法：murmur64（ketama也很常用，暂不考虑设置哈希算法）
+ *
+ * @author chenx
  */
 public class ConsistentHashRouter<T extends BaseClusterNode> {
+
     @Getter
     @Setter
     private List<T> clusterNodes;
 
     private TreeMap<Long, T> hashRingNodes;
 
-    public ConsistentHashRouter(List<T> clusterNodes) throws Exception {
+    public ConsistentHashRouter(List<T> clusterNodes) {
         this.clusterNodes = clusterNodes;
-        refresh();
+        this.refresh();
     }
 
     /**
      * refresh（上层代码保障线程安全，因为这里保障不了clusterNodes读取的线程安全）
      */
-    public void refresh() throws Exception {
-        if (clusterNodes == null || clusterNodes.size() == 0)
-            throw new Exception("clusterNodes is null or empty!");
-
-        Collections.sort(clusterNodes, new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                return o1.compareTo(o2);
-            }
-        });
-
-        if (hashRingNodes == null) {
-            hashRingNodes = new TreeMap<Long, T>();
-        } else {
-            hashRingNodes.clear();
+    public void refresh() {
+        if (CollectionUtils.isEmpty(this.clusterNodes)) {
+            throw new BizException("clusterNodes is null or empty!");
         }
 
-        for (T node : clusterNodes) {
-            if (node.getVirtualNodesNum() <= 0) {
-                continue;
-            }
+        Collections.sort(this.clusterNodes, (o1, o2) -> o1.compareTo(o2));
 
+        if (this.hashRingNodes == null) {
+            this.hashRingNodes = new TreeMap<>();
+        } else {
+            this.hashRingNodes.clear();
+        }
+
+        for (T node : this.clusterNodes) {
+            // 虚拟节点数设置较大将影响一定性能（设置为成千上万也没有必要）
             if (node.getVirtualNodesNum() > 100) {
-                throw new Exception("node.virtualNodesNum must less than 100!"); // 虚拟节点数设置较大将影响一定性能（设置为成千上万也没有必要）
+                throw new BizException("node.virtualNodesNum must less than 100!");
             }
 
             List<String> nodeMethods = node.methods;
-            if (nodeMethods == null || nodeMethods.size() == 0) {
+            if (node.getVirtualNodesNum() <= 0 || CollectionUtils.isEmpty(nodeMethods)) {
                 continue;
             }
-
+            
             for (String method : nodeMethods) {
                 for (int n = 0; n < node.getVirtualNodesNum(); n++) {
-                    long key = getKey(node.getName(), method, n);
-                    if (hashRingNodes.containsKey(key)) {
-                        throw new Exception("duplicated hash ring node! (name:" + node.getName() + ", method:" + method + ", virtualShardNum:" + n + ")");
+                    long key = this.getKey(node.getName(), method, n);
+                    if (this.hashRingNodes.containsKey(key)) {
+                        throw new BizException("duplicated hash ring node! (name:" + node.getName() + ", method:" + method + ", virtualShardNum:" + n + ")");
                     }
 
-                    hashRingNodes.put(key, node);
+                    this.hashRingNodes.put(key, node);
                 }
             }
         }
@@ -75,20 +76,37 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
      * @param key
      * @return
      */
-    public T getRouter(String key) throws Exception {
-        SortedMap<Long, T> tail = hashRingNodes.tailMap(hash(key)); // 沿环的顺时针找到一个虚拟节点
+    public T getRouter(String key) {
+        // 沿环的顺时针找到一个虚拟节点
+        SortedMap<Long, T> tail = this.hashRingNodes.tailMap(this.hash(key));
         if (tail.size() == 0) {
-            return hashRingNodes.get(hashRingNodes.firstKey());
+            return this.hashRingNodes.get(this.hashRingNodes.firstKey());
         }
 
         return tail.get(tail.firstKey());
     }
 
-    private Long getKey(String nodeName, String method, int virtualShardNum) throws Exception {
-        return hash(nodeName + "-" + method + "-" + virtualShardNum);
+    /**
+     * getKey
+     *
+     * @param nodeName
+     * @param method
+     * @param virtualShardNum
+     * @return
+     * @throws Exception
+     */
+    private Long getKey(String nodeName, String method, int virtualShardNum) {
+        return this.hash(nodeName + "-" + method + "-" + virtualShardNum);
     }
 
-    private Long hash(String key) throws Exception {
+    /**
+     * hash
+     *
+     * @param key
+     * @return
+     * @throws Exception
+     */
+    private Long hash(String key) {
         return MurmurHashUtil.hash64(key);
     }
 }

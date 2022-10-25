@@ -5,13 +5,24 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.*;
 
+/**
+ * ThreadPoolUtil
+ *
+ * @author chenx
+ */
 public class ThreadPoolUtil {
-    private static final ConcurrentHashMap<String, ExecutorService> threadMap = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<String, ExecutorService> THREAD_MAP = new ConcurrentHashMap<>();
     public static final int AVAILABLE_PROCESSORS;
     private static final String THREAD_COMMON = "common";
+    private static final String THREAD_NAME_PLACEHOLDER = "%d";
 
     static {
         AVAILABLE_PROCESSORS = Runtime.getRuntime().availableProcessors();
+    }
+
+    private ThreadPoolUtil() {
+
     }
 
     /**
@@ -23,21 +34,48 @@ public class ThreadPoolUtil {
 
     /**
      * getThreadPool
+     *
+     * @param name
+     * @return
      */
     public static ExecutorService getThreadPool(String name) {
         return getThreadPool(name, ThreadPoolUtil.AVAILABLE_PROCESSORS);
     }
 
+    /**
+     * getThreadPool
+     *
+     * @param name
+     * @param size
+     * @return
+     */
     public static ExecutorService getThreadPool(String name, int size) {
         return getThreadPool(name, name, size);
     }
 
+    /**
+     * getThreadPool
+     *
+     * @param name
+     * @param threadNamePrefix
+     * @param coreSize
+     * @return
+     */
     public static ExecutorService getThreadPool(String name,
                                                 String threadNamePrefix,
                                                 int coreSize) {
         return getThreadPool(name, threadNamePrefix, coreSize, 0);
     }
 
+    /**
+     * getThreadPool
+     *
+     * @param name
+     * @param threadNamePrefix
+     * @param coreSize
+     * @param workerQueueSize
+     * @return
+     */
     public static ExecutorService getThreadPool(String name,
                                                 String threadNamePrefix,
                                                 int coreSize,
@@ -46,6 +84,8 @@ public class ThreadPoolUtil {
     }
 
     /**
+     * getThreadPool
+     *
      * @param name             线程池名称,
      * @param threadNamePrefix 线程名称前缀.
      * @param coreSize         线程数量. 必须> 1
@@ -59,7 +99,7 @@ public class ThreadPoolUtil {
                                                 int maxThreadSize,
                                                 int workerQueueSize,
                                                 RejectedExecutionHandler rejectedHandler) {
-        if (!threadMap.containsKey(name)) {
+        if (!THREAD_MAP.containsKey(name)) {
             ExecutorService pool = new ThreadPoolExecutor(
                     getCoreSize(name, coreSize),
                     maxThreadSize > coreSize ? maxThreadSize : coreSize, 0L,
@@ -67,14 +107,13 @@ public class ThreadPoolUtil {
                     getWorkerBlockingQueue(workerQueueSize),
                     getThreadFactory(name, threadNamePrefix),
                     rejectedHandler == null ? new ThreadPoolExecutor.AbortPolicy() : rejectedHandler);
-
-            ExecutorService existedPool = threadMap.putIfAbsent(name, pool);
+            ExecutorService existedPool = THREAD_MAP.putIfAbsent(name, pool);
             if (existedPool != null) {
                 pool.shutdown();
             }
         }
 
-        return threadMap.get(name);
+        return THREAD_MAP.get(name);
     }
 
     /**
@@ -89,13 +128,19 @@ public class ThreadPoolUtil {
             threadNamePrefix = name;
         }
 
-        if (!threadNamePrefix.contains("%d")) {
-            threadNamePrefix += "_%d";
+        if (!threadNamePrefix.contains(THREAD_NAME_PLACEHOLDER)) {
+            threadNamePrefix += "_" + THREAD_NAME_PLACEHOLDER;
         }
 
         return new ThreadFactoryBuilder().setNameFormat(threadNamePrefix).build();
     }
 
+    /**
+     * BlockingQueue
+     *
+     * @param workerQueueSize
+     * @return
+     */
     private static BlockingQueue getWorkerBlockingQueue(int workerQueueSize) {
         int queueMaxSize = workerQueueSize > 0 ? workerQueueSize : Integer.MAX_VALUE;
 

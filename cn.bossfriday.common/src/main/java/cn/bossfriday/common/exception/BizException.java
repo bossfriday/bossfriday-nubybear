@@ -1,7 +1,13 @@
 package cn.bossfriday.common.exception;
 
-public class BizException extends Exception {
-    public BizException(Exception e) {
+/**
+ * BizException
+ *
+ * @author chenx
+ */
+public class BizException extends RuntimeException {
+
+    public BizException(RuntimeException e) {
         super(e);
     }
 
@@ -9,12 +15,12 @@ public class BizException extends Exception {
         super(msg);
     }
 
-    public BizException(String msg, Exception e) {
+    public BizException(String msg, RuntimeException e) {
         super(msg, e);
     }
 
-	@Override
-	public synchronized Throwable fillInStackTrace() {
-		return null;
-	}
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return null;
+    }
 }

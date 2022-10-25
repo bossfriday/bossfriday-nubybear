@@ -1,13 +1,19 @@
 package cn.bossfriday.common.utils;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * GsonUtil
+ *
+ * @author chenx
+ */
 public class GsonUtil {
+
     private static Gson gson = null;
 
     static {
@@ -21,7 +27,7 @@ public class GsonUtil {
     }
 
     /**
-     * 转成json
+     * beanToJson
      *
      * @param object
      * @return
@@ -36,10 +42,11 @@ public class GsonUtil {
     }
 
     /**
-     * 转成bean
+     * gsonToBean
      *
      * @param gsonString
      * @param cls
+     * @param <T>
      * @return
      */
     public static <T> T gsonToBean(String gsonString, Class<T> cls) {
@@ -52,14 +59,13 @@ public class GsonUtil {
     }
 
     /**
-     * 转成list
-     * 泛型在编译期类型被擦除导致报错
+     * gsonToList
      *
      * @param gsonString
-     * @param cls
+     * @param <T>
      * @return
      */
-    public static <T> List<T> gsonToList(String gsonString, Class<T> cls) {
+    public static <T> List<T> gsonToList(String gsonString) {
         List<T> list = null;
         if (gson != null) {
             list = gson.fromJson(gsonString, new TypeToken<List<T>>() {
@@ -69,31 +75,12 @@ public class GsonUtil {
         return list;
     }
 
-    /**
-     * 转成list
-     * 解决泛型问题
-     *
-     * @param json
-     * @param cls
-     * @param <T>
-     * @return
-     */
-    public static <T> List<T> jsonToList(String json, Class<T> cls) {
-        Gson gson = new Gson();
-        List<T> list = new ArrayList<T>();
-        JsonArray array = new JsonParser().parse(json).getAsJsonArray();
-        for (final JsonElement elem : array) {
-            list.add(gson.fromJson(elem, cls));
-        }
-
-        return list;
-    }
-
 
     /**
-     * 转成list中有map的
+     * gsonToListMaps
      *
      * @param gsonString
+     * @param <T>
      * @return
      */
     public static <T> List<Map<String, T>> gsonToListMaps(String gsonString) {
@@ -108,9 +95,10 @@ public class GsonUtil {
     }
 
     /**
-     * 转成map的
+     * gsonToMaps
      *
      * @param gsonString
+     * @param <T>
      * @return
      */
     public static <T> Map<String, T> gsonToMaps(String gsonString) {

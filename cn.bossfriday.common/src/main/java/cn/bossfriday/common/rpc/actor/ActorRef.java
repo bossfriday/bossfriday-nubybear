@@ -1,14 +1,21 @@
 package cn.bossfriday.common.rpc.actor;
 
+import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.interfaces.IActorMsgEncoder;
 import cn.bossfriday.common.rpc.mailbox.MessageSendBox;
-import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.transport.RpcMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * ActorRef
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ActorRef {
+
     private String host;
     private int port;
 
@@ -21,14 +28,14 @@ public class ActorRef {
     private MessageSendBox sendBox;
     private IActorMsgEncoder tellEncoder;
     private ActorSystem actorSystem;
-    private UntypedActor callbackActor;
+    private BaseUntypedActor callbackActor;
     private long ttl;
 
     public ActorRef() {
 
     }
 
-    public ActorRef(String host, int port, byte[] session, ActorSystem actorSystem, UntypedActor callbackActor, long ttl) {
+    public ActorRef(String host, int port, byte[] session, ActorSystem actorSystem, BaseUntypedActor callbackActor, long ttl) {
         this.host = host;
         this.port = port;
         this.session = session;
@@ -55,10 +62,13 @@ public class ActorRef {
 
     /**
      * tell
+     *
+     * @param message
+     * @param sender
      */
-    public void tell(Object message, ActorRef sender) throws Exception {
+    public void tell(Object message, ActorRef sender) {
         if (sender == null) {
-            throw new Exception("sender is null!");
+            throw new BizException("sender is null!");
         }
 
         if (this.sendBox != null) {
@@ -80,17 +90,21 @@ public class ActorRef {
 
     /**
      * registerCallBackActor
+     *
+     * @param session
      */
     public void registerCallBackActor(byte[] session) {
         if (this.callbackActor != null) {
-            this.actorSystem.getDispatcher().registerCallBackActor(session, callbackActor, ttl);
+            this.actorSystem.getDispatcher().registerCallBackActor(session, this.callbackActor, this.ttl);
         }
     }
 
     /**
      * noSender
+     *
+     * @return
      */
     public static ActorRef noSender() {
-        return DeadLetterActorRef.Instance;
+        return DeadLetterActorRef.DEAD_LETTER_ACTOR_REF_INSTANCE;
     }
 }

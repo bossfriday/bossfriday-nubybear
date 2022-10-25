@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.BizException;
-import cn.bossfriday.common.utils.LRUHashMap;
+import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
@@ -17,16 +17,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static cn.bossfriday.common.Const.EACH_RECEIVE_QUEUE_SIZE;
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
 
 @Slf4j
 public class StorageEngine extends BaseStorageEngine {
     private volatile static StorageEngine instance = null;
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
-    private LRUHashMap<Long, MetaData> metaDataMap = new LRUHashMap<>(10000, null, 1000 * 60 * 60L * 8);
+    private LruHashMap<Long, MetaData> metaDataMap = new LruHashMap<>(10000, null, 1000 * 60 * 60L * 8);
     private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
 
     @Getter
@@ -40,7 +38,7 @@ public class StorageEngine extends BaseStorageEngine {
 
     private StorageEngine() {
         super(128 * 1024);
-        init();
+        this.init();
     }
 
     /**
@@ -61,11 +59,12 @@ public class StorageEngine extends BaseStorageEngine {
     /**
      * start
      */
+    @Override
     public void start() throws Exception {
         // todo:临时文件落盘恢复、过期文件清理任务启动（包含过期临时文件清理）、临时文件落盘……
         super.start();
-        loadRecoverableTmpFile();       // 服务非正常停止可能导致RecoverableTmpFile未落盘
-        loadStorageIndex();
+        this.loadRecoverableTmpFile();       // 服务非正常停止可能导致RecoverableTmpFile未落盘
+        this.loadStorageIndex();
         log.info("StorageEngine start done: " + FileServerConfigManager.getCurrentClusterNodeName());
     }
 
@@ -82,7 +81,7 @@ public class StorageEngine extends BaseStorageEngine {
         try {
             IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(event.getStoreEngineVersion());
             long metaDataIndexHash64 = storageHandler.apply(event);
-            recoverableTmpFileHashMap.remove(metaDataIndexHash64);
+            this.recoverableTmpFileHashMap.remove(metaDataIndexHash64);
             log.info("RecoverableTmpFile apply done: " + fileTransactionId + ",offset:" + event.getOffset());
         } catch (Exception ex) {
             log.error("onRecoverableTmpFileEvent() error!" + fileTransactionId, ex);
@@ -93,8 +92,9 @@ public class StorageEngine extends BaseStorageEngine {
      * 文件上传（synchronized：为了保障落盘为顺序写盘）
      */
     public synchronized MetaDataIndex upload(WriteTmpFileResult data) throws Exception {
-        if (data == null)
+        if (data == null) {
             throw new BizException("WriteTmpFileResult is null!");
+        }
 
         String fileTransactionId = data.getFileTransactionId();
         int engineVersion = data.getStorageEngineVersion();
@@ -104,15 +104,17 @@ public class StorageEngine extends BaseStorageEngine {
         long metaDataTotalLength = metaDataHandler.getMetaDataTotalLength(data.getFileName(), data.getFileTotalSize());
         int metaDataLength = metaDataHandler.getMetaDataLength(data.getFileName());
 
-        StorageIndex currentStorageIndex = getStorageIndex(data.getNamespace(), engineVersion);
+        StorageIndex currentStorageIndex = this.getStorageIndex(data.getNamespace(), engineVersion);
         StorageIndex resultIndex = storageHandler.ask(currentStorageIndex, metaDataTotalLength);
 
-        if (resultIndex == null)
+        if (resultIndex == null) {
             throw new BizException("Result StorageIndex is null: " + data.getFileTransactionId());
+        }
 
         long metaDataIndexOffset = resultIndex.getOffset() - metaDataTotalLength;
-        if (metaDataIndexOffset < 0)
+        if (metaDataIndexOffset < 0) {
             throw new BizException("metaDataIndexOffset <0: " + data.getFileTransactionId());
+        }
 
         MetaDataIndex metaDataIndex = MetaDataIndex.builder()
                 .clusterNode(data.getClusterNodeName())
@@ -138,8 +140,8 @@ public class StorageEngine extends BaseStorageEngine {
                 .filePath(recoverableTmpFilePath)
                 .build();
 
-        recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
-        log.info("recoverableTmpFileHashMap.size=" + recoverableTmpFileHashMap.size());
+        this.recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
+        log.info("recoverableTmpFileHashMap.size=" + this.recoverableTmpFileHashMap.size());
         this.publishEvent(recoverableTmpFile);
 
         return metaDataIndex;
@@ -149,16 +151,17 @@ public class StorageEngine extends BaseStorageEngine {
      * 分片下载
      */
     public ChunkedMetaData chunkedDownload(long metaDataIndexHash64, MetaDataIndex metaDataIndex, long position, int length) throws Exception {
-        if (metaDataIndex == null)
+        if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
+        }
 
         // 如果临时文件没有落盘则开始自旋（临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式）
         for (int i = 0; ; i++) {
-            if (!recoverableTmpFileHashMap.containsKey(metaDataIndexHash64)) {
+            if (!this.recoverableTmpFileHashMap.containsKey(metaDataIndexHash64)) {
                 break;
             }
 
-            if (recoverableTmpFileHashMap.size() > 10000) {
+            if (this.recoverableTmpFileHashMap.size() > 10000) {
                 // 告警：这种情况经常发生则建议横向扩容（todo:这里hardCode，可以做成配置及对接业务监控等）
                 log.error("recoverableTmpFileHashMap.size() > 10000");
             }
@@ -166,7 +169,7 @@ public class StorageEngine extends BaseStorageEngine {
             Thread.sleep(i);
         }
 
-        MetaData metaData = getMetaData(metaDataIndexHash64, metaDataIndex);
+        MetaData metaData = this.getMetaData(metaDataIndexHash64, metaDataIndex);
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
         byte[] chunkedData = storageHandler.chunkedDownload(metaDataIndex, metaData.getFileTotalSize(), position, length);
@@ -183,16 +186,18 @@ public class StorageEngine extends BaseStorageEngine {
      * 无锁：1：MetaData只读不写；2：同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
      */
     public MetaData getMetaData(long metaDataIndexHash64, MetaDataIndex metaDataIndex) throws Exception {
-        if (metaDataIndex == null)
+        if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
+        }
 
-        if (metaDataMap.containsKey(metaDataIndexHash64))
-            return metaDataMap.get(metaDataIndexHash64);
+        if (this.metaDataMap.containsKey(metaDataIndexHash64)) {
+            return this.metaDataMap.get(metaDataIndexHash64);
+        }
 
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
         MetaData metaData = storageHandler.getMetaData(metaDataIndex);
-        metaDataMap.putIfAbsent(metaDataIndexHash64, metaData);
+        this.metaDataMap.putIfAbsent(metaDataIndexHash64, metaData);
 
         return metaData;
     }
@@ -200,44 +205,47 @@ public class StorageEngine extends BaseStorageEngine {
     private void init() {
         try {
             // 存储空间
-            namespaceMap = new HashMap<>();
+            this.namespaceMap = new HashMap<>();
             FileServerConfigManager.getFileServerConfig().getNamespaces().forEach(item -> {
                 String key = item.getName().toLowerCase().trim();
-                if (!namespaceMap.containsKey(item.getName())) {
-                    namespaceMap.put(key, item);
+                if (!this.namespaceMap.containsKey(item.getName())) {
+                    this.namespaceMap.put(key, item);
                 }
             });
 
 
             // 目录初始化
-            baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(),
+            this.baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(),
                     FileServerConfigManager.getCurrentClusterNodeName());
-            if (!baseDir.exists())
-                baseDir.mkdirs();
-
-            for (String spaceName : namespaceMap.keySet()) {
-                File storageNamespaceDir = new File(baseDir, spaceName);
-                if (!storageNamespaceDir.exists())
-                    storageNamespaceDir.mkdirs();
+            if (!this.baseDir.exists()) {
+                this.baseDir.mkdirs();
             }
 
-            tmpDir = new File(baseDir, FILE_PATH_TMP);
-            if (!tmpDir.exists())
-                tmpDir.mkdirs();
+            for (String spaceName : this.namespaceMap.keySet()) {
+                File storageNamespaceDir = new File(this.baseDir, spaceName);
+                if (!storageNamespaceDir.exists()) {
+                    storageNamespaceDir.mkdirs();
+                }
+            }
+
+            this.tmpDir = new File(this.baseDir, FILE_PATH_TMP);
+            if (!this.tmpDir.exists()) {
+                this.tmpDir.mkdirs();
+            }
         } catch (Exception e) {
             log.error("StorageEngine init error!", e);
         }
     }
 
     private void loadStorageIndex() throws Exception {
-        storageIndexMap = new ConcurrentHashMap<>();
+        this.storageIndexMap = new ConcurrentHashMap<>();
         StorageEngineVersion[] versions = StorageEngineVersion.class.getEnumConstants();
-        for (String namespace : namespaceMap.keySet()) {
+        for (String namespace : this.namespaceMap.keySet()) {
             for (StorageEngineVersion item : versions) {
                 int version = item.getValue();
                 IStorageHandler handler = StorageHandlerFactory.getStorageHandler(version);
                 StorageIndex storageIndex = handler.getStorageIndex(namespace);
-                storageIndexMap.put(getStorageIndexMapKey(namespace, version), storageIndex);
+                this.storageIndexMap.put(getStorageIndexMapKey(namespace, version), storageIndex);
                 log.info(storageIndex.toString());
             }
         }
@@ -259,9 +267,10 @@ public class StorageEngine extends BaseStorageEngine {
 
     private StorageIndex getStorageIndex(String namespace, int storageEngineVersion) throws Exception {
         String key = getStorageIndexMapKey(namespace, storageEngineVersion);
-        if (!storageIndexMap.containsKey(key))
+        if (!this.storageIndexMap.containsKey(key)) {
             throw new BizException("StorageIndex not existed: " + key);
+        }
 
-        return storageIndexMap.get(key);
+        return this.storageIndexMap.get(key);
     }
 }

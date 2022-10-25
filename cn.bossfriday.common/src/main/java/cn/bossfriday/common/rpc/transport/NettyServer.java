@@ -10,7 +10,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
+/**
+ * NettyServer
+ *
+ * @author chenx
+ */
 public class NettyServer implements IServer {
+    
     private int port;
     private Channel channel = null;
     private final IMsgHandler msgHandler;
@@ -32,16 +38,16 @@ public class NettyServer implements IServer {
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(new RpcDecoder());
                         ch.pipeline().addLast(new RpcEncoder());
-                        ch.pipeline().addLast(new NettyServerHandler(msgHandler));
+                        ch.pipeline().addLast(new NettyServerHandler(NettyServer.this.msgHandler));
                     }
 
                 });
-        this.channel = b.bind(port).sync().channel();
+        this.channel = b.bind(this.port).sync().channel();
     }
 
     @Override
     public void close() throws Exception {
-        if(this.channel != null){
+        if (this.channel != null) {
             this.channel.close();
             this.channel.closeFuture().sync();
         }

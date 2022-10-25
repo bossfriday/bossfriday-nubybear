@@ -1,14 +1,20 @@
 package cn.bossfriday.common.rpc.actor;
 
-import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.transport.RpcMessage;
+import cn.bossfriday.common.utils.UUIDUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * BaseUntypedActor
+ *
+ * @author chenx
+ */
 @Slf4j
-public abstract class UntypedActor {
+public abstract class BaseUntypedActor {
+
     @Setter
     @Getter
     private ActorRef sender;
@@ -19,39 +25,44 @@ public abstract class UntypedActor {
 
     /**
      * onReceive
+     *
+     * @param msg
      */
-    public abstract void onReceive(Object msg) throws Exception;
+    public abstract void onReceive(Object msg);
 
     /**
      * onReceive
+     *
+     * @param message
+     * @param actorSystem
      */
-    public void onReceive(RpcMessage message, ActorSystem actorSystem) throws Exception {
+    public void onReceive(RpcMessage message, ActorSystem actorSystem) {
         if (message == null || actorSystem == null) {
             log.warn("UntypedActor.onReceive(msg, actorSystem) returned by msg or actorSystem is null!");
             return;
         }
 
-        this.self = new ActorRef(actorSystem.getSelfAddress().getHostName(), actorSystem.getSelfAddress().getPort(), UUIDUtil.getUUIDBytes(), message.getTargetMethod(), actorSystem);
+        this.self = new ActorRef(actorSystem.getSelfAddress().getHostName(), actorSystem.getSelfAddress().getPort(), UUIDUtil.getUuidBytes(), message.getTargetMethod(), actorSystem);
         if (message.hasSource()) {
             if (message.getSourceMethod() == null) {
                 // source is callback actor
-                sender = new ActorRef(message.getSourceHost(), message.getSourcePort(), message.getSession(), actorSystem, null, 0);
+                this.sender = new ActorRef(message.getSourceHost(), message.getSourcePort(), message.getSession(), actorSystem, null, 0);
             } else {
-                sender = new ActorRef(message.getSourceHost(), message.getSourcePort(), message.getSession(), message.getSourceMethod(), actorSystem);
+                this.sender = new ActorRef(message.getSourceHost(), message.getSourcePort(), message.getSession(), message.getSourceMethod(), actorSystem);
             }
         } else {
             this.sender = ActorRef.noSender();
         }
 
-        this.setSender(sender);
-        this.setSelf(self);
+        this.setSender(this.sender);
+        this.setSelf(this.self);
 
         Object msgObj = null;
         try {
             msgObj = actorSystem.getMsgDecoder().decode(message.getPayloadData());
             this.onReceive(msgObj);
-        } catch (Throwable e) {
-            this.onFailed(e);
+        } catch (Throwable throwable) {
+            this.onFailed(throwable);
         } finally {
             if (msgObj != null) {
                 msgObj = null;
@@ -63,15 +74,19 @@ public abstract class UntypedActor {
 
     /**
      * onFailed
+     *
+     * @param throwable
      */
-    public void onFailed(Throwable cause) {
-        if (cause != null) {
-            log.error("UntypedActor.onFailed()", cause);
+    public void onFailed(Throwable throwable) {
+        if (throwable != null) {
+            log.error("UntypedActor.onFailed()", throwable);
         }
     }
 
     /**
      * onTimeout
+     *
+     * @param actorKey
      */
     public void onTimeout(String actorKey) {
         log.warn("actor timeout, actorKey:" + actorKey);

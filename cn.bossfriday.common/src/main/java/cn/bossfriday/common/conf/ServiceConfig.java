@@ -9,8 +9,14 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
+/**
+ * ServiceConfig
+ *
+ * @author chenx
+ */
 @XmlRootElement(name = "config")
 public class ServiceConfig {
+
     @XmlElement(name = "systemName")
     private String systemName;
 
@@ -36,19 +42,19 @@ public class ServiceConfig {
     }
 
     public String getSystemName() {
-        return systemName;
+        return this.systemName;
     }
 
     public String getZkAddress() {
-        return zkAddress;
+        return this.zkAddress;
     }
 
     public ClusterNode getClusterNode() {
-        return clusterNode;
+        return this.clusterNode;
     }
 
     public List<PluginElement> getPluginElements() {
-        return plugins;
+        return this.plugins;
     }
 
     @Override

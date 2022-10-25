@@ -1,5 +1,6 @@
 package cn.bossfriday.common.utils;
 
+import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,13 +11,30 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * ClassLoaderUtil
+ *
+ * @author chenx
+ */
 public class ClassLoaderUtil {
-    public static Pattern p = Pattern.compile("\\d+");
+
+    private static final Pattern PATTERN = Pattern.compile("\\d+");
+
+    private ClassLoaderUtil() {
+
+    }
 
     /**
      * getAllClass
+     *
+     * @param jarFilePath
+     * @param type
+     * @param <T>
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
      */
-    public static <T> List<Class<? extends T>> getAllClass(String jarFilePath, Class<T> type) throws Exception {
+    public static <T> List<Class<? extends T>> getAllClass(String jarFilePath, Class<T> type) throws IOException, ClassNotFoundException {
         List<Class<? extends T>> result = new ArrayList<>();
         jarFilePath = String.format("jar:file:%s!/", jarFilePath);
         URL url = new URL(jarFilePath);
@@ -29,7 +47,7 @@ public class ClassLoaderUtil {
             if (name.lastIndexOf(".class") == name.length() - 6) {
                 name = name.substring(0, name.lastIndexOf(".class"));
                 String cName = name.substring(name.lastIndexOf(".") + 1);
-                Matcher matcher = p.matcher(cName);
+                Matcher matcher = PATTERN.matcher(cName);
                 if (matcher.matches()) {
                     continue;
                 }

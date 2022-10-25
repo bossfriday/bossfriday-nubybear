@@ -3,12 +3,21 @@ package cn.bossfriday.common.router;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * RoutableBean
+ *
+ * @author chenx
+ */
 public class RoutableBean<T> {
+
     public static final long DEFAULT_APP_ID = 10000;
 
+    /**
+     * 多租户支持预留（默认10000）
+     */
     @Getter
     @Setter
-    private long appId = DEFAULT_APP_ID;     // 多租户支持预留（默认10000）
+    private long appId = DEFAULT_APP_ID;
 
     @Getter
     private String routeKey;

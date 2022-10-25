@@ -7,10 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
-
+/**
+ * ClusterNode
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ClusterNode extends BaseClusterNode<ClusterNode> {
+
     @Getter
     @Setter
     protected String host;
@@ -47,6 +51,11 @@ public class ClusterNode extends BaseClusterNode<ClusterNode> {
     }
 
     @Override
+    public int hashCode() {
+        return this.hashCode();
+    }
+
+    @Override
     protected int compareTo(ClusterNode node) {
         int int1 = ByteUtil.ipToInt(this.host);
         int int2 = ByteUtil.ipToInt(node.getHost());
@@ -68,33 +77,5 @@ public class ClusterNode extends BaseClusterNode<ClusterNode> {
     @Override
     public String toString() {
         return GsonUtil.beanToJson(this);
-    }
-
-    public static void main(String[] args) {
-        List<ClusterNode> nodeList = new ArrayList<>();
-        Random random = new Random();
-        for (int i = 0; i < 10; i++) {
-            String name = "node" + i;
-            String host = "127.0.0." + random.nextInt(10);
-            int port = random.nextInt(10000);
-            ClusterNode node = new ClusterNode(name, 1000, host, port);
-
-            for(int j=0;j<3;j++) {
-                node.addMethod("actor" + j);
-            }
-
-            nodeList.add(node);
-        }
-
-        Collections.sort(nodeList, new Comparator<ClusterNode>() {
-            @Override
-            public int compare(ClusterNode o1, ClusterNode o2) {
-                return o1.compareTo(o2);
-            }
-        });
-
-        for (ClusterNode node : nodeList) {
-            System.out.println(node);
-        }
     }
 }

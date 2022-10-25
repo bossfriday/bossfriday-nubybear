@@ -5,6 +5,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * ThreadFactoryBuilder
+ *
+ * @author chenx
+ */
 public final class ThreadFactoryBuilder {
 
     private String nameFormat = null;
@@ -14,35 +19,55 @@ public final class ThreadFactoryBuilder {
     private ThreadFactory backingThreadFactory = null;
 
     public ThreadFactoryBuilder() {
+        // just an empty constructor
     }
 
+    /**
+     * setNameFormat
+     *
+     * @param nameFormat
+     * @return
+     */
     public ThreadFactoryBuilder setNameFormat(String nameFormat) {
         String.format(nameFormat, 0);
         this.nameFormat = nameFormat;
+
         return this;
     }
 
-
+    /**
+     * setDaemon
+     *
+     * @param daemon
+     * @return
+     */
     public ThreadFactoryBuilder setDaemon(boolean daemon) {
         this.daemon = daemon;
         return this;
     }
 
+    /**
+     * setPriority
+     *
+     * @param priority
+     * @return
+     */
     public ThreadFactoryBuilder setPriority(int priority) {
-        checkArgument(priority >= Thread.MIN_PRIORITY,
+        this.checkArgument(priority >= Thread.MIN_PRIORITY,
                 "Thread priority (%s) must be >= %s", priority, Thread.MIN_PRIORITY);
-        checkArgument(priority <= Thread.MAX_PRIORITY,
+        this.checkArgument(priority <= Thread.MAX_PRIORITY,
                 "Thread priority (%s) must be <= %s", priority, Thread.MAX_PRIORITY);
         this.priority = priority;
         return this;
     }
 
-    private void checkArgument(boolean expression, String errMsgTemplate, Object... errorMessageArgs) {
-        if (!expression) {
-            throw new IllegalArgumentException(String.format(errMsgTemplate, errorMessageArgs));
-        }
-    }
-
+    /**
+     * checkNotNull
+     *
+     * @param reference
+     * @param <T>
+     * @return
+     */
     public static <T> T checkNotNull(T reference) {
         if (reference == null) {
             throw new NullPointerException();
@@ -51,6 +76,14 @@ public final class ThreadFactoryBuilder {
         return reference;
     }
 
+    /**
+     * checkNotNull
+     *
+     * @param reference
+     * @param errorMessage
+     * @param <T>
+     * @return
+     */
     public static <T> T checkNotNull(T reference, String errorMessage) {
         if (reference == null) {
             throw new NullPointerException(String.valueOf(errorMessage));
@@ -91,6 +124,12 @@ public final class ThreadFactoryBuilder {
         return build(this);
     }
 
+    /**
+     * build
+     *
+     * @param builder
+     * @return
+     */
     private static ThreadFactory build(ThreadFactoryBuilder builder) {
         final String nameFormat = builder.nameFormat;
         final Boolean daemon = builder.daemon;
@@ -122,5 +161,18 @@ public final class ThreadFactoryBuilder {
                 return thread;
             }
         };
+    }
+
+    /**
+     * checkArgument
+     *
+     * @param expression
+     * @param errMsgTemplate
+     * @param errorMessageArgs
+     */
+    private void checkArgument(boolean expression, String errMsgTemplate, Object... errorMessageArgs) {
+        if (!expression) {
+            throw new IllegalArgumentException(String.format(errMsgTemplate, errorMessageArgs));
+        }
     }
 }

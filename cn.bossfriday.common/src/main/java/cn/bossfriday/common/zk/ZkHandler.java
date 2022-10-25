@@ -1,9 +1,12 @@
 package cn.bossfriday.common.zk;
 
 import cn.bossfriday.common.Const;
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.GsonUtil;
 import cn.bossfriday.common.utils.ThreadPoolUtil;
+import com.google.gson.JsonNull;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
@@ -15,27 +18,41 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ZkHandler
+ *
+ * @author chenx
+ */
 @Slf4j
 public class ZkHandler {
+
+    @Getter
     private String zkAddress;
+
+    @Getter
     private CuratorFramework client = null;
 
-    public ZkHandler(String zkAddress) throws Exception {
+    public ZkHandler(String zkAddress) throws InterruptedException {
         this.zkAddress = zkAddress;
-        client = CuratorFrameworkFactory.builder()
+        this.client = CuratorFrameworkFactory.builder()
                 .connectString(zkAddress)
                 .sessionTimeoutMs(5000)
                 .connectionTimeoutMs(3000)
-                .retryPolicy(new BoundedExponentialBackoffRetry(1000, 10000, 1800))     // 重连机制
+                .retryPolicy(new BoundedExponentialBackoffRetry(1000, 10000, 1800))
                 .build();
-        client.start();
-        client.blockUntilConnected();
+        this.client.start();
+        this.client.blockUntilConnected();
     }
 
     /**
      * addPersistedNode
+     *
+     * @param path
+     * @param obj
+     * @throws Exception
      */
     public void addPersistedNode(String path, Object obj) throws Exception {
         this.addNode(path, obj, CreateMode.PERSISTENT);
@@ -44,6 +61,10 @@ public class ZkHandler {
 
     /**
      * addEphemeralNode
+     *
+     * @param path
+     * @param obj
+     * @throws Exception
      */
     public void addEphemeralNode(String path, Object obj) throws Exception {
         this.addNode(path, obj, CreateMode.EPHEMERAL);
@@ -52,6 +73,10 @@ public class ZkHandler {
 
     /**
      * updateNode
+     *
+     * @param path
+     * @param obj
+     * @throws Exception
      */
     public void updateNode(String path, Object obj) throws Exception {
         String data = "";
@@ -59,28 +84,35 @@ public class ZkHandler {
             if (obj instanceof String) {
                 data = (String) obj;
             } else {
-                data = GsonUtil.beanToJson(obj);
+                data = GsonUtil.beanToJson(JsonNull.INSTANCE);
             }
         }
 
         this.client.setData().forPath(path, ByteUtil.string2Bytes(data));
-        log.info("ZkHandler.updateNode() done, path=" + path + ", " + obj.toString());
+        log.info("ZkHandler.updateNode() done, path=" + path);
     }
 
     /**
      * deleteNode
+     *
+     * @param path
+     * @throws Exception
      */
     public void deleteNode(String path) throws Exception {
         if (StringUtils.isBlank(path)) {
-            throw new Exception("zkNodePath is blank!");
+            throw new BizException("zkNodePath is blank!");
         }
 
-        client.delete().deletingChildrenIfNeeded().forPath(path);
+        this.client.delete().deletingChildrenIfNeeded().forPath(path);
         log.info("ZkHandler.updateNode() done, path=" + path);
     }
 
     /**
      * getChildNodeList
+     *
+     * @param path
+     * @return
+     * @throws Exception
      */
     public List<String> getChildNodeList(String path) throws Exception {
         try {
@@ -91,18 +123,22 @@ public class ZkHandler {
             throw ex;
         }
 
-        return null;
+        return new ArrayList<>();
     }
 
     /**
      * addListener4Node
+     *
+     * @param path
+     * @param listener
+     * @throws Exception
      */
     public void addListener4Node(String path, final ZkNodeChangeListener listener) throws Exception {
         if (listener == null) {
-            throw new Exception("listener is null!");
+            throw new BizException("listener is null!");
         }
 
-        final NodeCache nodeCache = new NodeCache(client, path, false);
+        final NodeCache nodeCache = new NodeCache(this.client, path, false);
         nodeCache.start(true);
         nodeCache.getListenable().addListener(() -> {
             byte[] bytes = nodeCache.getCurrentData().getData();
@@ -115,12 +151,12 @@ public class ZkHandler {
      */
     public void addListener4Children(String path, final ZkChildrenChangeListener listener) throws Exception {
         if (listener == null) {
-            throw new Exception("listener is null!");
+            throw new BizException("listener is null!");
         }
 
-        final PathChildrenCache childrenCache = new PathChildrenCache(client, path, true);
+        final PathChildrenCache childrenCache = new PathChildrenCache(this.client, path, true);
         childrenCache.start(PathChildrenCache.StartMode.POST_INITIALIZED_EVENT);
-        childrenCache.getListenable().addListener((client, event) -> {
+        childrenCache.getListenable().addListener((lsn, event) -> {
             switch (event.getType()) {
                 case CHILD_ADDED:
                     listener.added(event.getData().getPath(), event.getData().getData());
@@ -136,6 +172,7 @@ public class ZkHandler {
                     break;
                 case CONNECTION_LOST:
                     listener.connectLost();
+                    break;
                 case CONNECTION_RECONNECTED:
                     listener.reconnected();
                     break;
@@ -165,7 +202,7 @@ public class ZkHandler {
      */
     public boolean setData(String path, String json) throws Exception {
         if (path == null) {
-            throw new Exception("path is null");
+            throw new BizException("path is null");
         }
 
         String data = "";
@@ -182,7 +219,7 @@ public class ZkHandler {
      */
     public String getData(String path) throws Exception {
         if (path == null) {
-            throw new Exception("path is null");
+            throw new BizException("path is null");
         }
 
         byte[] bytes = this.client.getData().forPath(path);
@@ -197,9 +234,17 @@ public class ZkHandler {
         return GsonUtil.gsonToBean(this.getData(path), cls);
     }
 
+    /**
+     * Exception
+     *
+     * @param path
+     * @param obj
+     * @param mode
+     * @throws Exception
+     */
     private void addNode(String path, Object obj, CreateMode mode) throws Exception {
         if (obj == null) {
-            throw new Exception("input obj is null!");
+            throw new BizException("input obj is null!");
         }
 
         String jsonStr = "";

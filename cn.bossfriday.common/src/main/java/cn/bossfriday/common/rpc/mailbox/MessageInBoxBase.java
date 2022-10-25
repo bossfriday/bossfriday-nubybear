@@ -12,18 +12,25 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static cn.bossfriday.common.Const.SLOW_QUEUE_THRESHOLD;
 
+/**
+ * MessageInBox
+ *
+ * @author chenx
+ */
 @Slf4j
-public class MessageInBox extends MailBox {
+public class MessageInBoxBase extends BaseMailBox {
+
     private final NettyServer server;
     private ActorDispatcher dispatcher;
 
-    public MessageInBox(int size, int port, ActorDispatcher actorDispatcher) {
+    public MessageInBoxBase(int size, int port, ActorDispatcher actorDispatcher) {
+
         super(new LinkedBlockingQueue<RpcMessage>(size));
         this.dispatcher = actorDispatcher;
         this.server = new NettyServer(port, new IMsgHandler() {
             @Override
             public void msgHandle(RpcMessage msg) {
-                MessageInBox.super.put(msg);
+                MessageInBoxBase.super.put(msg);
             }
         });
     }
@@ -42,7 +49,7 @@ public class MessageInBox extends MailBox {
     }
 
     @Override
-    public void process(RpcMessage msg) throws Exception {
+    public void process(RpcMessage msg) {
         if (msg.getTimestamp() > 0) {
             long currentTimestamp = System.currentTimeMillis();
             if (currentTimestamp - msg.getTimestamp() > SLOW_QUEUE_THRESHOLD) {
@@ -59,8 +66,9 @@ public class MessageInBox extends MailBox {
             super.isStart = false;
             super.queue.clear();
 
-            if (this.server != null)
+            if (this.server != null) {
                 this.server.close();
+            }
         } catch (Exception e) {
             log.error("MessageInBox stop() error!", e);
         }
