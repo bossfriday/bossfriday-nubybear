@@ -1,27 +1,50 @@
 package cn.bossfriday.fileserver.engine.entity;
 
 import cn.bossfriday.common.utils.GsonUtil;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * StorageIndex
+ *
+ * @author chenx
+ */
+@Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class StorageIndex {
-    @Getter
-    @Setter
+
+    /**
+     * storeEngineVersion
+     */
     private int storeEngineVersion;
 
-    @Getter
-    @Setter
+    /**
+     * namespace
+     */
     private String namespace;
 
-    @Getter
-    @Setter
+    /**
+     * time
+     */
     private int time;
 
-    @Getter
-    @Setter
+    /**
+     * offset
+     */
     private long offset;
+
+    /**
+     * addOffset
+     *
+     * @param length
+     */
+    public void addOffset(long length) {
+        this.offset += length;
+    }
 
     @Override
     public StorageIndex clone() {
@@ -30,13 +53,6 @@ public class StorageIndex {
                 .time(this.time)
                 .offset(this.offset)
                 .build();
-    }
-
-    /**
-     * addOffset
-     */
-    public void addOffset(long length) {
-        this.offset += length;
     }
 
     @Override

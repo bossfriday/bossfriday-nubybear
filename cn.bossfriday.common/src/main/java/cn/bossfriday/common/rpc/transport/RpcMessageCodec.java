@@ -8,8 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-import static cn.bossfriday.common.utils.ByteUtil.MAX_VALUE_UNSIGNED_INT24;
-import static cn.bossfriday.common.utils.ByteUtil.MAX_VALUE_UNSIGNED_INT8;
+import static cn.bossfriday.common.utils.ByteUtil.*;
 
 /**
  * RpcMessageCodec
@@ -28,10 +27,9 @@ public class RpcMessageCodec {
      *
      * @param msg
      * @return
-     * @throws BizException
      * @throws IOException
      */
-    public static byte[] serialize(RpcMessage msg) throws BizException, IOException {
+    public static byte[] serialize(RpcMessage msg) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
              DataOutputStream out = new DataOutputStream(bos)) {
             out.write(msg.getSession());
@@ -54,10 +52,9 @@ public class RpcMessageCodec {
      *
      * @param data
      * @return
-     * @throws BizException
      * @throws IOException
      */
-    public static RpcMessage deserialize(byte[] data) throws BizException, IOException {
+    public static RpcMessage deserialize(byte[] data) throws IOException {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
              DataInputStream in = new DataInputStream(bis)) {
             RpcMessage msg = new RpcMessage();
@@ -69,11 +66,11 @@ public class RpcMessageCodec {
             msg.setTargetMethod(readMethod(in));
             msg.setSourceMethod(readMethod(in));
 
-            byte[] sourceHostBytes = new byte[4];
+            byte[] sourceHostBytes = new byte[INT_BYTES_LENGTH];
             in.readFully(sourceHostBytes);
             msg.setSourceHost(ByteUtil.bytesToIp(sourceHostBytes));
 
-            byte[] targetHostBytes = new byte[4];
+            byte[] targetHostBytes = new byte[INT_BYTES_LENGTH];
             in.readFully(targetHostBytes);
             msg.setTargetHost(ByteUtil.bytesToIp(targetHostBytes));
 
@@ -95,7 +92,7 @@ public class RpcMessageCodec {
      * @throws BizException
      * @throws IOException
      */
-    private static void writeMethod(DataOutputStream out, String str) throws BizException, IOException {
+    private static void writeMethod(DataOutputStream out, String str) throws IOException {
         if (StringUtils.isEmpty(str)) {
             out.writeByte((byte) 0);
             return;
@@ -135,10 +132,9 @@ public class RpcMessageCodec {
      *
      * @param out
      * @param data
-     * @throws BizException
      * @throws IOException
      */
-    private static void writePayloadData(DataOutputStream out, byte[] data) throws BizException, IOException {
+    private static void writePayloadData(DataOutputStream out, byte[] data) throws IOException {
         if (data == null || data.length == 0) {
             out.writeByte((byte) 0);
             return;
@@ -161,7 +157,7 @@ public class RpcMessageCodec {
      * @throws IOException
      */
     private static byte[] readPayloadData(DataInputStream in) throws IOException {
-        byte[] lenBytes = new byte[3];
+        byte[] lenBytes = new byte[INT_24_BYTES_LENGTH];
         in.readFully(lenBytes);
         int length = ByteUtil.bytesToUnsignedInt24(lenBytes);
         if (length <= 0) {

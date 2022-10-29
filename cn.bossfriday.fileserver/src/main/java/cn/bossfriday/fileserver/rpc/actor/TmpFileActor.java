@@ -2,7 +2,7 @@ package cn.bossfriday.fileserver.rpc.actor;
 
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
+import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageDispatcher;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
@@ -13,9 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
 
+/**
+ * TmpFileActor
+ *
+ * @author chenx
+ */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_TMP_FILE, poolName = ACTOR_FS_TMP_FILE + "_Pool")
-public class TmpFileActorBaseBase extends BaseTypedActorBase<WriteTmpFileMsg> {
+public class TmpFileActor extends BaseTypedActor<WriteTmpFileMsg> {
+
     @Override
     public void onMessageReceived(WriteTmpFileMsg msg) {
         ActorRef sender = this.getSender();
@@ -27,7 +33,7 @@ public class TmpFileActorBaseBase extends BaseTypedActorBase<WriteTmpFileMsg> {
         StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(new Runnable() {
             @Override
             public void run() {
-                TmpFileActorBaseBase.this.process(sender, msg);
+                TmpFileActor.this.process(sender, msg);
             }
         });
     }
@@ -39,7 +45,7 @@ public class TmpFileActorBaseBase extends BaseTypedActorBase<WriteTmpFileMsg> {
             result = handler.write(msg);
         } catch (Exception ex) {
             log.error("WriteTmpFileActor process error!", ex);
-            result = new WriteTmpFileResult(msg.getFileTransactionId(), OperationResult.SystemError);
+            result = new WriteTmpFileResult(msg.getFileTransactionId(), OperationResult.SYSTEM_ERROR);
         } finally {
             try {
                 if (result != null) {

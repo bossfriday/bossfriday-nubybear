@@ -4,8 +4,14 @@ import cn.bossfriday.common.conf.ServiceConfig;
 import cn.bossfriday.common.utils.XmlParserUtil;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * FileServerConfigManager
+ *
+ * @author chenx
+ */
 @Slf4j
 public class FileServerConfigManager {
+
     private static FileServerConfig fileServerConfig;
     private static ServiceConfig serviceConfig;
 
@@ -18,6 +24,10 @@ public class FileServerConfigManager {
         } catch (Exception ex) {
             log.error("load FileServerConfig error!", ex);
         }
+    }
+
+    private FileServerConfigManager() {
+        
     }
 
     /**

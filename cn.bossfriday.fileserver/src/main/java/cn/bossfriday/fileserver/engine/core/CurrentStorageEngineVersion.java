@@ -7,8 +7,19 @@ import java.lang.annotation.Target;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
 
+/**
+ * CurrentStorageEngineVersion
+ *
+ * @author chenx
+ */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CurrentStorageEngineVersion {
+
+    /**
+     * version
+     *
+     * @return
+     */
     int version() default DEFAULT_STORAGE_ENGINE_VERSION;
 }

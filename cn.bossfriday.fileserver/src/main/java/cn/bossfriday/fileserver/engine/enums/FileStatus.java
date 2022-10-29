@@ -1,9 +1,21 @@
 package cn.bossfriday.fileserver.engine.enums;
 
+/**
+ * FileStatus
+ *
+ * @author chenx
+ */
 public enum FileStatus {
 
-    Normal(0),
-    Deleted(1);
+    /**
+     * Normal
+     */
+    NORMAL(0),
+
+    /**
+     * Deleted
+     */
+    DELETED(1);
 
     private final int value;
 

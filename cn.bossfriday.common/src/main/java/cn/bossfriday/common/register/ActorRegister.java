@@ -29,7 +29,7 @@ public class ActorRegister {
      * @param max
      * @param pool
      */
-    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, ExecutorService pool) throws Exception {
+    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, ExecutorService pool) {
         ClusterRouterFactory.getClusterRouter().registerActor(method, cls, min, max, pool);
     }
 
@@ -40,9 +40,8 @@ public class ActorRegister {
      * @param cls
      * @param min
      * @param max
-     * @throws Exception
      */
-    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max) throws Exception {
+    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max) {
         ClusterRouterFactory.getClusterRouter().registerActor(method, cls, min, max);
     }
 
@@ -57,7 +56,7 @@ public class ActorRegister {
      * @param poolThreadSize
      * @throws Exception
      */
-    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, String poolName, int poolThreadSize) throws Exception {
+    public static void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, String poolName, int poolThreadSize) {
         if (!poolMap.containsKey(poolName)) {
             ExecutorService pool = ThreadPoolUtil.getThreadPool(poolName, poolThreadSize);
             poolMap.putIfAbsent(poolName, pool);

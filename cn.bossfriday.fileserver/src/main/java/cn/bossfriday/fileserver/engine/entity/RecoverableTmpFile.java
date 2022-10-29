@@ -1,74 +1,61 @@
 package cn.bossfriday.fileserver.engine.entity;
 
-import cn.bossfriday.common.utils.GsonUtil;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+/**
+ * RecoverableTmpFile
+ *
+ * @author chenx
+ */
+@ToString
 @Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RecoverableTmpFile {
-    @Getter
-    @Setter
+
+    /**
+     * fileTransactionId
+     */
     private String fileTransactionId;
 
-    @Getter
-    @Setter
+    /**
+     * storeEngineVersion
+     */
     private int storeEngineVersion;
 
-    @Getter
-    @Setter
+    /**
+     * namespace
+     */
     private String namespace;
 
-    @Getter
-    @Setter
+    /**
+     * time
+     */
     private int time;
 
-    @Getter
-    @Setter
+    /**
+     * offset
+     */
     private long offset;
 
-    @Getter
-    @Setter
+    /**
+     * timestamp
+     */
     private long timestamp;
 
-    @Getter
-    @Setter
+    /**
+     * fileName
+     */
     private String fileName;
 
-    @Getter
-    @Setter
+    /**
+     * fileTotalSize
+     */
     private long fileTotalSize;
 
-    @Getter
-    @Setter
+    /**
+     * filePath
+     */
     private String filePath;
-
-    public RecoverableTmpFile() {
-
-    }
-
-    public RecoverableTmpFile(String fileTransactionId,
-                              int storeEngineVersion,
-                              String namespace,
-                              int time,
-                              long offset,
-                              long timestamp,
-                              String fileName,
-                              long fileTotalSize,
-                              String filePath) {
-        this.fileTransactionId = fileTransactionId;
-        this.storeEngineVersion = storeEngineVersion;
-        this.namespace = namespace;
-        this.time = time;
-        this.offset = offset;
-        this.timestamp = timestamp;
-        this.fileName = fileName;
-        this.fileTotalSize = fileTotalSize;
-        this.filePath = filePath;
-    }
-
-    @Override
-    public String toString() {
-        return GsonUtil.beanToJson(this);
-    }
 }

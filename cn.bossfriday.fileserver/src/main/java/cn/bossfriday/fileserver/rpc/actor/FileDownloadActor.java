@@ -3,27 +3,32 @@ package cn.bossfriday.fileserver.rpc.actor;
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
+import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.rpc.module.DownloadMsg;
-import cn.bossfriday.fileserver.rpc.module.DownloadResult;
+import cn.bossfriday.fileserver.rpc.module.FileDownloadMsg;
+import cn.bossfriday.fileserver.rpc.module.FileDownloadResult;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DOWNLOAD;
 import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
 
+/**
+ * FileDownloadActor
+ *
+ * @author chenx
+ */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_DOWNLOAD, poolName = ACTOR_FS_DOWNLOAD + "_Pool")
-public class DownloadActorBaseBase extends BaseTypedActorBase<DownloadMsg> {
+public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
 
     @Override
-    public void onMessageReceived(DownloadMsg msg) {
+    public void onMessageReceived(FileDownloadMsg msg) {
         String fileTransactionId = "";
-        DownloadResult result = null;
+        FileDownloadResult result = null;
         try {
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
@@ -47,7 +52,7 @@ public class DownloadActorBaseBase extends BaseTypedActorBase<DownloadMsg> {
 
             ChunkedMetaData chunkedMetaData = StorageEngine.getInstance().chunkedDownload(metaDataIndexHash64, metaDataIndex, position, length);
 
-            result = DownloadResult.builder()
+            result = FileDownloadResult.builder()
                     .fileTransactionId(fileTransactionId)
                     .result(OperationResult.OK)
                     .metaDataIndex(msg.getMetaDataIndex())
@@ -57,7 +62,7 @@ public class DownloadActorBaseBase extends BaseTypedActorBase<DownloadMsg> {
                     .build();
         } catch (Exception ex) {
             log.error("DownloadActor process error: " + fileTransactionId, ex);
-            result = new DownloadResult(msg.getFileTransactionId(), OperationResult.SystemError);
+            result = new FileDownloadResult(msg.getFileTransactionId(), OperationResult.SYSTEM_ERROR);
         } finally {
             this.getSender().tell(result, ActorRef.noSender());
         }

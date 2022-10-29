@@ -1,6 +1,16 @@
 package cn.bossfriday.fileserver.common;
 
+/**
+ * FileServerConst
+ *
+ * @author chenx
+ */
 public class FileServerConst {
+
+    private FileServerConst() {
+
+    }
+
     /**
      * storage
      */
@@ -12,6 +22,7 @@ public class FileServerConst {
     /**
      * URL
      */
+    public static final String URL_DELIMITER = "/";
     public static final String URL_UPLOAD_FULL = "full";
     public static final String URL_UPLOAD_BASE64 = "base64";
     public static final String URL_UPLOAD_RANGE = "range";

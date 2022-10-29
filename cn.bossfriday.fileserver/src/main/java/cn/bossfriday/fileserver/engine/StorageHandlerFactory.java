@@ -1,10 +1,9 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.reflections.Reflections;
 
@@ -14,11 +13,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
 
 /**
- * 存储处理工厂
- * 找不到实现则使用默认存储引擎版本实现，方便多版本实现装饰
+ * StorageHandlerFactory
+ * 存储处理工厂：不到实现则使用默认存储引擎版本实现，方便多版本实现装饰
+ *
+ * @author chenx
  */
 @Slf4j
 public class StorageHandlerFactory {
+
+    private static final String IMPLEMENT_NOT_EXISTED = " implement not existed: ";
+
     private static ConcurrentHashMap<Integer, ITmpFileHandler> tmpFileHandlerImplMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, IStorageHandler> storageHandlerImplMap = new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, IMetaDataHandler> metaDataHandlerImplMap = new ConcurrentHashMap<>();
@@ -27,6 +31,9 @@ public class StorageHandlerFactory {
         loadStorageHandlerImpl(tmpFileHandlerImplMap, ITmpFileHandler.class);
         loadStorageHandlerImpl(storageHandlerImplMap, IStorageHandler.class);
         loadStorageHandlerImpl(metaDataHandlerImplMap, IMetaDataHandler.class);
+    }
+
+    private StorageHandlerFactory() {
     }
 
     /**
@@ -38,10 +45,13 @@ public class StorageHandlerFactory {
 
     /**
      * getTmpFileHandler
+     *
+     * @param storageEngineVersion
+     * @return
      */
     public static ITmpFileHandler getTmpFileHandler(int storageEngineVersion) {
         if (!tmpFileHandlerImplMap.containsKey(storageEngineVersion)) {
-            log.warn(ITmpFileHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(ITmpFileHandler.class.getSimpleName() + IMPLEMENT_NOT_EXISTED + storageEngineVersion);
             return tmpFileHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
@@ -50,10 +60,13 @@ public class StorageHandlerFactory {
 
     /**
      * getStorageHandler
+     *
+     * @param storageEngineVersion
+     * @return
      */
     public static IStorageHandler getStorageHandler(int storageEngineVersion) {
         if (!storageHandlerImplMap.containsKey(storageEngineVersion)) {
-            log.warn(IStorageHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(IStorageHandler.class.getSimpleName() + IMPLEMENT_NOT_EXISTED + storageEngineVersion);
             return storageHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
@@ -62,10 +75,13 @@ public class StorageHandlerFactory {
 
     /**
      * getMetaDataHandler
+     *
+     * @param storageEngineVersion
+     * @return
      */
     public static IMetaDataHandler getMetaDataHandler(int storageEngineVersion) {
         if (!metaDataHandlerImplMap.containsKey(storageEngineVersion)) {
-            log.warn(IMetaDataHandler.class.getSimpleName() + " implement not existed: " + storageEngineVersion);
+            log.warn(IMetaDataHandler.class.getSimpleName() + IMPLEMENT_NOT_EXISTED + storageEngineVersion);
             return metaDataHandlerImplMap.get(DEFAULT_STORAGE_ENGINE_VERSION);
         }
 
@@ -73,7 +89,11 @@ public class StorageHandlerFactory {
     }
 
     /**
+     * loadStorageHandlerImpl
      * 反射加载存储引擎处理实现
+     *
+     * @param map
+     * @param cls
      */
     private static void loadStorageHandlerImpl(ConcurrentHashMap map, Class cls) {
         try {

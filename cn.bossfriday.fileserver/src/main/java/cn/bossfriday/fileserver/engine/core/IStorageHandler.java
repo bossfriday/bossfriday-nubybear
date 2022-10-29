@@ -5,15 +5,23 @@ import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
 import cn.bossfriday.fileserver.engine.entity.StorageIndex;
 
+import java.io.IOException;
+
+/**
+ * IStorageHandler
+ *
+ * @author chenx
+ */
 public interface IStorageHandler {
+
     /**
      * getStorageIndex
      *
      * @param namespace
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    StorageIndex getStorageIndex(String namespace) throws Exception;
+    StorageIndex getStorageIndex(String namespace) throws IOException;
 
     /**
      * askStorage(申请存储)
@@ -21,35 +29,36 @@ public interface IStorageHandler {
      * @param storageIndex
      * @param metaDataLength
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    StorageIndex ask(StorageIndex storageIndex, long metaDataLength) throws Exception;
+    StorageIndex ask(StorageIndex storageIndex, long metaDataLength) throws IOException;
 
     /**
      * apply（文件落盘）
      *
      * @param recoverableTmpFile
-     * @throws Exception
+     * @return
+     * @throws IOException
      */
-    Long apply(RecoverableTmpFile recoverableTmpFile) throws Exception;
+    Long apply(RecoverableTmpFile recoverableTmpFile) throws IOException;
 
     /**
      * getRecoverableTmpFileName（获取可直接落盘/恢复临时文件）
      *
      * @param metaDataIndex
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws Exception;
+    String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws IOException;
 
     /**
      * recoverableTmpFileName（意外恢复使用）
      *
      * @param recoverableTmpFileName
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws Exception;
+    RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws IOException;
 
     /**
      * chunkedDownload
@@ -59,16 +68,16 @@ public interface IStorageHandler {
      * @param position
      * @param length
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws Exception;
+    byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws IOException;
 
     /**
      * getMetaData
      *
      * @param metaDataIndex
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception;
+    MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException;
 }

@@ -5,7 +5,7 @@ package cn.bossfriday.common.rpc.actor;
  *
  * @author chenx
  */
-public abstract class BaseTypedActorBase<T> extends BaseUntypedActor {
+public abstract class BaseTypedActor<T> extends BaseUntypedActor {
 
     /**
      * onMessageReceived

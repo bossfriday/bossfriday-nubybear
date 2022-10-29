@@ -6,6 +6,7 @@ package cn.bossfriday.common.rpc.interfaces;
  * @author chenx
  */
 public interface IActorMsgEncoder {
+
     /**
      * encode
      *

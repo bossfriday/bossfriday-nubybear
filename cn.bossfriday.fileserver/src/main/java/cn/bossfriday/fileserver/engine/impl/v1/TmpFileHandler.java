@@ -17,12 +17,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_DEFAULT_EXT;
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_UPLOADING_TMP_FILE_EXT;
 
+/**
+ * TmpFileHandler
+ *
+ * @author chenx
+ */
 @Slf4j
 @CurrentStorageEngineVersion
 public class TmpFileHandler implements ITmpFileHandler {
@@ -39,13 +46,13 @@ public class TmpFileHandler implements ITmpFileHandler {
     }, 1000 * 60 * 30L);
 
     @Override
-    public WriteTmpFileResult write(WriteTmpFileMsg msg) throws Exception {
+    public WriteTmpFileResult write(WriteTmpFileMsg msg) {
         if (msg == null) {
             throw new BizException("WriteTmpFileMsg is null!");
         }
 
         String fileTransactionId = msg.getFileTransactionId();
-        FileChannel tmpFileAccess = null;
+        FileChannel tmpFileChannel = null;
         WriteTmpFileResult result = null;
         int chunkedDataSize = msg.getData().length;
         if (chunkedDataSize == 0) {
@@ -56,20 +63,21 @@ public class TmpFileHandler implements ITmpFileHandler {
         try {
             FileTransactionContext ctx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
             if (ctx == null) {
-                throw new Exception("FileTransactionContext is null!(" + fileTransactionId + ")");
+                throw new BizException("FileTransactionContext is null!(" + fileTransactionId + ")");
             }
 
-            tmpFileAccess = this.getTmpFileChannel(msg);
-            FileUtil.transferFrom(tmpFileAccess, msg.getData(), msg.getOffset());
+            tmpFileChannel = this.getTmpFileChannel(msg);
+            FileUtil.transferFrom(tmpFileChannel, msg.getData(), msg.getOffset());
             long savedSize = ctx.addAndGetTransferredSize(msg.getData().length);
 
             // 临时文件完成
             if (savedSize >= msg.getFileTotalSize()) {
-                tmpFileAccess.close();
+                tmpFileChannel.close();
                 this.tmpFileChannelMap.remove(fileTransactionId);
 
                 result = new WriteTmpFileResult();
                 renameTmpFile(msg, result);
+
                 result.setFileTransactionId(msg.getFileTransactionId());
                 result.setResult(OperationResult.OK);
                 result.setStorageEngineVersion(msg.getStorageEngineVersion());
@@ -83,19 +91,24 @@ public class TmpFileHandler implements ITmpFileHandler {
             }
         } catch (Exception ex) {
             log.error("write tmpFile error!", ex);
-            if (tmpFileAccess != null) {
-                tmpFileAccess.close();
+            if (tmpFileChannel != null) {
+                try {
+                    tmpFileChannel.close();
+                } catch (IOException e) {
+                    log.error("tmpFileChannel close failed!", e);
+                }
+
                 this.tmpFileChannelMap.remove(fileTransactionId);
             }
 
-            result = new WriteTmpFileResult(fileTransactionId, OperationResult.SystemError);
+            result = new WriteTmpFileResult(fileTransactionId, OperationResult.SYSTEM_ERROR);
         }
 
         return result;
     }
 
     @Override
-    public String rename(String transferCompletedTmpFilePath, String recoverableTmpFileName) throws Exception {
+    public String rename(String transferCompletedTmpFilePath, String recoverableTmpFileName) {
         File oldFile = new File(transferCompletedTmpFilePath);
         if (!oldFile.exists()) {
             throw new BizException("TmpFile not existed: " + transferCompletedTmpFilePath);
@@ -108,7 +121,7 @@ public class TmpFileHandler implements ITmpFileHandler {
         }
 
         if (!oldFile.renameTo(newFile)) {
-            throw new Exception("rename RecoverableTmpFile failed: " + recoverableTmpFileName);
+            throw new BizException("rename RecoverableTmpFile failed: " + recoverableTmpFileName);
         }
 
         return newFile.getAbsolutePath();
@@ -118,16 +131,25 @@ public class TmpFileHandler implements ITmpFileHandler {
     public boolean deleteIngTmpFile(String fileTransactionId) {
         File tmpFile = getTmpFile(fileTransactionId);
         if (tmpFile.exists()) {
-            boolean b = tmpFile.delete();
-            if (b) {
-                log.info("deleteIngTmpFile done: " + fileTransactionId);
+            try {
+                Files.delete(tmpFile.toPath());
+            } catch (IOException ex) {
+                log.error("TempFileHandler.deleteIngTmpFile() error!", ex);
+                return false;
             }
         }
 
         return true;
     }
 
-    private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws Exception {
+    /**
+     * getTmpFileChannel
+     *
+     * @param msg
+     * @return
+     * @throws IOException
+     */
+    private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws IOException {
         String fileTransactionId = msg.getFileTransactionId();
         if (this.tmpFileChannelMap.containsKey(fileTransactionId)) {
             return this.tmpFileChannelMap.get(fileTransactionId);
@@ -146,6 +168,9 @@ public class TmpFileHandler implements ITmpFileHandler {
 
     /**
      * getTmpFile
+     *
+     * @param fileTransactionId
+     * @return
      */
     private static File getTmpFile(String fileTransactionId) {
         File tmpDir = StorageEngine.getInstance().getTmpDir();
@@ -156,8 +181,11 @@ public class TmpFileHandler implements ITmpFileHandler {
 
     /**
      * renameTmpFile
+     *
+     * @param msg
+     * @param result
      */
-    private static void renameTmpFile(WriteTmpFileMsg msg, WriteTmpFileResult result) throws Exception {
+    private static void renameTmpFile(WriteTmpFileMsg msg, WriteTmpFileResult result) {
         String fileTransactionId = msg.getFileTransactionId();
         File tmpFile = getTmpFile(fileTransactionId);
         String extName = FileUtil.getFileExt(msg.getFileName()).toLowerCase();
@@ -168,10 +196,12 @@ public class TmpFileHandler implements ITmpFileHandler {
         result.setFileExtName(extName);
         String newFilePath = tmpFile.getAbsolutePath().substring(0, tmpFile.getAbsolutePath().lastIndexOf(".")) + "." + extName;
         File newFile = new File(newFilePath);
-        if (!newFile.exists()) {
-            if (!tmpFile.renameTo(newFile)) {
-                throw new Exception("rename tmpFile failed: " + fileTransactionId);
-            }
+        if (newFile.exists()) {
+            throw new BizException("newTmpFile already existed! path:" + newFilePath);
+        }
+
+        if (!tmpFile.renameTo(newFile)) {
+            throw new BizException("rename tmpFile failed: " + fileTransactionId);
         }
 
         result.setFilePath(newFile.getAbsolutePath());

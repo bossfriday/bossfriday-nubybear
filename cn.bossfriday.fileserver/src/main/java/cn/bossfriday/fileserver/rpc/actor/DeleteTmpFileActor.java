@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.rpc.actor;
 
 import cn.bossfriday.common.register.ActorRoute;
-import cn.bossfriday.common.rpc.actor.BaseTypedActorBase;
+import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.fileserver.rpc.module.DeleteTmpFileMsg;
@@ -9,9 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DEL_TMP_FILE;
 
+/**
+ * DeleteTmpFileActor
+ *
+ * @author chenx
+ */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_DEL_TMP_FILE)
-public class DelTmpFileActorBaseBase extends BaseTypedActorBase<DeleteTmpFileMsg> {
+public class DeleteTmpFileActor extends BaseTypedActor<DeleteTmpFileMsg> {
+
     @Override
     public void onMessageReceived(DeleteTmpFileMsg msg) {
         String fileTransactionId = "";

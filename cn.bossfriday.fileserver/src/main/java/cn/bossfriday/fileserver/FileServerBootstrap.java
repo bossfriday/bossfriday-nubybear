@@ -7,8 +7,13 @@ import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.http.HttpFileServer;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * FileServerBootstrap
+ *
+ * @author chenx
+ */
 @Slf4j
-public class FileServerBootstrapAbstract extends AbstractServiceBootstrap {
+public class FileServerBootstrap extends AbstractServiceBootstrap {
 
     @Override
     protected void start() {
@@ -24,11 +29,15 @@ public class FileServerBootstrapAbstract extends AbstractServiceBootstrap {
 
     @Override
     protected void stop() {
-        StorageEngine.getInstance().stop();
+        try {
+            StorageEngine.getInstance().stop();
+        } catch (Exception ex) {
+            log.error("FileServerBootstrap.stop() error!", ex);
+        }
     }
 
     public static void main(String[] args) {
-        AbstractServiceBootstrap plugin = new FileServerBootstrapAbstract();
+        AbstractServiceBootstrap plugin = new FileServerBootstrap();
         plugin.startup(FileServerConfigManager.getServiceConfig());
     }
 }

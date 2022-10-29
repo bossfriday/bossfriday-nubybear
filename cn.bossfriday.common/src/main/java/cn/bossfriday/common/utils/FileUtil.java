@@ -16,7 +16,7 @@ import java.nio.channels.WritableByteChannel;
 public class FileUtil {
 
     private FileUtil() {
-        
+
     }
 
     /**

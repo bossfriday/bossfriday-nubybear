@@ -1,35 +1,39 @@
 package cn.bossfriday.fileserver.context;
 
 import io.netty.channel.ChannelHandlerContext;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * FileTransactionContext
+ *
+ * @author chenx
+ */
+@ToString
+@Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class FileTransactionContext {
 
-    @Getter
-    @Setter
     private String fileTransactionId;
 
-    @Getter
-    @Setter
     private ChannelHandlerContext ctx;
 
-    @Getter
-    @Setter
     private boolean isKeepAlive;
 
-    @Getter
-    @Setter
     private String userAgent;
 
     private AtomicLong transferredSize = new AtomicLong(0);
 
     /**
      * addAndGetTransferredSize
+     *
+     * @param size
+     * @return
      */
     public Long addAndGetTransferredSize(int size) {
-        return transferredSize.addAndGet(size);
+        return this.transferredSize.addAndGet(size);
     }
 }

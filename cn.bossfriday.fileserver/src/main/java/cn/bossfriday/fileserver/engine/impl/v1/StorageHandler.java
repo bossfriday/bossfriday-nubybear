@@ -14,13 +14,20 @@ import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTENSION_NAME;
 
+/**
+ * StorageHandler
+ *
+ * @author chenx
+ */
 @Slf4j
 @CurrentStorageEngineVersion
 public class StorageHandler implements IStorageHandler {
@@ -38,10 +45,8 @@ public class StorageHandler implements IStorageHandler {
         }
     }, 1000 * 60 * 60L * 8);
 
-    protected LruHashMap<MetaDataIndex, MetaData> metaDataMap = new LruHashMap<>(10000, null, 1000 * 60 * 60L * 8);
-
     @Override
-    public StorageIndex getStorageIndex(String namespace) throws Exception {
+    public StorageIndex getStorageIndex(String namespace) throws IOException {
         int time = Integer.parseInt(DateUtil.date2Str(new Date(), DateUtil.DEFAULT_DATE_HYPHEN_FORMAT));
         File storageFile = getStorageFile(namespace, time);
         long offset = storageFile.length();
@@ -55,7 +60,7 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public StorageIndex ask(StorageIndex storageIndex, long dataLength) throws Exception {
+    public StorageIndex ask(StorageIndex storageIndex, long dataLength) throws IOException {
         if (storageIndex == null) {
             throw new BizException("storageIndex is null");
         }
@@ -76,19 +81,19 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public Long apply(RecoverableTmpFile recoverableTmpFile) throws Exception {
+    public Long apply(RecoverableTmpFile recoverableTmpFile) throws IOException {
+        if (recoverableTmpFile == null) {
+            throw new BizException("RecoverableTmpFile is null");
+        }
+
         byte[] metaDataBytes = null;
         FileChannel storageFileChannel = null;
         FileChannel tmpFileChannel = null;
 
         try {
-            if (recoverableTmpFile == null) {
-                throw new BizException("RecoverableTmpFile is null");
-            }
-
             metaDataBytes = MetaData.builder()
                     .storeEngineVersion(recoverableTmpFile.getStoreEngineVersion())
-                    .fileStatus(FileStatus.Normal.getValue())
+                    .fileStatus(FileStatus.NORMAL.getValue())
                     .timestamp(recoverableTmpFile.getTimestamp())
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())
@@ -116,31 +121,26 @@ public class StorageHandler implements IStorageHandler {
                 }
 
                 File tmpFile = new File(recoverableTmpFile.getFilePath());
-                if (!tmpFile.delete()) {
-                    throw new BizException("delete recoverableTmpFile failed: " + recoverableTmpFile.getFileTransactionId());
-                }
+                Files.delete(tmpFile.toPath());
             } catch (Exception ex) {
                 log.error("apply finally error!", ex);
-            } finally {
-                metaDataBytes = null;
-                recoverableTmpFile = null;
             }
         }
     }
 
     @Override
-    public String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws Exception {
+    public String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws IOException {
         return Base58Util.encode(metaDataIndex.serialize()) + "." + metaDataIndex.getFileExtName();
     }
 
     @Override
-    public RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws Exception {
-        // todo 服务重启临时文件落盘恢复
+    public RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws IOException {
+        // TODO: 服务重启临时文件落盘恢复
         return null;
     }
 
     @Override
-    public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws Exception {
+    public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws IOException {
         if (position < 0 && length <= 0) {
             throw new BizException("invalid position or length: " + position + "/" + length);
         }
@@ -160,21 +160,21 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public MetaData getMetaData(MetaDataIndex metaDataIndex) throws Exception {
+    public MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException {
         FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
-        byte[] metaDataBytes = null;
-        try {
-            metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
-            return new MetaData().deserialize(metaDataBytes);
-        } finally {
-            metaDataBytes = null;
-        }
+        byte[] metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
+
+        return new MetaData().deserialize(metaDataBytes);
     }
 
     /**
      * getFileChannel
+     *
+     * @param namespace
+     * @param time
+     * @return
      */
-    protected FileChannel getFileChannel(String namespace, int time) throws Exception {
+    protected FileChannel getFileChannel(String namespace, int time) {
         String key = namespace + "-" + time;
         this.fileChannelLock.readLock().lock();
         try {
@@ -192,6 +192,9 @@ public class StorageHandler implements IStorageHandler {
             this.storageFileChannelMap.put(key, fileChannel);
 
             return fileChannel;
+        } catch (Exception ex) {
+            log.error("StorageHandler.getFileChannel() error!", ex);
+            throw new BizException("StorageHandler.getFileChannel() error! " + ex.getMessage());
         } finally {
             this.fileChannelLock.writeLock().unlock();
         }
@@ -199,8 +202,12 @@ public class StorageHandler implements IStorageHandler {
 
     /**
      * getStorageDayDir
+     *
+     * @param namespace
+     * @param time
+     * @return
      */
-    protected static File getStorageDayDir(String namespace, int time) throws Exception {
+    protected static File getStorageDayDir(String namespace, int time) {
         File baseDir = StorageEngine.getInstance().getBaseDir();
         File namespaceDir = new File(baseDir, namespace);
         if (!namespaceDir.exists()) {
@@ -221,14 +228,21 @@ public class StorageHandler implements IStorageHandler {
 
     /**
      * getStorageFile
+     *
+     * @param namespace
+     * @param time
+     * @return
+     * @throws IOException
      */
-    protected static File getStorageFile(String namespace, int time) throws Exception {
+    protected static File getStorageFile(String namespace, int time) throws IOException {
         File dayDir = getStorageDayDir(namespace, time);
-        String storageFileName = String.valueOf(time) + "." + STORAGE_FILE_EXTENSION_NAME;
+        String storageFileName = time + "." + STORAGE_FILE_EXTENSION_NAME;
         File storageFile = new File(dayDir, storageFileName);
         if (!storageFile.exists()) {
             synchronized (StorageHandler.class) {
-                storageFile.createNewFile();
+                if (!storageFile.createNewFile()) {
+                    throw new BizException("Create storage file failed! namespace:" + namespace + ", time:" + time);
+                }
             }
         }
 

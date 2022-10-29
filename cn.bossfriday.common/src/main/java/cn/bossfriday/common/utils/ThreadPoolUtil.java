@@ -33,6 +33,27 @@ public class ThreadPoolUtil {
     }
 
     /**
+     * getSingleThreadExecutor
+     *
+     * @param name
+     * @return
+     */
+    public static ExecutorService getSingleThreadExecutor(String name) {
+        return getThreadPool(name, name, 1, 1, 0, new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    /**
+     * ExecutorService
+     *
+     * @param name
+     * @param workerQueueSize
+     * @return
+     */
+    public static ExecutorService getSingleThreadExecutor(String name, int workerQueueSize) {
+        return getThreadPool(name, name, 1, 1, workerQueueSize, new ThreadPoolExecutor.AbortPolicy());
+    }
+
+    /**
      * getThreadPool
      *
      * @param name

@@ -1,58 +1,97 @@
 package cn.bossfriday.fileserver.engine.core;
 
+import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.utils.ThreadFactoryBuilder;
+import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.Executors;
-
-import static cn.bossfriday.common.Const.CPU_PROCESSORS;
-
+/**
+ * FileTransactionContext
+ *
+ * @author chenx
+ */
+@Slf4j
 public abstract class BaseStorageEngine {
+
     protected Disruptor<RecoverableTmpFileEvent> queue;
     protected RingBuffer<RecoverableTmpFileEvent> ringBuffer;
 
     protected BaseStorageEngine(int capacity) {
-        this.queue = getQueue(capacity);
-        queue.handleEventsWithWorkerPool(new RecoverableTmpFileEventHandler());
+        this.queue = this.getQueue(capacity);
+        this.queue.handleEventsWithWorkerPool(new RecoverableTmpFileEventHandler());
     }
 
     /**
      * start
      */
-    protected void start() throws Exception {
-        ringBuffer = queue.start();
+    public void start() {
+        this.ringBuffer = this.queue.start();
 
-        if (ringBuffer == null)
-            throw new Exception("BaseStorageEngine.start() error!");
+        if (this.ringBuffer == null) {
+            throw new BizException("BaseStorageEngine.start() error!");
+        }
+
+        this.startup();
+        log.info("StorageEngine startup() done - " + FileServerConfigManager.getCurrentClusterNodeName());
     }
+
+    /**
+     * stop
+     */
+    public void stop() {
+        this.queue.shutdown();
+        this.shutdown();
+        log.info("StorageEngine stop() done - " + FileServerConfigManager.getCurrentClusterNodeName());
+    }
+
+    /**
+     * startup
+     */
+    protected abstract void startup();
+
+    /**
+     * shutdown
+     */
+    protected abstract void shutdown();
 
     /**
      * onRecoverableTmpFileEvent
+     *
+     * @param event
      */
-    protected abstract void onRecoverableTmpFileEvent(RecoverableTmpFile event) throws Exception;
+    protected abstract void onRecoverableTmpFileEvent(RecoverableTmpFile event);
 
     /**
      * publishEvent
+     *
+     * @param msg
      */
     protected void publishEvent(RecoverableTmpFile msg) {
         EventTranslatorOneArg<RecoverableTmpFileEvent, RecoverableTmpFile> translator = new RecoverableTmpFileEventTranslator();
-        ringBuffer.publishEvent(translator, msg);
+        this.ringBuffer.publishEvent(translator, msg);
     }
 
+    /**
+     * RecoverableTmpFileEventHandler
+     */
     public class RecoverableTmpFileEventHandler implements WorkHandler<RecoverableTmpFileEvent> {
+
         @Override
         public void onEvent(RecoverableTmpFileEvent event) throws Exception {
-            onRecoverableTmpFileEvent(event.getMsg());
+            BaseStorageEngine.this.onRecoverableTmpFileEvent(event.getMsg());
         }
     }
 
     public class RecoverableTmpFileEvent {
+
         private RecoverableTmpFile msg;
 
         public RecoverableTmpFile getMsg() {
-            return msg;
+            return this.msg;
         }
 
         public void setMsg(RecoverableTmpFile msg) {
@@ -61,6 +100,7 @@ public abstract class BaseStorageEngine {
     }
 
     public class RecoverableTmpFileEventFactory implements EventFactory<RecoverableTmpFileEvent> {
+
         @Override
         public RecoverableTmpFileEvent newInstance() {
             return new RecoverableTmpFileEvent();
@@ -68,28 +108,43 @@ public abstract class BaseStorageEngine {
     }
 
     public class RecoverableTmpFileEventTranslator implements EventTranslatorOneArg<RecoverableTmpFileEvent, RecoverableTmpFile> {
+
         @Override
         public void translateTo(RecoverableTmpFileEvent event, long l, RecoverableTmpFile msg) {
             event.setMsg(msg);
         }
     }
 
+    /**
+     * getQueue
+     *
+     * @param capacity
+     * @return
+     */
     private Disruptor<RecoverableTmpFileEvent> getQueue(int capacity) {
-        Disruptor<RecoverableTmpFileEvent> disruptor = new Disruptor<>(
+        return new Disruptor<>(
                 new RecoverableTmpFileEventFactory(),
                 getRingBufferSize(getRingBufferSize(capacity)),
-                Executors.newFixedThreadPool(CPU_PROCESSORS),
-                ProducerType.MULTI, // ProducerType.SINGLE  单生产者； ProducerType.MULTI   多生产者
-                // BlockingWaitStrategy：最低效的策略，但对CPU的消耗最小；
-                // SleepingWaitStrategy：与BlockingWaitStrategy类似，合用于异步日志类似的场景；
-                // YieldingWaitStrategy 性能最好，要求事件处理线数小于 CPU 逻辑核心数
-                new SleepingWaitStrategy());
-
-        return disruptor;
+                new ThreadFactoryBuilder().setNameFormat("BaseStorageEngine-Disruptor-%d").setDaemon(true).build(),
+                /**
+                 * ProducerType.SINGLE：单生产者
+                 * ProducerType.MULTI：多生产者
+                 */
+                ProducerType.MULTI,
+                /**
+                 * BlockingWaitStrategy：最低效的策略，但对CPU的消耗最小；
+                 * SleepingWaitStrategy：与BlockingWaitStrategy类似，合用于异步日志类似的场景；
+                 * YieldingWaitStrategy：性能最好，要求事件处理线数小于 CPU 逻辑核心数
+                 */
+                new SleepingWaitStrategy()
+        );
     }
 
     /**
-     * 保障ringBufferSize一定为2的次方
+     * getRingBufferSize(保障ringBufferSize一定为2的次方)
+     *
+     * @param num
+     * @return
      */
     private static int getRingBufferSize(int num) {
         int s = 2;

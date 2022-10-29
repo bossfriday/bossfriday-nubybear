@@ -7,13 +7,19 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * FileTransactionContextManager
+ *
+ * @author chenx
+ */
 @Slf4j
 public class FileTransactionContextManager {
+
     private ConcurrentHashMap<String, FileTransactionContext> contextMap;
-    private volatile static FileTransactionContextManager instance = null;
+    private static volatile FileTransactionContextManager instance = null;
 
     private FileTransactionContextManager() {
-        contextMap = new ConcurrentHashMap<>();
+        this.contextMap = new ConcurrentHashMap<>();
     }
 
     /**
@@ -33,30 +39,44 @@ public class FileTransactionContextManager {
 
     /**
      * getContext
+     *
+     * @param fileTransactionId
+     * @return
      */
     public FileTransactionContext getContext(String fileTransactionId) {
-        if (!contextMap.containsKey(fileTransactionId))
+        if (!this.contextMap.containsKey(fileTransactionId)) {
             return null;
+        }
 
-        return contextMap.get(fileTransactionId);
+        return this.contextMap.get(fileTransactionId);
     }
 
     /**
      * existed
+     *
+     * @param fileTransactionId
+     * @return
      */
     public boolean existed(String fileTransactionId) {
-        return contextMap.containsKey(fileTransactionId);
+        return this.contextMap.containsKey(fileTransactionId);
     }
 
     /**
      * addContext
+     *
+     * @param fileTransactionId
+     * @param ctx
+     * @param isKeepAlive
+     * @param userAgent
      */
-    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive, String userAgent) throws Exception {
-        if (StringUtils.isEmpty(fileTransactionId))
+    public void addContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive, String userAgent) {
+        if (StringUtils.isEmpty(fileTransactionId)) {
             throw new BizException("fileTransactionId is null or empty!");
+        }
 
-        if (contextMap.containsKey(fileTransactionId))
+        if (this.contextMap.containsKey(fileTransactionId)) {
             throw new BizException("duplicated FileTransactionContext!(fileTransactionId:" + fileTransactionId + ")");
+        }
 
         FileTransactionContext context = new FileTransactionContext();
         context.setFileTransactionId(fileTransactionId);
@@ -64,12 +84,14 @@ public class FileTransactionContextManager {
         context.setKeepAlive(isKeepAlive);
         context.setUserAgent(userAgent);
 
-        contextMap.put(fileTransactionId, context);
+        this.contextMap.put(fileTransactionId, context);
         log.info("add context done: " + fileTransactionId);
     }
 
     /**
      * removeContext
+     *
+     * @param fileTransactionId
      */
     public void removeContext(String fileTransactionId) {
         if (StringUtils.isEmpty(fileTransactionId)) {
@@ -79,14 +101,15 @@ public class FileTransactionContextManager {
 
         FileTransactionContext context = null;
         try {
-            if (existed(fileTransactionId)) {
-                context = contextMap.get(fileTransactionId);
-                contextMap.remove(fileTransactionId);
+            if (this.existed(fileTransactionId)) {
+                context = this.contextMap.get(fileTransactionId);
+                this.contextMap.remove(fileTransactionId);
                 log.info("remove context done: " + fileTransactionId);
             }
         } finally {
-            if(context != null)
+            if (context != null) {
                 context = null;
+            }
         }
     }
 }

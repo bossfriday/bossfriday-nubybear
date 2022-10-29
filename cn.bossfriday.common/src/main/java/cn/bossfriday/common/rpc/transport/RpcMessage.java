@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
  */
 @Data
 public class RpcMessage {
+
     /**
      * sessionId（16字节，类比XI）
      **/

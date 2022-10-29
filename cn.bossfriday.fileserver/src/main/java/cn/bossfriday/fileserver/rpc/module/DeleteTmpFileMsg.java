@@ -1,20 +1,28 @@
 package cn.bossfriday.fileserver.rpc.module;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * DeleteTmpFileMsg
+ *
+ * @author chenx
+ */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DeleteTmpFileMsg {
+
+    /**
+     * storageEngineVersion
+     */
     private int storageEngineVersion;
+
+    /**
+     * fileTransactionId
+     */
     private String fileTransactionId;
-
-    public DeleteTmpFileMsg() {
-
-    }
-
-    public DeleteTmpFileMsg(int storageEngineVersion, String fileTransactionId) {
-        this.storageEngineVersion = storageEngineVersion;
-        this.fileTransactionId = fileTransactionId;
-    }
 }

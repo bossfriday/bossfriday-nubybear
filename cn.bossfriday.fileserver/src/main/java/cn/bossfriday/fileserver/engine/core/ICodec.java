@@ -1,20 +1,28 @@
 package cn.bossfriday.fileserver.engine.core;
 
+import java.io.IOException;
+
+/**
+ * ICodec
+ *
+ * @author chenx
+ */
 public interface ICodec<T> {
+
     /**
      * serialize
      *
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    byte[] serialize() throws Exception;
+    byte[] serialize() throws IOException;
 
     /**
      * deserialize
      *
      * @param bytes
      * @return
-     * @throws Exception
+     * @throws IOException
      */
-    T deserialize(byte[] bytes) throws Exception;
+    T deserialize(byte[] bytes) throws IOException;
 }

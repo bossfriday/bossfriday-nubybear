@@ -36,7 +36,7 @@ public class ClusterRouter {
     private ClusterNode currentNode;
     private ActorSystem actorSystem;
     private ZkHandler zkHandler;
-    private ConsistentHashRouter consistentHashRouter;
+    private ConsistentHashRouter<ClusterNode> consistentHashRouter;
 
     /**
      * key: nodeName
@@ -54,7 +54,7 @@ public class ClusterRouter {
                          String nodeName,
                          String host,
                          int port,
-                         int virtualNodesNum) throws Exception {
+                         int virtualNodesNum) throws InterruptedException {
         this.zkHandler = new ZkHandler(zkAddress);
         this.currentNode = new ClusterNode(nodeName, virtualNodesNum, host, port);
         this.basePath = "/" + systemName;
@@ -68,7 +68,7 @@ public class ClusterRouter {
     /**
      * startActorSystem
      */
-    public void startActorSystem() throws Exception {
+    public void startActorSystem() {
         if (!this.actorSystem.isStarted()) {
             this.actorSystem.start();
         }
@@ -79,7 +79,9 @@ public class ClusterRouter {
     }
 
     /**
-     * 服务注册
+     * registryService 服务注册
+     *
+     * @throws Exception
      */
     public void registryService() throws Exception {
         this.writeLock.lock();
@@ -103,7 +105,7 @@ public class ClusterRouter {
     }
 
     /**
-     * 服务发现
+     * discoveryService 服务发现
      */
     public void discoveryService() {
         this.writeLock.lock();
@@ -131,7 +133,7 @@ public class ClusterRouter {
             }
 
             if (this.consistentHashRouter == null) {
-                this.consistentHashRouter = new ConsistentHashRouter(clusterNodes);
+                this.consistentHashRouter = new ConsistentHashRouter<>(clusterNodes);
                 return;
             }
 
@@ -151,9 +153,8 @@ public class ClusterRouter {
      * @param cls
      * @param min
      * @param max
-     * @throws Exception
      */
-    public void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max) throws Exception {
+    public void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max) {
         this.validateMethod(method);
         this.actorSystem.registerActor(method, min, max, cls);
         this.currentNode.addMethod(method);
@@ -167,9 +168,8 @@ public class ClusterRouter {
      * @param min
      * @param max
      * @param pool
-     * @throws Exception
      */
-    public void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, ExecutorService pool) throws Exception {
+    public void registerActor(String method, Class<? extends BaseUntypedActor> cls, int min, int max, ExecutorService pool) {
         this.validateMethod(method);
         this.actorSystem.registerActor(method, min, max, pool, cls);
         this.currentNode.addMethod(method);
@@ -177,7 +177,8 @@ public class ClusterRouter {
 
     /**
      * getTargetClusterNode（资源Id路由）
-     * 这里取巧偷懶未进行多级路由，因此要求每个节点都部署全量服务。如果要支持多数据中心或者集群服务拆分部署等则一定要进行多级路由。
+     * 这里取巧偷懶未进行多级路由，因此要求每个节点都部署全量服务。
+     * 如果要支持多数据中心或者集群服务拆分部署等则一定要进行多级路由。
      *
      * @param method
      * @param targetResourceId
@@ -211,7 +212,7 @@ public class ClusterRouter {
     }
 
     /**
-     * getTargetNode（指定Key路由）
+     * getTargetClusterNode（指定Key路由）
      *
      * @param routeKey
      * @return
@@ -219,7 +220,7 @@ public class ClusterRouter {
     public ClusterNode getTargetClusterNode(String routeKey) {
         this.readLock.lock();
         try {
-            return (ClusterNode) this.consistentHashRouter.getRouter(routeKey);
+            return this.consistentHashRouter.getRouter(routeKey);
         } catch (Exception e) {
             log.error("getTargetClusterNode() error!", e);
         } finally {
@@ -284,7 +285,7 @@ public class ClusterRouter {
     }
 
     /**
-     * 集群变化
+     * onClusterChanged 集群变化
      */
     private void onClusterChanged() {
         try {
@@ -357,7 +358,6 @@ public class ClusterRouter {
      * validateMethod
      *
      * @param method
-     * @throws Exception
      */
     private void validateMethod(String method) {
         if (method.indexOf(JOINT_MARK) >= 0) {

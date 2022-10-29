@@ -56,7 +56,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
             if (node.getVirtualNodesNum() <= 0 || CollectionUtils.isEmpty(nodeMethods)) {
                 continue;
             }
-            
+
             for (String method : nodeMethods) {
                 for (int n = 0; n < node.getVirtualNodesNum(); n++) {
                     long key = this.getKey(node.getName(), method, n);

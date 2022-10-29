@@ -33,7 +33,7 @@ public class ByteUtil {
      * @return
      * @throws BizException
      */
-    public static int bytesToUnsignedInt16(byte[] bytes) throws BizException {
+    public static int bytesToUnsignedInt16(byte[] bytes) {
         if (bytes.length != INT_16_BYTES_LENGTH) {
             throw new BizException("bytes.length must be 2.");
         }
@@ -62,7 +62,7 @@ public class ByteUtil {
      * @return
      * @throws BizException
      */
-    public static int bytesToUnsignedInt24(byte[] bytes) throws BizException {
+    public static int bytesToUnsignedInt24(byte[] bytes) {
         if (bytes.length != INT_24_BYTES_LENGTH) {
             throw new BizException("bytes.length must be 3.");
         }
@@ -151,7 +151,7 @@ public class ByteUtil {
      * @return
      * @throws BizException
      */
-    public static byte[] string2Bytes(String str) throws BizException {
+    public static byte[] string2Bytes(String str) {
         if (StringUtils.isEmpty(str)) {
             throw new BizException("input string is empty!");
         }
@@ -166,7 +166,7 @@ public class ByteUtil {
      * @return
      * @throws BizException
      */
-    public static String bytes2String(byte[] bytes) throws BizException {
+    public static String bytes2String(byte[] bytes) {
         if (bytes == null) {
             throw new BizException("input bytes is null!");
         }

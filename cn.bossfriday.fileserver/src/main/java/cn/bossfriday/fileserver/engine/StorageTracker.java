@@ -13,28 +13,37 @@ import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import cn.bossfriday.fileserver.http.FileServerHttpResponseHelper;
 import cn.bossfriday.fileserver.rpc.module.*;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelProgressiveFuture;
+import io.netty.channel.ChannelProgressiveFutureListener;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedStream;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
 
+/**
+ * StorageTracker
+ *
+ * @author chenx
+ */
 @Slf4j
 public class StorageTracker {
-    private volatile static StorageTracker instance = null;
+
+    private static volatile StorageTracker instance = null;
 
     @Getter
     private ActorRef trackerActor;
 
     private StorageTracker() {
         try {
-            trackerActor = ClusterRouterFactory.getClusterRouter().getActorSystem().actorOf(ACTOR_FS_TRACKER);
+            this.trackerActor = ClusterRouterFactory.getClusterRouter().getActorSystem().actorOf(ACTOR_FS_TRACKER);
         } catch (Exception ex) {
             log.error("StorageTracker error!", ex);
         }
@@ -57,17 +66,21 @@ public class StorageTracker {
 
     /**
      * 临时文件写入请求
+     *
+     * @param msg
      */
-    public void onPartialUploadDataReceived(WriteTmpFileMsg msg) throws Exception {
+    public void onPartialUploadDataReceived(WriteTmpFileMsg msg) {
         // 按fileTransactionId路由
         RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_TMP_FILE, msg);
-        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
+        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
 
     /**
      * 临时文件写入结果
+     *
+     * @param msg
      */
-    public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) throws Exception {
+    public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
             return;
@@ -75,13 +88,15 @@ public class StorageTracker {
 
         // 强制路由：同一个fileTransaction要求在同一个集群节点处理
         RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
-        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
+        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
 
     /**
      * 上传结果
+     *
+     * @param msg
      */
-    public void onUploadResultReceived(UploadResult msg) throws Exception {
+    public void onUploadResultReceived(FileUploadResult msg) throws IOException {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
             return;
@@ -92,21 +107,23 @@ public class StorageTracker {
         IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(metaDataIndex.getStoreEngineVersion());
         String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
         String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
-        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, HttpHeaders.Values.APPLICATION_JSON, uploadResponseBody, false);
+        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
         log.info(fileTransactionId + " upload done:" + uploadResponseBody);
     }
 
     /**
      * 下载请求
+     *
+     * @param msg
      */
-    public void onDownloadRequestReceived(DownloadMsg msg) {
+    public void onDownloadRequestReceived(FileDownloadMsg msg) {
         String fileTransactionId = "";
         try {
             // 强制路由：优先从主节点下载
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex index = msg.getMetaDataIndex();
             RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DOWNLOAD, msg);
-            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
+            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onDownloadRequestReceived() process error: " + fileTransactionId, ex);
             FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
@@ -115,8 +132,10 @@ public class StorageTracker {
 
     /**
      * 下载结果
+     *
+     * @param msg
      */
-    public void onDownloadResult(DownloadResult msg) {
+    public void onDownloadResult(FileDownloadResult msg) {
         String fileTransactionId = "";
         try {
             final String tid = fileTransactionId = msg.getFileTransactionId();
@@ -133,19 +152,20 @@ public class StorageTracker {
 
             ChannelHandlerContext ctx = fileCtx.getCtx();
             MetaData metaData = msg.getChunkedMetaData().getMetaData();
-            if (metaData == null)
+            if (metaData == null) {
                 throw new BizException("metaData is null: " + fileTransactionId);
+            }
 
             if (msg.getChunkIndex() == 0) {
                 // write response header
                 String fileName = FileServerHttpResponseHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-                response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
-                response.headers().set(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                response.headers().set(HttpHeaders.Names.CONTENT_TYPE, FileServerHttpResponseHelper.getContentType(metaData.getFileName()));
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
+                response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerHttpResponseHelper.getContentType(metaData.getFileName()));
                 response.headers().set("Content-disposition", "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
-                    response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+                    response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
                 }
 
                 ctx.write(response);
@@ -159,11 +179,13 @@ public class StorageTracker {
 
             sendFileFuture = ctx.writeAndFlush(chunkedStream, ctx.newProgressivePromise());
             sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
-                public void operationProgressed(ChannelProgressiveFuture channelProgressiveFuture, long progress, long total) throws Exception {
-
+                @Override
+                public void operationProgressed(ChannelProgressiveFuture channelProgressiveFuture, long progress, long total) {
+                    // just do nothing
                 }
 
-                public void operationComplete(ChannelProgressiveFuture channelProgressiveFuture) throws Exception {
+                @Override
+                public void operationComplete(ChannelProgressiveFuture channelProgressiveFuture) {
                     try {
                         inputStream.close();
                         chunkedStream.close();
@@ -182,13 +204,13 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() < msg.getChunkCount() - 1) {
                 // 后续分片下载
-                DownloadMsg downloadMsg = DownloadMsg.builder()
+                FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
                         .fileTransactionId(fileTransactionId)
                         .metaDataIndex(msg.getMetaDataIndex())
                         .fileTotalSize(metaData.getFileTotalSize())
                         .chunkIndex(msg.getChunkIndex() + 1)
                         .build();
-                onDownloadRequestReceived(downloadMsg);
+                this.onDownloadRequestReceived(fileDownloadMsg);
             }
         } catch (Exception ex) {
             FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
@@ -196,10 +218,12 @@ public class StorageTracker {
     }
 
     /**
-     * onDeleteTmpFileMsg（上传意外中断删除ing临时文件）
+     * 上传意外中断删除ing临时文件
+     *
+     * @param msg
      */
-    public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) throws Exception {
+    public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) {
         RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
-        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, trackerActor);
+        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
 }

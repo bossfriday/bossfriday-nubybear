@@ -1,24 +1,33 @@
 package cn.bossfriday.fileserver.common.enums;
 
+import lombok.Getter;
+
+/**
+ * OperationResult
+ *
+ * @author chenx
+ */
 public enum OperationResult {
-	OK(200,"ok"),
-	BadRequest(400, "bad request"),
-	NotFound(404, "not found"),
-	SystemError(500, "internal system error");
 
-	private OperationResult(int code, String msg) {
-		this.code = code;
-		this.msg = msg;
-	}
+    /**
+     * 操作结果
+     */
+    OK(200, "ok"),
 
-	private int code;
-	private String msg;
+    BAD_REQUEST(400, "bad request"),
 
-	public int getCode() {
-		return code;
-	}
+    NOT_FOUND(404, "not found"),
 
-	public String getMsg() {
-		return msg;
-	}
+    SYSTEM_ERROR(500, "internal system error");
+
+    OperationResult(int code, String msg) {
+        this.code = code;
+        this.msg = msg;
+    }
+
+    @Getter
+    private int code;
+
+    @Getter
+    private String msg;
 }

@@ -9,8 +9,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.logging.LogLevel;
@@ -18,9 +16,24 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * HttpFileServer
+ *
+ * @author chenx
+ */
 @Slf4j
 public class HttpFileServer {
-    public static void start() throws Exception {
+
+    private HttpFileServer() {
+
+    }
+
+    /**
+     * start
+     *
+     * @throws InterruptedException
+     */
+    public static void start() throws InterruptedException {
         int port = FileServerConfigManager.getFileServerConfig().getHttpPort();
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup(1);
@@ -31,7 +44,7 @@ public class HttpFileServer {
             b.handler(new LoggingHandler(LogLevel.ERROR));
             b.option(ChannelOption.SO_BACKLOG, 1024);
             b.option(ChannelOption.SO_REUSEADDR, true);
-            b.option(ChannelOption.SO_RCVBUF, 1024*1024*10);
+            b.option(ChannelOption.SO_RCVBUF, 1024 * 1024 * 10);
             b.childHandler(new ChannelInitializer<SocketChannel>() {
                                @Override
                                protected void initChannel(SocketChannel socketChannel) {

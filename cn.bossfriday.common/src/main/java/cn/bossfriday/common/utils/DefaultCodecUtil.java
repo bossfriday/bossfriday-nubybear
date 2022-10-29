@@ -1,6 +1,7 @@
 package cn.bossfriday.common.utils;
 
 import cn.bossfriday.common.exception.BizException;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.io.*;
 
@@ -20,21 +21,20 @@ public class DefaultCodecUtil {
      *
      * @param obj
      * @return
-     * @throws BizException
      * @throws IOException
      */
-    public static byte[] encode(Object obj) throws BizException, IOException {
-        if (obj != null) {
-            try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-                oos.writeObject(obj);
-                oos.flush();
-
-                return bos.toByteArray();
-            }
+    public static byte[] encode(Object obj) throws IOException {
+        if (obj == null) {
+            throw new BizException("The input object is null!");
         }
 
-        throw new BizException("DefaultCodecUtil.encode() error!");
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(obj);
+            oos.flush();
+
+            return bos.toByteArray();
+        }
     }
 
     /**
@@ -42,19 +42,18 @@ public class DefaultCodecUtil {
      *
      * @param bytes
      * @return
-     * @throws BizException
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static Object decode(byte[] bytes) throws BizException, IOException, ClassNotFoundException {
-        if (bytes != null && bytes.length > 0) {
-            try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-                 ObjectInputStream ois = new ObjectInputStream(bis)) {
-
-                return ois.readObject();
-            }
+    public static Object decode(byte[] bytes) throws IOException, ClassNotFoundException {
+        if (ArrayUtils.isEmpty(bytes)) {
+            throw new BizException("The input bytes is empty!");
         }
 
-        throw new BizException("DefaultCodecUtil.decode() error!");
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+             ObjectInputStream ois = new ObjectInputStream(bis)) {
+
+            return ois.readObject();
+        }
     }
 }

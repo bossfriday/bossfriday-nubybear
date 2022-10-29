@@ -9,6 +9,7 @@ import cn.bossfriday.common.rpc.transport.RpcMessage;
  * @author chenx
  */
 public interface IExecutor {
+
     /**
      * process
      *

@@ -15,26 +15,35 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
 
+/**
+ * StorageDispatcher
+ *
+ * @author chenx
+ */
 @Slf4j
 public class StorageEngine extends BaseStorageEngine {
-    private volatile static StorageEngine instance = null;
+
+    private static volatile StorageEngine instance = null;
+    private static final int RECOVERABLE_TMP_FILE_WARNING_THRESHOLD = 10000;
+
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private LruHashMap<Long, MetaData> metaDataMap = new LruHashMap<>(10000, null, 1000 * 60 * 60L * 8);
     private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
 
     @Getter
-    private File baseDir;   // 存储根目录
+    private File baseDir;
 
     @Getter
-    private File tmpDir;    // 存储临时目录
+    private File tmpDir;
 
     @Getter
-    private HashMap<String, StorageNamespace> namespaceMap;    // 存储空间
+    private HashMap<String, StorageNamespace> namespaceMap;
 
     private StorageEngine() {
         super(128 * 1024);
@@ -56,23 +65,25 @@ public class StorageEngine extends BaseStorageEngine {
         return instance;
     }
 
-    /**
-     * start
-     */
     @Override
-    public void start() throws Exception {
-        // todo:临时文件落盘恢复、过期文件清理任务启动（包含过期临时文件清理）、临时文件落盘……
-        super.start();
-        this.loadRecoverableTmpFile();       // 服务非正常停止可能导致RecoverableTmpFile未落盘
-        this.loadStorageIndex();
-        log.info("StorageEngine start done: " + FileServerConfigManager.getCurrentClusterNodeName());
+    protected void startup() {
+        try {
+            // 过期文件自动清理
+            this.cleanupExpiredFiles();
+
+            // 服务非正常停止可能导致RecoverableTmpFile未落盘
+            this.loadRecoverableTmpFile();
+
+            // 加载存储指针
+            this.loadStorageIndex();
+        } catch (Exception ex) {
+            log.error("StorageEngine.startup() error!", ex);
+        }
     }
 
-    /**
-     * stop
-     */
-    public void stop() {
-        super.queue.shutdown();
+    @Override
+    protected void shutdown() {
+        // just reserve
     }
 
     @Override
@@ -89,9 +100,14 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     /**
-     * 文件上传（synchronized：为了保障落盘为顺序写盘）
+     * upload 文件上传
+     * synchronized：为了保障落盘为顺序写盘
+     *
+     * @param data
+     * @return
+     * @throws IOException
      */
-    public synchronized MetaDataIndex upload(WriteTmpFileResult data) throws Exception {
+    public synchronized MetaDataIndex upload(WriteTmpFileResult data) throws IOException {
         if (data == null) {
             throw new BizException("WriteTmpFileResult is null!");
         }
@@ -148,25 +164,40 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     /**
-     * 分片下载
+     * chunkedDownload 分片下载
+     *
+     * @param metaDataIndexHash64
+     * @param metaDataIndex
+     * @param position
+     * @param length
+     * @return
+     * @throws IOException
      */
-    public ChunkedMetaData chunkedDownload(long metaDataIndexHash64, MetaDataIndex metaDataIndex, long position, int length) throws Exception {
+    public ChunkedMetaData chunkedDownload(long metaDataIndexHash64, MetaDataIndex metaDataIndex, long position, int length) throws IOException {
         if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
         }
 
-        // 如果临时文件没有落盘则开始自旋（临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式）
+        /**
+         * 临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式
+         */
         for (int i = 0; ; i++) {
             if (!this.recoverableTmpFileHashMap.containsKey(metaDataIndexHash64)) {
                 break;
             }
 
-            if (this.recoverableTmpFileHashMap.size() > 10000) {
-                // 告警：这种情况经常发生则建议横向扩容（todo:这里hardCode，可以做成配置及对接业务监控等）
-                log.error("recoverableTmpFileHashMap.size() > 10000");
+            if (this.recoverableTmpFileHashMap.size() > RECOVERABLE_TMP_FILE_WARNING_THRESHOLD) {
+                // 这种情况经常发生则建议横向扩容（先hardCode，可以考虑做成配置及对接业务监控等）
+                log.warn("recoverableTmpFileHashMap.size() > " + RECOVERABLE_TMP_FILE_WARNING_THRESHOLD);
             }
 
-            Thread.sleep(i);
+            // 如果临时文件没有落盘则开始自旋
+            try {
+                Thread.sleep(i);
+            } catch (InterruptedException e) {
+                log.error("StorageEngine.chunkedDownload() spinning error!", e);
+                Thread.currentThread().interrupt();
+            }
         }
 
         MetaData metaData = this.getMetaData(metaDataIndexHash64, metaDataIndex);
@@ -183,9 +214,16 @@ public class StorageEngine extends BaseStorageEngine {
 
     /**
      * getMetaData
-     * 无锁：1：MetaData只读不写；2：同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
+     * 无锁原因：
+     * 1、MetaData只读不写；
+     * 2、同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
+     *
+     * @param metaDataIndexHash64
+     * @param metaDataIndex
+     * @return
+     * @throws IOException
      */
-    public MetaData getMetaData(long metaDataIndexHash64, MetaDataIndex metaDataIndex) throws Exception {
+    public MetaData getMetaData(long metaDataIndexHash64, MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
         }
@@ -202,6 +240,9 @@ public class StorageEngine extends BaseStorageEngine {
         return metaData;
     }
 
+    /**
+     * init
+     */
     private void init() {
         try {
             // 存储空间
@@ -212,7 +253,6 @@ public class StorageEngine extends BaseStorageEngine {
                     this.namespaceMap.put(key, item);
                 }
             });
-
 
             // 目录初始化
             this.baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(),
@@ -237,8 +277,13 @@ public class StorageEngine extends BaseStorageEngine {
         }
     }
 
-    private void loadStorageIndex() throws Exception {
-        this.storageIndexMap = new ConcurrentHashMap<>();
+    /**
+     * loadStorageIndex
+     *
+     * @throws IOException
+     */
+    private void loadStorageIndex() throws IOException {
+        this.storageIndexMap = new ConcurrentHashMap<>(16);
         StorageEngineVersion[] versions = StorageEngineVersion.class.getEnumConstants();
         for (String namespace : this.namespaceMap.keySet()) {
             for (StorageEngineVersion item : versions) {
@@ -253,19 +298,44 @@ public class StorageEngine extends BaseStorageEngine {
 
     /**
      * loadRecoverableTmpFile
-     * todo:
-     * 1.加载RecoverableTmpFile集合
-     * 2.RecoverableTmpFile集合排序：按照offset排序（必须保障顺序）
      */
     private void loadRecoverableTmpFile() {
-
+        /**
+         * TODO:
+         * 1.加载RecoverableTmpFile集合
+         * 2.RecoverableTmpFile集合排序：按照offset排序（必须保障顺序）
+         */
     }
 
+    /**
+     * cleanupExpiredFiles
+     */
+    private void cleanupExpiredFiles() {
+        /**
+         * TODO：
+         * 过期文件自动清理
+         */
+    }
+
+    /**
+     * getStorageIndexMapKey
+     *
+     * @param namespace
+     * @param storageEngineVersion
+     * @return
+     */
     private static String getStorageIndexMapKey(String namespace, int storageEngineVersion) {
         return namespace + "-" + storageEngineVersion;
     }
 
-    private StorageIndex getStorageIndex(String namespace, int storageEngineVersion) throws Exception {
+    /**
+     * getStorageIndex
+     *
+     * @param namespace
+     * @param storageEngineVersion
+     * @return
+     */
+    private StorageIndex getStorageIndex(String namespace, int storageEngineVersion) {
         String key = getStorageIndexMapKey(namespace, storageEngineVersion);
         if (!this.storageIndexMap.containsKey(key)) {
             throw new BizException("StorageIndex not existed: " + key);

@@ -69,7 +69,8 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
      * registerActor
      *
      * @param config
-     * @throws Exception
+     * @throws IOException
+     * @throws ClassNotFoundException
      */
     private void registerActor(ServiceConfig config) throws IOException, ClassNotFoundException {
         List<Class<? extends BaseUntypedActor>> classList = new ArrayList<>();
