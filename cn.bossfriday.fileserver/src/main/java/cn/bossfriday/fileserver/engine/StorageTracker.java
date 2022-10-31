@@ -151,7 +151,7 @@ public class StorageTracker {
             }
 
             ChannelHandlerContext ctx = fileCtx.getCtx();
-            MetaData metaData = msg.getChunkedMetaData().getMetaData();
+            MetaData metaData = msg.getMetaData();
             if (metaData == null) {
                 throw new BizException("metaData is null: " + fileTransactionId);
             }
@@ -163,7 +163,7 @@ public class StorageTracker {
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
                 response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerHttpResponseHelper.getContentType(metaData.getFileName()));
-                response.headers().set("Content-disposition", "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
+                response.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
                     response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
                 }
@@ -207,7 +207,7 @@ public class StorageTracker {
                 FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
                         .fileTransactionId(fileTransactionId)
                         .metaDataIndex(msg.getMetaDataIndex())
-                        .fileTotalSize(metaData.getFileTotalSize())
+                        .metaData(metaData)
                         .chunkIndex(msg.getChunkIndex() + 1)
                         .build();
                 this.onDownloadRequestReceived(fileDownloadMsg);

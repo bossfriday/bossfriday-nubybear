@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.rpc.module;
 
+import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FileDownloadMsg {
 
+
+    public static final long FIRST_CHUNK_INDEX = 0L;
+
     /**
      * fileTransactionId
      */
@@ -28,9 +32,9 @@ public class FileDownloadMsg {
     private MetaDataIndex metaDataIndex;
 
     /**
-     * fileTotalSize
+     * metaData
      */
-    private long fileTotalSize;
+    private MetaData metaData;
 
     /**
      * chunkIndex

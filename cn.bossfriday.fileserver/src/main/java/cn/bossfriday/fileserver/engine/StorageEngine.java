@@ -1,7 +1,6 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.BizException;
-import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
@@ -33,7 +32,6 @@ public class StorageEngine extends BaseStorageEngine {
     private static final int RECOVERABLE_TMP_FILE_WARNING_THRESHOLD = 10000;
 
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
-    private LruHashMap<Long, MetaData> metaDataMap = new LruHashMap<>(10000, null, 1000 * 60 * 60L * 8);
     private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
 
     @Getter
@@ -164,31 +162,33 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     /**
-     * chunkedDownload 分片下载
+     * chunkedDownload 文件分片下载
      *
-     * @param metaDataIndexHash64
      * @param metaDataIndex
-     * @param position
-     * @param length
+     * @param metaData
+     * @param offset
+     * @param limit
      * @return
      * @throws IOException
      */
-    public ChunkedMetaData chunkedDownload(long metaDataIndexHash64, MetaDataIndex metaDataIndex, long position, int length) throws IOException {
+    public ChunkedMetaData chunkedDownload(MetaDataIndex metaDataIndex, MetaData metaData, long offset, int limit) throws IOException {
         if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
         }
 
-        /**
-         * 临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式
-         */
+        if (metaData == null) {
+            throw new BizException("MetaData is null!");
+        }
+
+        // 临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式
         for (int i = 0; ; i++) {
-            if (!this.recoverableTmpFileHashMap.containsKey(metaDataIndexHash64)) {
+            if (!this.recoverableTmpFileHashMap.containsKey(metaDataIndex.hash64())) {
                 break;
             }
 
             if (this.recoverableTmpFileHashMap.size() > RECOVERABLE_TMP_FILE_WARNING_THRESHOLD) {
                 // 这种情况经常发生则建议横向扩容（先hardCode，可以考虑做成配置及对接业务监控等）
-                log.warn("recoverableTmpFileHashMap.size() > " + RECOVERABLE_TMP_FILE_WARNING_THRESHOLD);
+                log.warn("StorageEngine.recoverableTmpFileHashMap.size() is: " + this.recoverableTmpFileHashMap.size());
             }
 
             // 如果临时文件没有落盘则开始自旋
@@ -200,44 +200,32 @@ public class StorageEngine extends BaseStorageEngine {
             }
         }
 
-        MetaData metaData = this.getMetaData(metaDataIndexHash64, metaDataIndex);
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
-        byte[] chunkedData = storageHandler.chunkedDownload(metaDataIndex, metaData.getFileTotalSize(), position, length);
+        byte[] chunkedData = storageHandler.chunkedDownload(metaDataIndex, metaData.getFileTotalSize(), offset, limit);
 
         return ChunkedMetaData.builder()
-                .metaData(metaData)
-                .position(position)
+                .offset(offset)
                 .chunkedData(chunkedData)
                 .build();
     }
 
     /**
      * getMetaData
-     * 无锁原因：
-     * 1、MetaData只读不写；
-     * 2、同一个MetaData在并发下可能导致的重复反序列化对整个过程无影响；
      *
-     * @param metaDataIndexHash64
      * @param metaDataIndex
      * @return
      * @throws IOException
      */
-    public MetaData getMetaData(long metaDataIndexHash64, MetaDataIndex metaDataIndex) throws IOException {
+    public MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
             throw new BizException("MetaDataIndex is null!");
         }
 
-        if (this.metaDataMap.containsKey(metaDataIndexHash64)) {
-            return this.metaDataMap.get(metaDataIndexHash64);
-        }
-
         int version = metaDataIndex.getStoreEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
-        MetaData metaData = storageHandler.getMetaData(metaDataIndex);
-        this.metaDataMap.putIfAbsent(metaDataIndexHash64, metaData);
 
-        return metaData;
+        return storageHandler.getMetaData(metaDataIndex);
     }
 
     /**

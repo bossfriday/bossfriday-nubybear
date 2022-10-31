@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.fileserver.rpc.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
 
 /**
  * HttpFileServerHandler
@@ -99,9 +100,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         FileDownloadMsg ms = FileDownloadMsg.builder()
                 .fileTransactionId(this.fileTransactionId)
                 .metaDataIndex(metaDataIndex)
-                // 首次分片下载不传值（第1次分片下载完成后会从元数据中读取，然后缓存至FileTransactionContext供后续分片下载使用
-                .fileTotalSize(-1L)
-                .chunkIndex(0L)
+                .chunkIndex(FIRST_CHUNK_INDEX)
                 .build();
         StorageTracker.getInstance().onDownloadRequestReceived(ms);
     }

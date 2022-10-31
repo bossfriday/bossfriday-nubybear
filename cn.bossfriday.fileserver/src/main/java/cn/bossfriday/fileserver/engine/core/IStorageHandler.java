@@ -65,12 +65,12 @@ public interface IStorageHandler {
      *
      * @param metaDataIndex
      * @param fileTotalSize
-     * @param position
-     * @param length
+     * @param offset
+     * @param limit
      * @return
      * @throws IOException
      */
-    byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws IOException;
+    byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long offset, int limit) throws IOException;
 
     /**
      * getMetaData

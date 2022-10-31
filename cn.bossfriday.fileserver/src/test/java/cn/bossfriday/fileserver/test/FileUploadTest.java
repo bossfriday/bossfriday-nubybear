@@ -20,9 +20,9 @@ import java.util.concurrent.Executors;
 
 @Slf4j
 public class FileUploadTest {
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         ExecutorService threadPool = Executors.newFixedThreadPool(8);
-        for(int i=0;i<10;i++) {
+        for (int i = 0; i < 10; i++) {
             threadPool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -42,6 +42,7 @@ public class FileUploadTest {
     /**
      * 下载
      * 直接用浏览器就能下载（这里只是为了做些验证）
+     *
      * @throws Exception
      */
     private static void download() throws Exception {
@@ -60,40 +61,45 @@ public class FileUploadTest {
             HttpEntity entity = httpResponse.getEntity();
             if (entity != null) {
                 in = entity.getContent();
-                while (in.read()>0) {
+                while (in.read() > 0) {
                     // 空转（本地不存储文件）
                 }
             }
         } finally {
             try {
-                if (in != null)
+                if (in != null) {
                     in.close();
+                }
 
             } catch (Exception ex) {
                 log.warn("close stream error!(" + ex.getMessage() + ")");
             }
 
-            if (httpGet != null)
+            if (httpGet != null) {
                 httpGet.releaseConnection();
+            }
 
-            if (httpResponse != null)
+            if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (Exception e) {
                     log.error("httpResponse close error!", e);
                 }
+            }
 
-            if (httpClient != null)
+            if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     log.error("httpClient close error!", e);
                 }
+            }
         }
     }
 
     /**
      * 上传
+     *
      * @throws Exception
      */
     private static void upload() throws Exception {
@@ -117,22 +123,25 @@ public class FileUploadTest {
             String responseBody = EntityUtils.toString(httpResponse.getEntity());
             System.out.println(responseBody);
         } finally {
-            if (httpPost != null)
+            if (httpPost != null) {
                 httpPost.releaseConnection();
+            }
 
-            if (httpResponse != null)
+            if (httpResponse != null) {
                 try {
                     httpResponse.close();
                 } catch (Exception e) {
                     log.error("httpResponse close error!", e);
                 }
+            }
 
-            if (httpClient != null)
+            if (httpClient != null) {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     log.error("httpClient close error!", e);
                 }
+            }
         }
 
         log.info("done");

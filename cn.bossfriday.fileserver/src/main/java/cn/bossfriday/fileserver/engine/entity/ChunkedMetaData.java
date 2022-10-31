@@ -17,14 +17,9 @@ import lombok.NoArgsConstructor;
 public class ChunkedMetaData {
 
     /**
-     * metaData
+     * offset
      */
-    private MetaData metaData;
-
-    /**
-     * position
-     */
-    private long position;
+    private long offset;
 
     /**
      * chunkedData

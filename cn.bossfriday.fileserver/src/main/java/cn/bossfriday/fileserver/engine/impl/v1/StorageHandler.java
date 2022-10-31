@@ -140,23 +140,23 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long position, int length) throws IOException {
-        if (position < 0 && length <= 0) {
-            throw new BizException("invalid position or length: " + position + "/" + length);
+    public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long offset, int limit) throws IOException {
+        if (offset < 0 && limit <= 0) {
+            throw new BizException("invalid position or length: " + offset + "/" + limit);
         }
 
-        if (position >= fileTotalSize) {
-            throw new BizException("invalid position: position(" + position + ") >= fileTotalSize(" + fileTotalSize + ")");
+        if (offset >= fileTotalSize) {
+            throw new BizException("invalid position: position(" + offset + ") >= fileTotalSize(" + fileTotalSize + ")");
         }
 
-        if (position + length > fileTotalSize) {
-            throw new BizException("invalid position and length: position(" + position + ") + length(" + length + ") > fileTotalSize(" + fileTotalSize + ")");
+        if (offset + limit > fileTotalSize) {
+            throw new BizException("invalid position and length: position(" + offset + ") + length(" + limit + ") > fileTotalSize(" + fileTotalSize + ")");
         }
 
         FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
-        long chunkedFileDataBeginOffset = metaDataIndex.getOffset() + metaDataIndex.getMetaDataLength() + position;
+        long chunkedFileDataBeginOffset = metaDataIndex.getOffset() + metaDataIndex.getMetaDataLength() + offset;
 
-        return FileUtil.transferTo(storageFileChannel, chunkedFileDataBeginOffset, length, false);
+        return FileUtil.transferTo(storageFileChannel, chunkedFileDataBeginOffset, limit, false);
     }
 
     @Override

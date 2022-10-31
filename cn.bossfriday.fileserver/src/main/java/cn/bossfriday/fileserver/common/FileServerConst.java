@@ -31,11 +31,12 @@ public class FileServerConst {
     /**
      * actors
      */
-    public static final String ACTOR_FS_TRACKER = "fs_tracker";
-    public static final String ACTOR_FS_TMP_FILE = "fs_tmpFile";
-    public static final String ACTOR_FS_DEL_TMP_FILE = "fs_delTmpFile";
-    public static final String ACTOR_FS_UPLOAD = "fs_up";
-    public static final String ACTOR_FS_DOWNLOAD = "fs_down";
+    public static final String ACTOR_PREFIX_FS = "fs-";
+    public static final String ACTOR_FS_TRACKER = ACTOR_PREFIX_FS + "tracker";
+    public static final String ACTOR_FS_TMP_FILE = ACTOR_PREFIX_FS + "tmpFile";
+    public static final String ACTOR_FS_DEL_TMP_FILE = ACTOR_PREFIX_FS + "delTmpFile";
+    public static final String ACTOR_FS_UPLOAD = ACTOR_PREFIX_FS + "upload";
+    public static final String ACTOR_FS_DOWNLOAD = ACTOR_PREFIX_FS + "download";
 
     /**
      * file

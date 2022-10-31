@@ -2,6 +2,7 @@ package cn.bossfriday.fileserver.rpc.module;
 
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
+import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,11 @@ public class FileDownloadResult {
      * metaDataIndex
      */
     private MetaDataIndex metaDataIndex;
+
+    /**
+     * metaData
+     */
+    private MetaData metaData;
 
     /**
      * chunkIndex
