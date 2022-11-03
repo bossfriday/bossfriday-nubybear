@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileMsg;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
 
 /**
  * ITmpFileHandler

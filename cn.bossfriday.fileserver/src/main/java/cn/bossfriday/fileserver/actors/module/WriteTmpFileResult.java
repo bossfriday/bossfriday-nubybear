@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.rpc.module;
+package cn.bossfriday.fileserver.actors.module;
 
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import lombok.AllArgsConstructor;
@@ -38,9 +38,9 @@ public class WriteTmpFileResult {
     private String clusterNodeName;
 
     /**
-     * namespace
+     * storageNamespace
      */
-    private String namespace;
+    private String storageNamespace;
 
     /**
      * isKeepAlive

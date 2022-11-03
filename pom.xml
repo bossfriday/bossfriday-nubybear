@@ -30,6 +30,7 @@
         <snakeyaml.version>1.29</snakeyaml.version>
         <reflections.version>0.10.2</reflections.version>
         <disruptor.version>3.4.2</disruptor.version>
+        <httpclient.version>4.5.13</httpclient.version>
     </properties>
 
     <repositories>

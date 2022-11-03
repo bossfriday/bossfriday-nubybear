@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.rpc.module;
+package cn.bossfriday.fileserver.actors.module;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

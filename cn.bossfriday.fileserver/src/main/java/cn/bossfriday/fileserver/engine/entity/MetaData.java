@@ -17,27 +17,33 @@ import java.io.*;
 @NoArgsConstructor
 public class MetaData implements ICodec<MetaData> {
 
+    public static final int STORE_ENGINE_VERSION_LENGTH = 1;
+    public static final int FILE_STATUS_LENGTH = 1;
+    public static final int TIMESTAMP_LENGTH = 8;
+    public static final int UTF8_FIRST_SIGNIFICANT_LENGTH = 2;
+    public static final int FILE_TOTAL_SIZE_LENGTH = 8;
+
     /**
-     * 存储引擎版本
+     * 存储引擎版本（1字节）
      */
     private int storeEngineVersion;
     /**
-     * 文件状态标识
+     * 文件状态标识（1字节）
      */
     private int fileStatus;
 
     /**
-     * 上传时间戳
+     * 上传时间戳（8字节）
      */
     private long timestamp;
 
     /**
-     * 文件名
+     * 文件名（utf8字符串）
      */
     private String fileName;
 
     /**
-     * 文件大小
+     * 文件大小（8字节）
      */
     private long fileTotalSize;
 

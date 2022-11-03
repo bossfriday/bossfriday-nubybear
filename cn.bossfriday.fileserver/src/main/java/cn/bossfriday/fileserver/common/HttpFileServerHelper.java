@@ -1,5 +1,6 @@
-package cn.bossfriday.fileserver.http;
+package cn.bossfriday.fileserver.common;
 
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
@@ -19,22 +20,72 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.*;
+
 
 /**
- * FileServerHttpResponseHelper
+ * HttpFileServerHelper
  *
  * @author chenx
  */
 @Slf4j
-public class FileServerHttpResponseHelper {
+public class HttpFileServerHelper {
 
     private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
     private static final String PNG = "png";
     private static final String FIREFOX = "Firefox";
     private static final String CHROME = "Chrome";
 
-    private FileServerHttpResponseHelper() {
+    private HttpFileServerHelper() {
 
+    }
+
+    /**
+     * parserEngineVersionString
+     *
+     * @param versionString
+     * @return
+     */
+    public static int parserEngineVersionString(String versionString) {
+        final int versionPrefixLength = URL_PREFIX_STORAGE_VERSION.length();
+        if (StringUtils.isEmpty(versionString) || versionString.length() <= versionPrefixLength) {
+            throw new BizException("invalid engine version!");
+        }
+
+        int version = 0;
+        try {
+            version = Integer.parseInt(versionString.substring(versionPrefixLength));
+            if (version < DEFAULT_STORAGE_ENGINE_VERSION || version > MAX_STORAGE_VERSION) {
+                throw new BizException("invalid engine version!");
+            }
+        } catch (Exception ex) {
+            throw new BizException("invalid engine version!");
+        }
+
+        return version;
+    }
+
+    /**
+     * getHeaderValue
+     *
+     * @param httpRequest
+     * @param headerName
+     * @return
+     */
+    public static String getHeaderValue(HttpRequest httpRequest, String headerName) {
+        if (httpRequest == null || StringUtils.isEmpty(headerName)) {
+            throw new BizException("The input http request is null!");
+        }
+
+        if (StringUtils.isEmpty(headerName)) {
+            throw new BizException("The input http header name is empty!");
+        }
+
+        if (!httpRequest.headers().contains(headerName)) {
+            throw new BizException("Request must contains valid " + headerName + " header!");
+        }
+
+        return httpRequest.headers().get(headerName);
     }
 
     /**
@@ -119,7 +170,7 @@ public class FileServerHttpResponseHelper {
      */
     public static String encodedDownloadFileName(String agent, String fileName) throws Base64DecodingException, UnsupportedEncodingException {
         if (StringUtils.isEmpty(agent)) {
-            return fileName;
+            return URLEncoder.encode(fileName, StandardCharsets.UTF_8.name());
         }
 
         String result = "";

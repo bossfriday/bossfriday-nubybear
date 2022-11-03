@@ -1,21 +1,21 @@
-package cn.bossfriday.fileserver.rpc.actor;
+package cn.bossfriday.fileserver.actors;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
+import cn.bossfriday.fileserver.actors.module.FileDownloadMsg;
+import cn.bossfriday.fileserver.actors.module.FileDownloadResult;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.rpc.module.FileDownloadMsg;
-import cn.bossfriday.fileserver.rpc.module.FileDownloadResult;
 import lombok.extern.slf4j.Slf4j;
 
+import static cn.bossfriday.fileserver.actors.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DOWNLOAD;
 import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
-import static cn.bossfriday.fileserver.rpc.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
 
 /**
  * FileDownloadActor

@@ -4,6 +4,8 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.Func;
 import cn.bossfriday.common.utils.LruHashMap;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileMsg;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
@@ -11,8 +13,6 @@ import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -81,7 +81,7 @@ public class TmpFileHandler implements ITmpFileHandler {
                 result.setFileTransactionId(msg.getFileTransactionId());
                 result.setResult(OperationResult.OK);
                 result.setStorageEngineVersion(msg.getStorageEngineVersion());
-                result.setNamespace(msg.getNamespace());
+                result.setStorageNamespace(msg.getStorageNamespace());
                 result.setClusterNodeName(FileServerConfigManager.getCurrentClusterNodeName());
                 result.setKeepAlive(msg.isKeepAlive());
                 result.setTimestamp(System.currentTimeMillis());
@@ -157,7 +157,7 @@ public class TmpFileHandler implements ITmpFileHandler {
 
         File tmpFile = getTmpFile(fileTransactionId);
         if (!tmpFile.exists()) {
-            FileUtil.create(tmpFile, msg.getFileSize());
+            FileUtil.create(tmpFile, msg.getFileTotalSize());
         }
 
         FileChannel destFileChannel = new RandomAccessFile(tmpFile, "rw").getChannel();

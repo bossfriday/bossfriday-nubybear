@@ -5,14 +5,14 @@ import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
+import cn.bossfriday.fileserver.actors.module.*;
+import cn.bossfriday.fileserver.common.HttpFileServerHelper;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.http.FileServerHttpResponseHelper;
-import cn.bossfriday.fileserver.rpc.module.*;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelProgressiveFuture;
@@ -82,7 +82,7 @@ public class StorageTracker {
      */
     public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
             return;
         }
 
@@ -98,7 +98,7 @@ public class StorageTracker {
      */
     public void onUploadResultReceived(FileUploadResult msg) throws IOException {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
             return;
         }
 
@@ -107,7 +107,7 @@ public class StorageTracker {
         IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(metaDataIndex.getStoreEngineVersion());
         String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
         String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
-        FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
+        HttpFileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
         log.info(fileTransactionId + " upload done:" + uploadResponseBody);
     }
 
@@ -126,7 +126,7 @@ public class StorageTracker {
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onDownloadRequestReceived() process error: " + fileTransactionId, ex);
-            FileServerHttpResponseHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+            HttpFileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
 
@@ -140,7 +140,7 @@ public class StorageTracker {
         try {
             final String tid = fileTransactionId = msg.getFileTransactionId();
             if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-                FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+                HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
                 return;
             }
 
@@ -158,11 +158,11 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() == 0) {
                 // write response header
-                String fileName = FileServerHttpResponseHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
+                String fileName = HttpFileServerHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerHttpResponseHelper.getContentType(metaData.getFileName()));
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpFileServerHelper.getContentType(metaData.getFileName()));
                 response.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
                     response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
@@ -213,7 +213,7 @@ public class StorageTracker {
                 this.onDownloadRequestReceived(fileDownloadMsg);
             }
         } catch (Exception ex) {
-            FileServerHttpResponseHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
         }
     }
 

@@ -25,9 +25,9 @@ public class RecoverableTmpFile {
     private int storeEngineVersion;
 
     /**
-     * namespace
+     * storageNamespace
      */
-    private String namespace;
+    private String storageNamespace;
 
     /**
      * time

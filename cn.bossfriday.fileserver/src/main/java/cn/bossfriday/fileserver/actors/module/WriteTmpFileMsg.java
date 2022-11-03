@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.rpc.module;
+package cn.bossfriday.fileserver.actors.module;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,9 +27,9 @@ public class WriteTmpFileMsg {
     private String fileTransactionId;
 
     /**
-     * namespace
+     * storageNamespace
      */
-    private String namespace;
+    private String storageNamespace;
 
     /**
      * isKeepAlive
@@ -42,9 +42,9 @@ public class WriteTmpFileMsg {
     private String fileName;
 
     /**
-     * fileSize
+     * filePartitionSize
      */
-    private long fileSize;
+    private long filePartitionSize;
 
     /**
      * fileTotalSize

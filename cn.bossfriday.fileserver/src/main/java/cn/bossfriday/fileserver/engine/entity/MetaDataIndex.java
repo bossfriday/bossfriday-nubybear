@@ -33,7 +33,7 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     /**
      * 存储空间
      */
-    private String namespace;
+    private String storageNamespace;
 
     /**
      * 上传时间戳
@@ -59,11 +59,11 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     public byte[] serialize() throws IOException {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream dos = new DataOutputStream(out)) {
-            int hashInt = hash(this.clusterNode, this.namespace, this.time, this.offset);
+            int hashInt = hash(this.clusterNode, this.storageNamespace, this.time, this.offset);
             dos.writeInt(hashInt);
             dos.writeUTF(this.clusterNode);
             dos.writeByte((byte) this.storeEngineVersion);
-            dos.writeUTF(this.namespace);
+            dos.writeUTF(this.storageNamespace);
             dos.writeInt(this.time);
             dos.writeLong(this.offset);
             dos.writeInt(this.metaDataLength);
@@ -93,7 +93,7 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
             return MetaDataIndex.builder()
                     .clusterNode(nodeValue)
                     .storeEngineVersion(versionValue)
-                    .namespace(namespaceValue)
+                    .storageNamespace(namespaceValue)
                     .time(timeValue)
                     .offset(offsetValue)
                     .metaDataLength(metaDataLengthValue)
@@ -106,7 +106,7 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
      * hash64（相比hash32哈希碰撞几率进一步降低）
      */
     public long hash64() {
-        return hash64(this.namespace, this.time, this.offset);
+        return hash64(this.storageNamespace, this.time, this.offset);
     }
 
     /**

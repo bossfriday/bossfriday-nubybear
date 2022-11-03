@@ -1,10 +1,10 @@
-package cn.bossfriday.fileserver.rpc.actor;
+package cn.bossfriday.fileserver.actors;
 
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
+import cn.bossfriday.fileserver.actors.module.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.rpc.module.DeleteTmpFileMsg;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DEL_TMP_FILE;

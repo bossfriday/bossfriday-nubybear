@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.rpc.module;
+package cn.bossfriday.fileserver.actors.module;
 
 import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;

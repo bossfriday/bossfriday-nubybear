@@ -1,6 +1,7 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
@@ -9,7 +10,6 @@ import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.fileserver.engine.entity.*;
 import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -118,7 +118,7 @@ public class StorageEngine extends BaseStorageEngine {
         long metaDataTotalLength = metaDataHandler.getMetaDataTotalLength(data.getFileName(), data.getFileTotalSize());
         int metaDataLength = metaDataHandler.getMetaDataLength(data.getFileName());
 
-        StorageIndex currentStorageIndex = this.getStorageIndex(data.getNamespace(), engineVersion);
+        StorageIndex currentStorageIndex = this.getStorageIndex(data.getStorageNamespace(), engineVersion);
         StorageIndex resultIndex = storageHandler.ask(currentStorageIndex, metaDataTotalLength);
 
         if (resultIndex == null) {
@@ -133,7 +133,7 @@ public class StorageEngine extends BaseStorageEngine {
         MetaDataIndex metaDataIndex = MetaDataIndex.builder()
                 .clusterNode(data.getClusterNodeName())
                 .storeEngineVersion(engineVersion)
-                .namespace(data.getNamespace())
+                .storageNamespace(data.getStorageNamespace())
                 .time(resultIndex.getTime())
                 .offset(metaDataIndexOffset)
                 .metaDataLength(metaDataLength)
@@ -145,7 +145,7 @@ public class StorageEngine extends BaseStorageEngine {
         RecoverableTmpFile recoverableTmpFile = RecoverableTmpFile.builder()
                 .fileTransactionId(fileTransactionId)
                 .storeEngineVersion(data.getStorageEngineVersion())
-                .namespace(data.getNamespace())
+                .storageNamespace(data.getStorageNamespace())
                 .time(resultIndex.getTime())
                 .offset(metaDataIndex.getOffset())
                 .timestamp(data.getTimestamp())
@@ -234,7 +234,7 @@ public class StorageEngine extends BaseStorageEngine {
     private void init() {
         try {
             // 存储空间
-            this.namespaceMap = new HashMap<>();
+            this.namespaceMap = new HashMap<>(16);
             FileServerConfigManager.getFileServerConfig().getNamespaces().forEach(item -> {
                 String key = item.getName().toLowerCase().trim();
                 if (!this.namespaceMap.containsKey(item.getName())) {

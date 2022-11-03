@@ -53,7 +53,7 @@ public class StorageHandler implements IStorageHandler {
 
         return StorageIndex.builder()
                 .storeEngineVersion(StorageEngineVersion.V1.getValue())
-                .namespace(namespace)
+                .storageNamespace(namespace)
                 .time(time)
                 .offset(offset)
                 .build();
@@ -72,7 +72,7 @@ public class StorageHandler implements IStorageHandler {
         int currentTime = Integer.parseInt(DateUtil.date2Str(new Date(), DateUtil.DEFAULT_DATE_HYPHEN_FORMAT));
         if (storageIndex.getTime() != currentTime) {
             // 如果跨天，则重新初始化 StorageIndex
-            storageIndex = this.getStorageIndex(storageIndex.getNamespace());
+            storageIndex = this.getStorageIndex(storageIndex.getStorageNamespace());
         }
 
         storageIndex.addOffset(dataLength);
@@ -98,10 +98,10 @@ public class StorageHandler implements IStorageHandler {
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())
                     .build().serialize();
-            long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime(), recoverableTmpFile.getOffset());
+            long metaIndexHash64 = MetaDataIndex.hash64(recoverableTmpFile.getStorageNamespace(), recoverableTmpFile.getTime(), recoverableTmpFile.getOffset());
 
             // 存储元数据（不包含临时文件本身）
-            storageFileChannel = this.getFileChannel(recoverableTmpFile.getNamespace(), recoverableTmpFile.getTime());
+            storageFileChannel = this.getFileChannel(recoverableTmpFile.getStorageNamespace(), recoverableTmpFile.getTime());
             FileUtil.transferFrom(storageFileChannel, metaDataBytes, recoverableTmpFile.getOffset());
 
             // 存储临时文件
@@ -153,7 +153,7 @@ public class StorageHandler implements IStorageHandler {
             throw new BizException("invalid position and length: position(" + offset + ") + length(" + limit + ") > fileTotalSize(" + fileTotalSize + ")");
         }
 
-        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getStorageNamespace(), metaDataIndex.getTime());
         long chunkedFileDataBeginOffset = metaDataIndex.getOffset() + metaDataIndex.getMetaDataLength() + offset;
 
         return FileUtil.transferTo(storageFileChannel, chunkedFileDataBeginOffset, limit, false);
@@ -161,7 +161,7 @@ public class StorageHandler implements IStorageHandler {
 
     @Override
     public MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException {
-        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getNamespace(), metaDataIndex.getTime());
+        FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getStorageNamespace(), metaDataIndex.getTime());
         byte[] metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
 
         return new MetaData().deserialize(metaDataBytes);

@@ -1,17 +1,18 @@
 package cn.bossfriday.fileserver.http;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.http.url.UrlParser;
 import cn.bossfriday.common.utils.UUIDUtil;
+import cn.bossfriday.fileserver.actors.module.DeleteTmpFileMsg;
+import cn.bossfriday.fileserver.actors.module.FileDownloadMsg;
+import cn.bossfriday.fileserver.actors.module.WriteTmpFileMsg;
+import cn.bossfriday.fileserver.common.HttpFileServerHelper;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
-import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.rpc.module.DeleteTmpFileMsg;
-import cn.bossfriday.fileserver.rpc.module.FileDownloadMsg;
-import cn.bossfriday.fileserver.rpc.module.WriteTmpFileMsg;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -20,13 +21,12 @@ import io.netty.handler.codec.http.multipart.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
+import java.net.URI;
 import java.net.URLDecoder;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
+import static cn.bossfriday.fileserver.actors.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
-import static cn.bossfriday.fileserver.rpc.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
 
 /**
  * HttpFileServerHandler
@@ -35,29 +35,28 @@ import static cn.bossfriday.fileserver.rpc.module.FileDownloadMsg.FIRST_CHUNK_IN
  */
 @Slf4j
 public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
+
     private HttpRequest request;
     private HttpMethod httpMethod;
-
-    private String namespace;
-    private String encodedMetaDataIndex;
-    private int version = 0;
+    private Map<String, String> pathArgsMap;
+    private Map<String, String> queryArgsMap;
     private HttpPostRequestDecoder decoder;
     private String fileTransactionId;
-    private long offset = 0;
+    private String storageNamespace;
+    private FileUploadType fileUploadType;
 
+    private String metaDataIndexString;
+
+    private StringBuilder errorMsg = new StringBuilder();
+    private int version = 0;
+    private long offset = 0;
+    private long filePartitionSize = 0;
     private long fileTotalSize = 0;
     private boolean isKeepAlive = false;
 
-    /**
-     * TODO: 其他上传方式实现使用
-     */
-    private FileUploadType fileUploadType;
-    private long fileSize = 0;
-
     private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(false);
-    private final StringBuilder errorMsg = new StringBuilder();
-    private static final String REG_UPLOAD = "/upload/(.*?)/(.*?)/v(.*?)/";
-    private static final String REG_DOWNLOAD = "/" + URL_DOWNLOAD + "/v(.*?)/(.*?)\\.(.*?)";
+    private static final UrlParser uploadUrlParser = new UrlParser("/{" + URI_ARGS_NAME_UPLOAD_TYPE + "}/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_STORAGE_NAMESPACE + "}");
+    private static final UrlParser downloadUrlParser = new UrlParser("/" + URL_RESOURCE + "/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_META_DATA_INDEX_STRING + "}");
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -92,21 +91,108 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * download 文件下载
+     * httpRequestChannelRead
+     *
+     * @param ctx
+     * @param msg
      */
-    private void download() throws IOException {
-        IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
-        MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.encodedMetaDataIndex);
-        FileDownloadMsg ms = FileDownloadMsg.builder()
-                .fileTransactionId(this.fileTransactionId)
-                .metaDataIndex(metaDataIndex)
-                .chunkIndex(FIRST_CHUNK_INDEX)
-                .build();
-        StorageTracker.getInstance().onDownloadRequestReceived(ms);
+    private void httpRequestChannelRead(ChannelHandlerContext ctx, Object msg) {
+        try {
+            HttpRequest httpRequest = this.request = (HttpRequest) msg;
+            this.isKeepAlive = HttpUtil.isKeepAlive(httpRequest);
+            if (StringUtils.isEmpty(this.fileTransactionId)) {
+                this.fileTransactionId = UUIDUtil.getShortString();
+                FileTransactionContextManager.getInstance().addContext(this.fileTransactionId, ctx, this.isKeepAlive, this.request.headers().get("USER-AGENT"));
+            }
+
+            if (HttpMethod.GET.equals(httpRequest.method())) {
+                this.httpMethod = HttpMethod.GET;
+                this.parseUrl(downloadUrlParser);
+
+                this.metaDataIndexString = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_META_DATA_INDEX_STRING);
+                return;
+            }
+
+            if (HttpMethod.POST.equals(httpRequest.method())) {
+                this.httpMethod = HttpMethod.POST;
+                this.parseUrl(uploadUrlParser);
+
+                this.filePartitionSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HttpHeaderNames.CONTENT_LENGTH.toString()));
+                this.fileTotalSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                this.storageNamespace = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_STORAGE_NAMESPACE);
+                this.fileUploadType = FileUploadType.getByName(this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_UPLOAD_TYPE));
+                return;
+            }
+
+            if (HttpMethod.DELETE.equals(httpRequest.method())) {
+                this.httpMethod = HttpMethod.DELETE;
+                this.parseUrl(downloadUrlParser);
+
+                this.metaDataIndexString = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_META_DATA_INDEX_STRING);
+                return;
+            }
+
+            throw new BizException("unsupported HttpMethod!");
+        } catch (Exception ex) {
+            log.error("HttpRequest process error!", ex);
+            this.errorMsg.append(ex.getMessage());
+        } finally {
+            if (this.httpMethod.equals(HttpMethod.POST)) {
+                try {
+                    this.decoder = new HttpPostRequestDecoder(HTTP_DATA_FACTORY, this.request);
+                } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
+                    log.warn("getHttpDecoder Error:" + e1.getMessage());
+                }
+            }
+        }
     }
 
     /**
-     * 文件上传
+     * httpObjectChannelRead
+     *
+     * @param msg
+     */
+    private void httpObjectChannelRead(Object msg) {
+        if (this.httpMethod.equals(HttpMethod.POST)) {
+            try {
+                if (this.fileUploadType == FileUploadType.FULL_UPLOAD || this.fileUploadType == FileUploadType.RANGE_UPLOAD) {
+                    this.fileUpload((HttpObject) msg);
+                } else if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
+                    this.base64Upload((HttpObject) msg);
+                } else {
+                    throw new BizException("unimplemented upload type!");
+                }
+            } catch (Exception ex) {
+                log.error("HttpObject process error!", ex);
+                this.errorMsg.append(ex.getMessage());
+            }
+        } else if (this.httpMethod.equals(HttpMethod.GET)) {
+            if (msg instanceof LastHttpContent && !this.hasError()) {
+                this.fileDownload();
+            }
+        } else if (this.httpMethod.equals(HttpMethod.DELETE)) {
+            if (msg instanceof LastHttpContent && !this.hasError()) {
+                this.deleteFile();
+            }
+        } else {
+            if (msg instanceof LastHttpContent) {
+                this.errorMsg.append("unsupported http method");
+            }
+        }
+    }
+
+    /**
+     * lastHttpContentChannelRead
+     */
+    private void lastHttpContentChannelRead() {
+        this.reset();
+        if (this.hasError()) {
+            HttpFileServerHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
+        }
+    }
+
+    /**
+     * fileUpload
      */
     private void fileUpload(HttpObject msg) {
         if (this.decoder == null) {
@@ -131,6 +217,41 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 chunk.release();
             }
         }
+    }
+
+    /**
+     * base64Upload
+     *
+     * @param msg
+     */
+    private void base64Upload(HttpObject msg) {
+        // just to do..
+    }
+
+    /**
+     * fileDownload
+     */
+    private void fileDownload() {
+        try {
+            IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
+            MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
+            FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
+                    .fileTransactionId(this.fileTransactionId)
+                    .metaDataIndex(metaDataIndex)
+                    .chunkIndex(FIRST_CHUNK_INDEX)
+                    .build();
+            StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadMsg);
+        } catch (Exception ex) {
+            log.error("HttpFileServerHandler.fileDownload() error!", ex);
+            throw new BizException("File download error!");
+        }
+    }
+
+    /**
+     * 文件标记删除
+     */
+    private void deleteFile() {
+        // 文件标记删除
     }
 
     /**
@@ -186,10 +307,10 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             WriteTmpFileMsg msg = new WriteTmpFileMsg();
             msg.setStorageEngineVersion(this.version);
             msg.setFileTransactionId(this.fileTransactionId);
-            msg.setNamespace(this.namespace);
+            msg.setStorageNamespace(this.storageNamespace);
             msg.setKeepAlive(this.isKeepAlive);
             msg.setFileName(URLDecoder.decode(data.getFilename(), "UTF-8"));
-            msg.setFileSize(this.fileSize);
+            msg.setFilePartitionSize(this.filePartitionSize);
             msg.setFileTotalSize(this.fileTotalSize);
             msg.setOffset(this.offset);
             msg.setData(chunkData);
@@ -229,105 +350,38 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * getHeaderValue
+     * parseUrl
      *
+     * @param urlParser
+     */
+    private void parseUrl(UrlParser urlParser) {
+        try {
+            URI uri = new URI(this.request.uri());
+            this.pathArgsMap = urlParser.parsePath(uri);
+            this.queryArgsMap = urlParser.parseQuery(uri);
+            this.version = HttpFileServerHelper.parserEngineVersionString(UrlParser.getArgsValue(this.pathArgsMap, URI_ARGS_NAME_ENGINE_VERSION));
+        } catch (Exception ex) {
+            log.error("HttpFileServerHandler.parseUrl() error!", ex);
+            this.errorMsg.append(ex.getMessage());
+        }
+    }
+
+    /**
+     * getUrlArgValue
+     *
+     * @param argMap
      * @param key
      * @return
      */
-    private String getHeaderValue(String key) {
-        if (this.request.headers().contains(key)) {
-            return this.request.headers().get(key);
+    private String getUrlArgValue(Map<String, String> argMap, String key) {
+        try {
+            return UrlParser.getArgsValue(argMap, key);
+        } catch (Exception ex) {
+            log.error("HttpFileServerHandler.getUrlArgValue() error!", ex);
+            this.errorMsg.append(ex.getMessage());
         }
 
         return null;
-    }
-
-    /**
-     * getFileTotalSize
-     *
-     * @return
-     */
-    private Long getFileTotalSize() {
-        try {
-            String fileSizeString = this.getHeaderValue(HEADER_FILE_TOTAL_SIZE);
-            if (StringUtils.isEmpty(fileSizeString)) {
-                throw new BizException("upload request must contains  " + HEADER_FILE_TOTAL_SIZE + " header");
-            }
-
-            return Long.parseLong(fileSizeString);
-        } catch (Exception ex) {
-            this.errorMsg.append(ex.getMessage());
-        }
-
-        throw new BizException("upload request must contains valid " + HEADER_FILE_TOTAL_SIZE + " header!");
-    }
-
-    /**
-     * parseUploadUrl 解析上传Url
-     */
-    private void parseUploadUrl() {
-        try {
-            String url = this.request.getUri().toLowerCase();
-            if (!url.endsWith(URL_DELIMITER)) {
-                url += URL_DELIMITER;
-            }
-
-            if (!Pattern.matches(REG_UPLOAD, url)) {
-                throw new BizException("invalid upload url!");
-            }
-
-            Pattern pattern = Pattern.compile(REG_UPLOAD);
-            Matcher matcher = pattern.matcher(url);
-            String uploadTypeString = "";
-            String versionString = "";
-            while (matcher.find()) {
-                this.namespace = matcher.group(1).toLowerCase().trim();
-                uploadTypeString = matcher.group(2).toLowerCase().trim();
-                versionString = matcher.group(3).trim();
-            }
-
-            if (!StorageEngine.getInstance().getNamespaceMap().containsKey(this.namespace)) {
-                throw new BizException("invalid storage namespace");
-            }
-
-            if (uploadTypeString.equals(URL_UPLOAD_FULL)) {
-                this.fileUploadType = FileUploadType.FULL_UPLOAD;
-            } else if (uploadTypeString.equals(URL_UPLOAD_BASE64)) {
-                this.fileUploadType = FileUploadType.BASE_64_UPLOAD;
-            } else if (uploadTypeString.equals(URL_UPLOAD_RANGE)) {
-                this.fileUploadType = FileUploadType.RANGE_UPLOAD;
-            } else {
-                throw new BizException("invalid upload type!");
-            }
-
-            this.setVersion(versionString);
-        } catch (Exception ex) {
-            this.errorMsg.append(ex.getMessage());
-        }
-    }
-
-    /**
-     * parseDownUrl 解析下载Url
-     */
-    private void parseDownUrl() {
-        try {
-            String downUrl = this.request.getUri();
-            if (!Pattern.matches(REG_DOWNLOAD, downUrl)) {
-                throw new BizException("invalid download url: " + downUrl);
-            }
-
-            Pattern pattern = Pattern.compile(REG_DOWNLOAD);
-            Matcher matcher = pattern.matcher(downUrl);
-            String versionString = "";
-            while (matcher.find()) {
-                versionString = matcher.group(1).trim();
-                this.encodedMetaDataIndex = matcher.group(2).trim();
-            }
-
-            this.setVersion(versionString);
-        } catch (Exception ex) {
-            this.errorMsg.append(ex.getMessage());
-        }
     }
 
     /**
@@ -335,108 +389,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private boolean hasError() {
         return this.errorMsg.length() > 0;
-    }
-
-    /**
-     * setVersion
-     *
-     * @param versionStrValue
-     */
-    private void setVersion(String versionStrValue) {
-        try {
-            this.version = Integer.parseInt(versionStrValue);
-            if (this.version < DEFAULT_STORAGE_ENGINE_VERSION || this.version > MAX_STORAGE_VERSION) {
-                throw new BizException("invalid engine version!");
-            }
-        } catch (Exception ex) {
-            throw new BizException("invalid engine version!");
-        }
-    }
-
-    /**
-     * httpRequestChannelRead
-     *
-     * @param ctx
-     * @param msg
-     */
-    private void httpRequestChannelRead(ChannelHandlerContext ctx, Object msg) {
-        try {
-            HttpRequest httpRequest = this.request = (HttpRequest) msg;
-            this.isKeepAlive = HttpHeaders.isKeepAlive(httpRequest);
-            String userAgent = this.getHeaderValue("USER-AGENT");
-            if (StringUtils.isEmpty(this.fileTransactionId)) {
-                this.fileTransactionId = UUIDUtil.getShortString();
-                FileTransactionContextManager.getInstance().addContext(this.fileTransactionId, ctx, this.isKeepAlive, userAgent);
-            }
-
-            if (HttpMethod.GET.equals(httpRequest.method())) {
-                this.httpMethod = HttpMethod.GET;
-                this.parseDownUrl();
-                return;
-            }
-
-            if (HttpMethod.POST.equals(httpRequest.method())) {
-                this.httpMethod = HttpMethod.POST;
-                this.parseUploadUrl();
-                this.fileSize = this.fileTotalSize = this.getFileTotalSize();
-                return;
-            }
-
-            if (HttpMethod.DELETE.equals(httpRequest.method())) {
-                this.httpMethod = HttpMethod.DELETE;
-                return;
-            }
-
-            if (HttpMethod.OPTIONS.equals(httpRequest.method())) {
-                this.httpMethod = HttpMethod.OPTIONS;
-                return;
-            }
-        } catch (Exception ex) {
-            log.error("HttpRequest process error!", ex);
-            this.errorMsg.append(ex.getMessage());
-        } finally {
-            if (this.httpMethod.equals(HttpMethod.POST)) {
-                try {
-                    this.decoder = new HttpPostRequestDecoder(HTTP_DATA_FACTORY, this.request);
-                } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
-                    log.warn("getHttpDecoder Error:" + e1.getMessage());
-                }
-            }
-        }
-    }
-
-    /**
-     * httpObjectChannelRead
-     *
-     * @param msg
-     */
-    private void httpObjectChannelRead(Object msg) throws IOException {
-        if (this.httpMethod.equals(HttpMethod.POST)) {
-            try {
-                this.fileUpload((HttpObject) msg);
-            } catch (Exception ex) {
-                log.error("HttpObject process error!", ex);
-                this.errorMsg.append(ex.getMessage());
-            }
-        } else if (this.httpMethod.equals(HttpMethod.GET)) {
-            if (msg instanceof LastHttpContent && !this.hasError()) {
-                this.download();
-            }
-        } else {
-            if (msg instanceof LastHttpContent) {
-                this.errorMsg.append("unsupported http method");
-            }
-        }
-    }
-
-    /**
-     * lastHttpContentChannelRead
-     */
-    private void lastHttpContentChannelRead() {
-        this.reset();
-        if (this.hasError()) {
-            FileServerHttpResponseHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
-        }
     }
 
     /**

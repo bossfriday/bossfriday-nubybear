@@ -10,8 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
-import static cn.bossfriday.fileserver.common.FileServerConst.URL_DOWNLOAD;
+import static cn.bossfriday.fileserver.common.FileServerConst.URL_PREFIX_STORAGE_VERSION;
+import static cn.bossfriday.fileserver.common.FileServerConst.URL_RESOURCE;
+import static cn.bossfriday.fileserver.engine.entity.MetaData.*;
 import static cn.bossfriday.fileserver.engine.entity.MetaDataIndex.HASH_CODE_LENGTH;
 
 /**
@@ -34,31 +35,32 @@ public class MetaDataHandler implements IMetaDataHandler {
          * storeEngineVersion 1字节
          * fileStatus 1字节
          * timestamp 8字节
-         * fileName utf8字符串（前2字节为字符串长度）
+         * fileName utf8字符串
          * fileTotalSize 8字节
          */
-        return 1 + 1 + 8 + 2 + fileName.getBytes(StandardCharsets.UTF_8).length + 8;
+        return STORE_ENGINE_VERSION_LENGTH
+                + FILE_STATUS_LENGTH
+                + TIMESTAMP_LENGTH
+                + UTF8_FIRST_SIGNIFICANT_LENGTH + fileName.getBytes(StandardCharsets.UTF_8).length
+                + FILE_TOTAL_SIZE_LENGTH;
     }
 
     @Override
     public String downloadUrlEncode(MetaDataIndex metaDataIndex) throws IOException {
         byte[] bytes = metaDataIndex.serialize();
         obfuscateMetaDataIndex(bytes);
-        String encodedMetaDataString = Base58Util.encode(bytes);
+        String metaDataIndexString = Base58Util.encode(bytes);
 
-        return "/" + URL_DOWNLOAD + "/v" + DEFAULT_STORAGE_ENGINE_VERSION + "/" + encodedMetaDataString + "." + metaDataIndex.getFileExtName();
+        // 使用Content-Disposition头保障原文件名下载
+        return "/" + URL_RESOURCE + "/" + URL_PREFIX_STORAGE_VERSION + metaDataIndex.getStoreEngineVersion() + "/" + metaDataIndexString;
     }
 
     @Override
     public MetaDataIndex downloadUrlDecode(String input) throws IOException {
         byte[] bytes = Base58Util.decode(input);
         obfuscateMetaDataIndex(bytes);
-        MetaDataIndex metaDataIndex = new MetaDataIndex().deserialize(bytes);
-        if (metaDataIndex.getStoreEngineVersion() != DEFAULT_STORAGE_ENGINE_VERSION) {
-            throw new BizException("invalid storageEngineVersion!");
-        }
 
-        return metaDataIndex;
+        return new MetaDataIndex().deserialize(bytes);
     }
 
     /**

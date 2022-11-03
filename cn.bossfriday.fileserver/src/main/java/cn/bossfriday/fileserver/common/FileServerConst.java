@@ -22,11 +22,17 @@ public class FileServerConst {
     /**
      * URL
      */
-    public static final String URL_DELIMITER = "/";
     public static final String URL_UPLOAD_FULL = "full";
     public static final String URL_UPLOAD_BASE64 = "base64";
     public static final String URL_UPLOAD_RANGE = "range";
-    public static final String URL_DOWNLOAD = "download";
+    public static final String URL_PREFIX_STORAGE_VERSION = "v";
+    public static final String URL_RESOURCE = "resource";
+    
+    public static final String URI_ARGS_NAME_STORAGE_NAMESPACE = "storageNamespace";
+    public static final String URI_ARGS_NAME_UPLOAD_TYPE = "uploadType";
+    public static final String URI_ARGS_NAME_ENGINE_VERSION = "engineVersion";
+    public static final String URI_ARGS_NAME_META_DATA_INDEX_STRING = "metaDataIndexString";
+    public static final String URI_ARGS_NAME_EXT = "ext";
 
     /**
      * actors

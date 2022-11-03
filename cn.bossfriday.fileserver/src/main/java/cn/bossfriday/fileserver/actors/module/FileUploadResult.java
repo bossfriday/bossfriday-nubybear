@@ -1,8 +1,6 @@
-package cn.bossfriday.fileserver.rpc.module;
+package cn.bossfriday.fileserver.actors.module;
 
 import cn.bossfriday.fileserver.common.enums.OperationResult;
-import cn.bossfriday.fileserver.engine.entity.ChunkedMetaData;
-import cn.bossfriday.fileserver.engine.entity.MetaData;
 import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * FileDownloadResult
+ * FileUploadResult
  *
  * @author chenx
  */
@@ -18,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileDownloadResult {
+public class FileUploadResult {
 
     /**
      * fileTransactionId
@@ -35,27 +33,7 @@ public class FileDownloadResult {
      */
     private MetaDataIndex metaDataIndex;
 
-    /**
-     * metaData
-     */
-    private MetaData metaData;
-
-    /**
-     * chunkIndex
-     */
-    private long chunkIndex;
-
-    /**
-     * chunkCount
-     */
-    private long chunkCount;
-
-    /**
-     * chunkedMetaData
-     */
-    private ChunkedMetaData chunkedMetaData;
-
-    public FileDownloadResult(String fileTransactionId, OperationResult result) {
+    public FileUploadResult(String fileTransactionId, OperationResult result) {
         this.fileTransactionId = fileTransactionId;
         this.result = result;
     }

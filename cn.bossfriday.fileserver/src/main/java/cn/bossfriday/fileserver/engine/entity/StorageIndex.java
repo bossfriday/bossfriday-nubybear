@@ -23,9 +23,9 @@ public class StorageIndex {
     private int storeEngineVersion;
 
     /**
-     * namespace
+     * storageNamespace
      */
-    private String namespace;
+    private String storageNamespace;
 
     /**
      * time
