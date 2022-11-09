@@ -109,7 +109,7 @@ public class UrlParser {
      */
     public static String getArgsValue(Map<String, String> argsMap, String name) {
         if (MapUtils.isEmpty(argsMap) || !argsMap.containsKey(name)) {
-            throw new BizException("URL args not existed, name:" + name + " !");
+            throw new BizException("URI args not existed, name:" + name + " !");
         }
 
         return argsMap.get(name);

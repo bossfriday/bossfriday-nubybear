@@ -10,12 +10,12 @@
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <ThresholdFilter level="trace" onMatch="ACCEPT" onMismatch="DENY"/>
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %L %M - %msg%xEx%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} %M - %msg%xEx%n"/>
         </Console>
         <RollingRandomAccessFile name="RollingFile" immediateFlush="${immediateFlush}"
                                  fileName="${LOG_HOME}/bossfriday-fileserver.log"
                                  filePattern="${LOG_HOME}/actor-rpc/%d{yyyy-MM-dd}-%i.log">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %L %M - %msg%xEx%n"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %M - %msg%xEx%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="100 MB"/>

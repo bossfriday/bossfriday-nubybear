@@ -1,7 +1,9 @@
 package cn.bossfriday.fileserver.test;
 
+import cn.bossfriday.common.combo.Combo2;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -16,10 +18,10 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +29,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TOTAL_
 
 @Slf4j
 public class FileUploadTest {
+
     public static void main(String[] args) {
         ExecutorService threadPool = Executors.newFixedThreadPool(8);
         for (int i = 0; i < 1; i++) {
@@ -61,7 +64,7 @@ public class FileUploadTest {
         //OutputStream out = null;
         try {
             httpClient = HttpClients.createDefault();
-            httpGet = new HttpGet("http://127.0.0.1:18086/download/v1/PuHWp76aDrEBkvGrR7PEybqzUgHE9bifzAcozs1MVUvkeCWi8ZDFgF6cSWsN.pdf");
+            httpGet = new HttpGet("http://127.0.0.1:18086/resource/v1/3wqd6rCzGrRzN3kq22fiVhH9MRQidss378QyfEKez81YtrrENah9X8ANBEv3");
             httpGet.addHeader("Connection", "Keep-Alive");
             httpResponse = httpClient.execute(httpGet);
             int statusCode = httpResponse.getStatusLine().getStatusCode();
@@ -78,7 +81,6 @@ public class FileUploadTest {
                 if (in != null) {
                     in.close();
                 }
-
             } catch (Exception ex) {
                 log.warn("close stream error!(" + ex.getMessage() + ")");
             }
@@ -114,7 +116,7 @@ public class FileUploadTest {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
-        File file = new File("D:/tmp/ServerApi开发指南.pdf");
+        File file = new File("files/UploadTest中文123.pdf");
         try {
             httpClient = HttpClients.createDefault();
             httpPost = new HttpPost("http://127.0.0.1:18086/full/v1/normal");
@@ -132,10 +134,7 @@ public class FileUploadTest {
 
             // execute
             httpResponse = httpClient.execute(httpPost);
-            int respCode = httpResponse.getStatusLine().getStatusCode();
-            System.out.println("respCode:" + respCode);
-            String responseBody = EntityUtils.toString(httpResponse.getEntity());
-            System.out.println(responseBody);
+            System.out.println(EntityUtils.toString(httpResponse.getEntity()));
         } finally {
             if (httpPost != null) {
                 httpPost.releaseConnection();
@@ -161,28 +160,25 @@ public class FileUploadTest {
         log.info("done");
     }
 
+    /**
+     * base64Upload
+     *
+     * @throws Exception
+     */
     public static void base64Upload() throws Exception {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
-        String base64 = getBase64String();
+        Combo2<Integer, String> base64Combo = getBase64Combo();
+        String base64String = base64Combo.getV2();
         try {
             httpClient = HttpClients.createDefault();
-            httpPost = new HttpPost("http://127.0.0.1:18086/v1/normal/base64?ext=png");
-            httpPost.addHeader("Connection", "Keep-Alive");
-            httpPost.setEntity(new StringEntity(base64, Charset.forName("UTF-8")));
-
-            long beginTimeMillis = System.currentTimeMillis();
+            httpPost = new HttpPost("http://127.0.0.1:18086/base64/v1/normal?ext=jpg");
+            httpPost.addHeader(HttpHeaderNames.CONNECTION.toString(), "Keep-Alive");
+            httpPost.addHeader(HttpHeaderNames.CONTENT_TYPE.toString(), "text/plain; charset=UTF-8");
+            httpPost.setEntity(new StringEntity(base64String, StandardCharsets.UTF_8));
             httpResponse = httpClient.execute(httpPost);
-            long endTimeMillis = System.currentTimeMillis();
-
-            int status = httpResponse.getStatusLine().getStatusCode();
-            HttpEntity respEntity = httpResponse.getEntity();
-            if (respEntity != null) {
-                log.info("elapsed " + String.valueOf(endTimeMillis - beginTimeMillis) + " ms, status=" + status + "," + EntityUtils.toString(httpResponse.getEntity()));
-            } else {
-                log.info("elapsed " + String.valueOf(endTimeMillis - beginTimeMillis) + " ms, status=" + status);
-            }
+            System.out.println(EntityUtils.toString(httpResponse.getEntity()));
         } finally {
             if (httpPost != null) {
                 httpPost.releaseConnection();
@@ -206,22 +202,38 @@ public class FileUploadTest {
         }
     }
 
-    private static String getBase64String() {
-        String str = "";
-        File file = new File("d:/tmp/base64.txt");
-        try {
-            FileInputStream in = new FileInputStream(file);
+    /**
+     * getBase64Combo
+     *
+     * @return
+     * @throws Exception
+     */
+    private static Combo2<Integer, String> getBase64Combo() throws Exception {
+        File file = new File("files/Base64UploadTest.jpg");
+        try (FileInputStream in = new FileInputStream(file)) {
             int size = in.available();
             byte[] buffer = new byte[size];
             in.read(buffer);
-            in.close();
-            str = new String(buffer, "utf-8");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
 
-        return str;
+            return new Combo2<>(size, Base64.encodeBase64String(buffer));
+        }
     }
+
+    /**
+     * byte2file
+     *
+     * @param file
+     * @param data
+     */
+    private static void byte2file(File file, byte[] data) {
+        try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            outputStream.write(data);
+            outputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

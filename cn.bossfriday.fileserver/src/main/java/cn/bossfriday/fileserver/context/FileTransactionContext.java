@@ -25,15 +25,15 @@ public class FileTransactionContext {
 
     private String userAgent;
 
-    private AtomicLong transferredSize = new AtomicLong(0);
+    private AtomicLong tempFileWriteIndex = new AtomicLong(0);
 
     /**
-     * addAndGetTransferredSize
+     * addAndGetTempFileWriteIndex
      *
      * @param size
      * @return
      */
-    public Long addAndGetTransferredSize(int size) {
-        return this.transferredSize.addAndGet(size);
+    public Long addAndGetTempFileWriteIndex(int size) {
+        return this.tempFileWriteIndex.addAndGet(size);
     }
 }

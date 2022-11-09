@@ -19,10 +19,12 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
 import java.net.URI;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static cn.bossfriday.fileserver.actors.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
@@ -30,6 +32,13 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
 /**
  * HttpFileServerHandler
+ * <p>
+ * 备注：
+ * 为了对服务端内存占用更加友好，不使用Http聚合（HttpObjectAggregator），
+ * 如果使用HttpObjectAggregator则只需对一个FullHttpRequest进行读取即可，处理上会简单很多。
+ * 不使用Http聚合一个完整的Http请求会进行1+N次读取：
+ * 1、一次HttpRequest读取；
+ * 2、N次HttpContent读取：thunkSize为Netty内存分配机制默认值（后续处理上通过保障处理线程的一致性去实现临时文件的零拷贝+顺序写）；
  *
  * @author chenx
  */
@@ -44,7 +53,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private String fileTransactionId;
     private String storageNamespace;
     private FileUploadType fileUploadType;
-
+    private byte[] base64AggregatedData;
     private String metaDataIndexString;
 
     private StringBuilder errorMsg = new StringBuilder();
@@ -52,21 +61,22 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private long offset = 0;
     private long filePartitionSize = 0;
     private long fileTotalSize = 0;
+    private int base64AggregatorReadIndex = 0;
     private boolean isKeepAlive = false;
 
     private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(false);
-    private static final UrlParser uploadUrlParser = new UrlParser("/{" + URI_ARGS_NAME_UPLOAD_TYPE + "}/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_STORAGE_NAMESPACE + "}");
-    private static final UrlParser downloadUrlParser = new UrlParser("/" + URL_RESOURCE + "/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_META_DATA_INDEX_STRING + "}");
+    private static final UrlParser UPLOAD_URL_PARSER = new UrlParser("/{" + URI_ARGS_NAME_UPLOAD_TYPE + "}/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_STORAGE_NAMESPACE + "}");
+    private static final UrlParser DOWNLOAD_URL_PARSER = new UrlParser("/" + URL_RESOURCE + "/{" + URI_ARGS_NAME_ENGINE_VERSION + "}/{" + URI_ARGS_NAME_META_DATA_INDEX_STRING + "}");
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
             if (msg instanceof HttpRequest) {
-                this.httpRequestChannelRead(ctx, msg);
+                this.httpRequestRead(ctx, (HttpRequest) msg);
             }
 
-            if (msg instanceof HttpObject) {
-                this.httpObjectChannelRead(msg);
+            if (msg instanceof HttpContent) {
+                this.httpContentRead((HttpContent) msg);
             }
         } catch (Exception ex) {
             log.error("channelRead error: " + this.fileTransactionId, ex);
@@ -79,11 +89,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        this.abnormallyDeleteTmpFile();
-    }
-
-    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("exceptionCaught: " + this.fileTransactionId, cause);
         ctx.channel().close();
@@ -91,14 +96,14 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * httpRequestChannelRead
+     * httpRequestRead
      *
      * @param ctx
-     * @param msg
+     * @param httpRequest
      */
-    private void httpRequestChannelRead(ChannelHandlerContext ctx, Object msg) {
+    private void httpRequestRead(ChannelHandlerContext ctx, HttpRequest httpRequest) {
         try {
-            HttpRequest httpRequest = this.request = (HttpRequest) msg;
+            this.request = httpRequest;
             this.isKeepAlive = HttpUtil.isKeepAlive(httpRequest);
             if (StringUtils.isEmpty(this.fileTransactionId)) {
                 this.fileTransactionId = UUIDUtil.getShortString();
@@ -106,29 +111,36 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             }
 
             if (HttpMethod.GET.equals(httpRequest.method())) {
+                this.parseUrl(DOWNLOAD_URL_PARSER);
                 this.httpMethod = HttpMethod.GET;
-                this.parseUrl(downloadUrlParser);
-
                 this.metaDataIndexString = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_META_DATA_INDEX_STRING);
+
                 return;
             }
 
             if (HttpMethod.POST.equals(httpRequest.method())) {
+                this.parseUrl(UPLOAD_URL_PARSER);
                 this.httpMethod = HttpMethod.POST;
-                this.parseUrl(uploadUrlParser);
-
-                this.filePartitionSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HttpHeaderNames.CONTENT_LENGTH.toString()));
-                this.fileTotalSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
                 this.storageNamespace = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_STORAGE_NAMESPACE);
                 this.fileUploadType = FileUploadType.getByName(this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_UPLOAD_TYPE));
+
+                if (this.fileUploadType == FileUploadType.FULL_UPLOAD) {
+                    this.filePartitionSize = this.fileTotalSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                } else if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
+                    int contentLength = Integer.parseInt(HttpFileServerHelper.getHeaderValue(this.request, String.valueOf(HttpHeaderNames.CONTENT_LENGTH)));
+                    this.base64AggregatedData = new byte[contentLength];
+                } else if (this.fileUploadType == FileUploadType.RANGE_UPLOAD) {
+                    // TODO: 断点上传
+                }
+
                 return;
             }
 
             if (HttpMethod.DELETE.equals(httpRequest.method())) {
+                this.parseUrl(DOWNLOAD_URL_PARSER);
                 this.httpMethod = HttpMethod.DELETE;
-                this.parseUrl(downloadUrlParser);
-
                 this.metaDataIndexString = this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_META_DATA_INDEX_STRING);
+
                 return;
             }
 
@@ -148,35 +160,30 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * httpObjectChannelRead
+     * httpContentRead
      *
-     * @param msg
+     * @param httpContent
      */
-    private void httpObjectChannelRead(Object msg) {
-        if (this.httpMethod.equals(HttpMethod.POST)) {
-            try {
-                if (this.fileUploadType == FileUploadType.FULL_UPLOAD || this.fileUploadType == FileUploadType.RANGE_UPLOAD) {
-                    this.fileUpload((HttpObject) msg);
-                } else if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
-                    this.base64Upload((HttpObject) msg);
+    private void httpContentRead(HttpContent httpContent) {
+        try {
+            if (this.httpMethod.equals(HttpMethod.POST)) {
+                if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
+                    this.base64Upload(httpContent);
                 } else {
-                    throw new BizException("unimplemented upload type!");
+                    this.fileUpload(httpContent);
                 }
-            } catch (Exception ex) {
-                log.error("HttpObject process error!", ex);
-                this.errorMsg.append(ex.getMessage());
+            } else if (this.httpMethod.equals(HttpMethod.GET)) {
+                this.fileDownload(httpContent);
+            } else if (this.httpMethod.equals(HttpMethod.DELETE)) {
+                this.deleteFile(httpContent);
+            } else {
+                if (httpContent instanceof LastHttpContent) {
+                    this.errorMsg.append("unsupported http method");
+                }
             }
-        } else if (this.httpMethod.equals(HttpMethod.GET)) {
-            if (msg instanceof LastHttpContent && !this.hasError()) {
-                this.fileDownload();
-            }
-        } else if (this.httpMethod.equals(HttpMethod.DELETE)) {
-            if (msg instanceof LastHttpContent && !this.hasError()) {
-                this.deleteFile();
-            }
-        } else {
-            if (msg instanceof LastHttpContent) {
-                this.errorMsg.append("unsupported http method");
+        } finally {
+            if (httpContent.refCnt() > 0) {
+                httpContent.release();
             }
         }
     }
@@ -186,6 +193,11 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private void lastHttpContentChannelRead() {
         this.reset();
+
+        if (this.base64AggregatedData != null) {
+            this.base64AggregatedData = null;
+        }
+
         if (this.hasError()) {
             HttpFileServerHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
         }
@@ -194,72 +206,31 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     /**
      * fileUpload
      */
-    private void fileUpload(HttpObject msg) {
+    private void fileUpload(HttpContent httpContent) {
         if (this.decoder == null) {
             return;
         }
 
-        HttpContent chunk = null;
         try {
-            if (msg instanceof HttpContent) {
-                chunk = (HttpContent) msg;
-                this.decoder.offer(chunk);
-
-                if (!this.hasError()) {
-                    this.chunkedReadHttpData();
-                }
+            /**
+             * Initialized the internals from a new chunk
+             * content – the new received chunk
+             */
+            this.decoder.offer(httpContent);
+            if (!this.hasError()) {
+                this.chunkedFileUpload();
             }
         } catch (Exception ex) {
             log.error("HttpFileServerHandler.fileUpload() error!", ex);
             this.errorMsg.append(ex.getMessage());
-        } finally {
-            if (chunk != null) {
-                chunk.release();
-            }
         }
     }
 
     /**
-     * base64Upload
-     *
-     * @param msg
-     */
-    private void base64Upload(HttpObject msg) {
-        // just to do..
-    }
-
-    /**
-     * fileDownload
-     */
-    private void fileDownload() {
-        try {
-            IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
-            MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
-            FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
-                    .fileTransactionId(this.fileTransactionId)
-                    .metaDataIndex(metaDataIndex)
-                    .chunkIndex(FIRST_CHUNK_INDEX)
-                    .build();
-            StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadMsg);
-        } catch (Exception ex) {
-            log.error("HttpFileServerHandler.fileDownload() error!", ex);
-            throw new BizException("File download error!");
-        }
-    }
-
-    /**
-     * 文件标记删除
-     */
-    private void deleteFile() {
-        // 文件标记删除
-    }
-
-    /**
-     * chunkedReadHttpData 分片读取数据
-     * Netty PartialHttpData 使用很容易造成ByteBuf直接内存泄露
+     * chunkedFileUpload（文件分片上传）
      * 调试时通过-Dio.netty.leakDetectionLevel=PARANOID保障对每次请求做检测
      */
-    private void chunkedReadHttpData() {
+    private void chunkedFileUpload() {
         try {
             while (this.decoder.hasNext()) {
                 /**
@@ -269,7 +240,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                  */
                 InterfaceHttpData data = this.decoder.next();
                 if (data instanceof FileUpload) {
-                    this.chunkedProcessHttpData((FileUpload) data);
+                    this.currentPartialHttpDataProcess((FileUpload) data);
                 }
             }
 
@@ -281,54 +252,135 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
              */
             HttpData data = (HttpData) this.decoder.currentPartialHttpData();
             if (data instanceof FileUpload) {
-                this.chunkedProcessHttpData((FileUpload) data);
+                this.currentPartialHttpDataProcess((FileUpload) data);
             }
-        } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
-            log.info("chunkedReadHttpData end: " + this.fileTransactionId);
-        } catch (Throwable tr) {
-            log.error("HttpFileServerHandler.chunkedReadHttpData() error!", tr);
-            this.errorMsg.append(tr.getMessage());
+        } catch (HttpPostRequestDecoder.EndOfDataDecoderException endOfDataDecoderException) {
+            log.error("HttpFileServerHandler.chunkedFileUpload() EndOfDataDecoderException!");
+        } catch (Exception ex) {
+            log.error("HttpFileServerHandler.chunkedFileUpload() error!", ex);
+            this.errorMsg.append(ex.getMessage());
         }
     }
 
     /**
-     * chunkedProcessHttpData 分片处理数据
+     * currentPartialHttpDataProcess
      *
-     * @param data
+     * @param currentPartialData
      */
-    private void chunkedProcessHttpData(FileUpload data) {
-        byte[] chunkData = null;
+    private void currentPartialHttpDataProcess(FileUpload currentPartialData) {
+        byte[] partialData = null;
         try {
-            ByteBuf byteBuf = data.getByteBuf();
+            ByteBuf byteBuf = currentPartialData.getByteBuf();
             int readBytesCount = byteBuf.readableBytes();
-            chunkData = new byte[readBytesCount];
-            byteBuf.readBytes(chunkData);
+            partialData = new byte[readBytesCount];
+            byteBuf.readBytes(partialData);
 
             WriteTmpFileMsg msg = new WriteTmpFileMsg();
             msg.setStorageEngineVersion(this.version);
             msg.setFileTransactionId(this.fileTransactionId);
             msg.setStorageNamespace(this.storageNamespace);
             msg.setKeepAlive(this.isKeepAlive);
-            msg.setFileName(URLDecoder.decode(data.getFilename(), "UTF-8"));
+            msg.setFileName(URLDecoder.decode(currentPartialData.getFilename(), StandardCharsets.UTF_8.name()));
             msg.setFilePartitionSize(this.filePartitionSize);
             msg.setFileTotalSize(this.fileTotalSize);
             msg.setOffset(this.offset);
-            msg.setData(chunkData);
+            msg.setData(partialData);
             StorageTracker.getInstance().onPartialUploadDataReceived(msg);
         } catch (Exception ex) {
-            log.error("HttpFileServerHandler.chunkedProcessHttpData() error!", ex);
+            log.error("HttpFileServerHandler.chunkedProcessFileUpload() error!", ex);
             this.errorMsg.append(ex.getMessage());
         } finally {
-            if (chunkData != null) {
-                this.offset += chunkData.length;
+            if (partialData != null) {
+                this.offset += partialData.length;
+            }
+
+            if (currentPartialData.refCnt() > 0) {
+                currentPartialData.release();
             }
 
             // just help GC
-            chunkData = null;
+            partialData = null;
+        }
+    }
 
-            if (data.refCnt() > 0) {
-                data.release();
+    /**
+     * base64Upload
+     * 由于对不完整Base64信息进行解码可能失败，因此Base64上传处理方式为聚合完成后进行Base64解码然后再进行全量上传
+     * 这是base64Upload只能用于例如截屏等小文件的上传场景的原因。
+     *
+     * @param httpContent
+     */
+    private void base64Upload(HttpContent httpContent) {
+        ByteBuf byteBuf = null;
+        byte[] currentPartialData = null;
+        byte[] decodedFullData = null;
+        try {
+            // 数据聚合
+            byteBuf = httpContent.content();
+            int currentPartialDataLength = byteBuf.readableBytes();
+            currentPartialData = new byte[currentPartialDataLength];
+            byteBuf.readBytes(currentPartialData);
+            System.arraycopy(currentPartialData, 0, this.base64AggregatedData, this.base64AggregatorReadIndex, currentPartialDataLength);
+            this.base64AggregatorReadIndex += currentPartialDataLength;
+
+            // 聚合完成
+            if (httpContent instanceof LastHttpContent) {
+                decodedFullData = Base64.decodeBase64(this.base64AggregatedData);
+
+                WriteTmpFileMsg msg = new WriteTmpFileMsg();
+                msg.setStorageEngineVersion(this.version);
+                msg.setFileTransactionId(this.fileTransactionId);
+                msg.setStorageNamespace(this.storageNamespace);
+                msg.setKeepAlive(this.isKeepAlive);
+                msg.setFileName(this.fileTransactionId + "." + this.getUrlArgValue(this.queryArgsMap, URI_ARGS_NAME_EXT));
+                msg.setFilePartitionSize(decodedFullData.length);
+                msg.setFileTotalSize(decodedFullData.length);
+                msg.setOffset(this.offset);
+                msg.setData(decodedFullData);
+                StorageTracker.getInstance().onPartialUploadDataReceived(msg);
             }
+        } finally {
+            if (byteBuf != null) {
+                byteBuf.release();
+            }
+
+            // just help GC
+            currentPartialData = null;
+            decodedFullData = null;
+        }
+    }
+
+    /**
+     * fileDownload
+     *
+     * @param httpContent
+     */
+    private void fileDownload(HttpContent httpContent) {
+        if (httpContent instanceof LastHttpContent && !this.hasError()) {
+            try {
+                IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
+                MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
+                FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
+                        .fileTransactionId(this.fileTransactionId)
+                        .metaDataIndex(metaDataIndex)
+                        .chunkIndex(FIRST_CHUNK_INDEX)
+                        .build();
+                StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadMsg);
+            } catch (Exception ex) {
+                log.error("HttpFileServerHandler.fileDownload() error!", ex);
+                throw new BizException("File download error!");
+            }
+        }
+    }
+
+    /**
+     * deleteFile
+     *
+     * @param httpContent
+     */
+    private void deleteFile(HttpContent httpContent) {
+        if (httpContent instanceof LastHttpContent && !this.hasError()) {
+            // TODO: 文件删除
         }
     }
 
