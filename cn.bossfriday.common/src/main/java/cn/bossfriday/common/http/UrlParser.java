@@ -1,6 +1,8 @@
-package cn.bossfriday.common.http.url;
+package cn.bossfriday.common.http;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.http.model.UrlElement;
+import cn.bossfriday.common.http.model.UrlElementType;
 import lombok.NonNull;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.collections4.MapUtils;
@@ -59,16 +61,16 @@ public class UrlParser {
             final String element = pathElements[i];
             final UrlElement urlElement = this.urlElements.get(i);
 
-            switch (urlElement.type) {
+            switch (urlElement.getType()) {
                 case FIXED:
-                    if (!element.equals(urlElement.name)) {
+                    if (!element.equals(urlElement.getName())) {
                         return pathArgsMap;
                     }
 
                     break;
 
                 case ATTRIBUTE:
-                    pathArgsMap.put(urlElement.name, element);
+                    pathArgsMap.put(urlElement.getName(), element);
                     break;
 
                 default:

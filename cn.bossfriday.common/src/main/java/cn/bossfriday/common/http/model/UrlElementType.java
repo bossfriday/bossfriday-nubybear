@@ -1,4 +1,4 @@
-package cn.bossfriday.common.http.url;
+package cn.bossfriday.common.http.model;
 
 /**
  * UrlElementType

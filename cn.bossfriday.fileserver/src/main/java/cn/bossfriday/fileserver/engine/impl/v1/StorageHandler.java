@@ -5,12 +5,12 @@ import cn.bossfriday.common.utils.*;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
-import cn.bossfriday.fileserver.engine.entity.MetaData;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
-import cn.bossfriday.fileserver.engine.entity.StorageIndex;
 import cn.bossfriday.fileserver.engine.enums.FileStatus;
 import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
+import cn.bossfriday.fileserver.engine.model.MetaData;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
+import cn.bossfriday.fileserver.engine.model.StorageIndex;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;

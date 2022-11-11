@@ -4,11 +4,11 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
-import cn.bossfriday.fileserver.actors.module.FileUploadResult;
-import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
+import cn.bossfriday.fileserver.actors.model.FileUploadResult;
+import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_UPLOAD;

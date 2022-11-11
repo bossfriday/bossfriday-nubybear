@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -16,16 +17,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TOTAL_SIZE;
+import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TRANSACTION_ID;
 
 @Slf4j
 public class FileUploadTest {
@@ -37,9 +37,10 @@ public class FileUploadTest {
                 @Override
                 public void run() {
                     try {
-                        upload();
+                        normalUpload();
 //                        download();
 //                        base64Upload();
+//                        rangeUpload();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -108,11 +109,11 @@ public class FileUploadTest {
     }
 
     /**
-     * 上传
+     * normalUpload
      *
      * @throws Exception
      */
-    private static void upload() throws Exception {
+    private static void normalUpload() throws Exception {
         CloseableHttpClient httpClient = null;
         HttpPost httpPost = null;
         CloseableHttpResponse httpResponse = null;
@@ -158,6 +159,73 @@ public class FileUploadTest {
         }
 
         log.info("done");
+    }
+
+    /**
+     * rangeUpload
+     *
+     * @throws Exception
+     */
+    private static void rangeUpload() throws Exception {
+        File localFile = new File("files/UploadTest中文123.pdf");
+        int chunkSize = 128 * 1024;
+        int fileTotalSize = (int) localFile.length();
+        int chunkCount = fileTotalSize % chunkSize == 0 ? (fileTotalSize / chunkSize) : (fileTotalSize / chunkSize + 1);
+        String fileTransactionId = UUID.randomUUID().toString();
+
+        CloseableHttpClient httpClient = null;
+        HttpPost httpPost = null;
+        CloseableHttpResponse httpResponse = null;
+        try {
+            for (int i = 0; i < chunkCount; i++) {
+                int beginOffset = i * chunkSize;
+                int endOffset = (i + 1) * chunkSize - 1;
+                if (endOffset > fileTotalSize) {
+                    endOffset = fileTotalSize - 1;
+                }
+
+                String range = "bytes=" + beginOffset + "-" + endOffset;
+                int rangeLength = endOffset - beginOffset + 1;
+                byte[] rangeData = new byte[rangeLength];
+                readFile(localFile, beginOffset, rangeData);
+
+                httpClient = HttpClients.createDefault();
+                httpPost = new HttpPost("http://127.0.0.1:18086/range/v1/normal");
+                httpPost.addHeader(HttpHeaderNames.CONNECTION.toString(), "Keep-Alive");
+                httpPost.addHeader(HttpHeaderNames.RANGE.toString(), range);
+                httpPost.addHeader(HEADER_FILE_TRANSACTION_ID, fileTransactionId);
+                httpPost.addHeader(HEADER_FILE_TOTAL_SIZE, String.valueOf(fileTotalSize));
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+                builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+                builder.addBinaryBody("upfile", rangeData, ContentType.create("application/x-zip-compressed"), localFile.getName());
+                HttpEntity entity = builder.build();
+                httpPost.setEntity(entity);
+                HttpResponse response = httpClient.execute(httpPost);
+
+                int status = response.getStatusLine().getStatusCode();
+                System.out.println(status + " - " + EntityUtils.toString(httpResponse.getEntity()));
+            }
+        } finally {
+            if (httpPost != null) {
+                httpPost.releaseConnection();
+            }
+
+            if (httpResponse != null) {
+                try {
+                    httpResponse.close();
+                } catch (Exception e) {
+                    log.error("httpResponse close error!", e);
+                }
+            }
+
+            if (httpClient != null) {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    log.error("httpClient close error!", e);
+                }
+            }
+        }
     }
 
     /**
@@ -225,7 +293,7 @@ public class FileUploadTest {
      * @param file
      * @param data
      */
-    private static void byte2file(File file, byte[] data) {
+    public static void byte2file(File file, byte[] data) {
         try {
             FileOutputStream outputStream = new FileOutputStream(file);
             outputStream.write(data);
@@ -235,5 +303,30 @@ public class FileUploadTest {
         }
     }
 
+    /**
+     * readFile
+     *
+     * @param file
+     * @param offset
+     * @param targetBytes
+     * @throws Exception
+     */
+    public static void readFile(File file, long offset, byte[] targetBytes) throws Exception {
+        RandomAccessFile raf = null;
+
+        try {
+            raf = new RandomAccessFile(file, "r");
+            raf.seek(offset);
+            raf.readFully(targetBytes);
+        } finally {
+            try {
+                if (raf != null) {
+                    raf.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }

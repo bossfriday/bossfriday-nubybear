@@ -1,7 +1,7 @@
-package cn.bossfriday.fileserver.actors.module;
+package cn.bossfriday.fileserver.actors.model;
 
 import cn.bossfriday.fileserver.common.enums.OperationResult;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,9 +1,9 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.fileserver.engine.entity.MetaData;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
-import cn.bossfriday.fileserver.engine.entity.RecoverableTmpFile;
-import cn.bossfriday.fileserver.engine.entity.StorageIndex;
+import cn.bossfriday.fileserver.engine.model.MetaData;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
+import cn.bossfriday.fileserver.engine.model.StorageIndex;
 
 import java.io.IOException;
 

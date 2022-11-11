@@ -2,9 +2,9 @@ package cn.bossfriday.fileserver.actors;
 
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
-import cn.bossfriday.fileserver.actors.module.FileDownloadResult;
-import cn.bossfriday.fileserver.actors.module.FileUploadResult;
-import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
+import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
+import cn.bossfriday.fileserver.actors.model.FileUploadResult;
+import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 
 import java.io.IOException;
 

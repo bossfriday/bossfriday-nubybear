@@ -27,7 +27,7 @@ public class FileServerConst {
     public static final String URL_UPLOAD_RANGE = "range";
     public static final String URL_PREFIX_STORAGE_VERSION = "v";
     public static final String URL_RESOURCE = "resource";
-    
+
     public static final String URI_ARGS_NAME_STORAGE_NAMESPACE = "storageNamespace";
     public static final String URI_ARGS_NAME_UPLOAD_TYPE = "uploadType";
     public static final String URI_ARGS_NAME_ENGINE_VERSION = "engineVersion";
@@ -55,4 +55,5 @@ public class FileServerConst {
      * http header
      */
     public static final String HEADER_FILE_TOTAL_SIZE = "X-File-Total-Size";
+    public static final String HEADER_FILE_TRANSACTION_ID = "X-File-TransactionId";
 }

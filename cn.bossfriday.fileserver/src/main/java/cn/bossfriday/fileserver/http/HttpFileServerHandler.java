@@ -1,18 +1,18 @@
 package cn.bossfriday.fileserver.http;
 
 import cn.bossfriday.common.exception.BizException;
-import cn.bossfriday.common.http.url.UrlParser;
+import cn.bossfriday.common.http.UrlParser;
 import cn.bossfriday.common.utils.UUIDUtil;
-import cn.bossfriday.fileserver.actors.module.DeleteTmpFileMsg;
-import cn.bossfriday.fileserver.actors.module.FileDownloadMsg;
-import cn.bossfriday.fileserver.actors.module.WriteTmpFileMsg;
+import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
+import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
+import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.common.HttpFileServerHelper;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -27,7 +27,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static cn.bossfriday.fileserver.actors.module.FileDownloadMsg.FIRST_CHUNK_INDEX;
+import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
 /**
@@ -38,7 +38,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
  * 如果使用HttpObjectAggregator则只需对一个FullHttpRequest进行读取即可，处理上会简单很多。
  * 不使用Http聚合一个完整的Http请求会进行1+N次读取：
  * 1、一次HttpRequest读取；
- * 2、N次HttpContent读取：thunkSize为Netty内存分配机制默认值（后续处理上通过保障处理线程的一致性去实现临时文件的零拷贝+顺序写）；
+ * 2、N次HttpContent读取：后续处理中通过保障线程一致性去实现文件写入的零拷贝+顺序写
  *
  * @author chenx
  */
@@ -58,10 +58,10 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     private StringBuilder errorMsg = new StringBuilder();
     private int version = 0;
-    private long offset = 0;
+    private long tempFilePartialDataOffset = 0;
     private long filePartitionSize = 0;
     private long fileTotalSize = 0;
-    private int base64AggregatorReadIndex = 0;
+    private int base64AggregateIndex = 0;
     private boolean isKeepAlive = false;
 
     private static final HttpDataFactory HTTP_DATA_FACTORY = new DefaultHttpDataFactory(false);
@@ -161,6 +161,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * httpContentRead
+     * Netty ByteBuf直接内存溢出问题需要重点关注，
+     * 调试时可以通过增加：-Dio.netty.leakDetectionLevel=PARANOID来保障对每次请求都做内存溢出检测
      *
      * @param httpContent
      */
@@ -228,7 +230,6 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * chunkedFileUpload（文件分片上传）
-     * 调试时通过-Dio.netty.leakDetectionLevel=PARANOID保障对每次请求做检测
      */
     private void chunkedFileUpload() {
         try {
@@ -283,7 +284,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             msg.setFileName(URLDecoder.decode(currentPartialData.getFilename(), StandardCharsets.UTF_8.name()));
             msg.setFilePartitionSize(this.filePartitionSize);
             msg.setFileTotalSize(this.fileTotalSize);
-            msg.setOffset(this.offset);
+            msg.setOffset(this.tempFilePartialDataOffset);
             msg.setData(partialData);
             StorageTracker.getInstance().onPartialUploadDataReceived(msg);
         } catch (Exception ex) {
@@ -291,7 +292,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             this.errorMsg.append(ex.getMessage());
         } finally {
             if (partialData != null) {
-                this.offset += partialData.length;
+                this.tempFilePartialDataOffset += partialData.length;
             }
 
             if (currentPartialData.refCnt() > 0) {
@@ -320,8 +321,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             int currentPartialDataLength = byteBuf.readableBytes();
             currentPartialData = new byte[currentPartialDataLength];
             byteBuf.readBytes(currentPartialData);
-            System.arraycopy(currentPartialData, 0, this.base64AggregatedData, this.base64AggregatorReadIndex, currentPartialDataLength);
-            this.base64AggregatorReadIndex += currentPartialDataLength;
+            System.arraycopy(currentPartialData, 0, this.base64AggregatedData, this.base64AggregateIndex, currentPartialDataLength);
+            this.base64AggregateIndex += currentPartialDataLength;
 
             // 聚合完成
             if (httpContent instanceof LastHttpContent) {
@@ -335,7 +336,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 msg.setFileName(this.fileTransactionId + "." + this.getUrlArgValue(this.queryArgsMap, URI_ARGS_NAME_EXT));
                 msg.setFilePartitionSize(decodedFullData.length);
                 msg.setFileTotalSize(decodedFullData.length);
-                msg.setOffset(this.offset);
+                msg.setOffset(this.tempFilePartialDataOffset);
                 msg.setData(decodedFullData);
                 StorageTracker.getInstance().onPartialUploadDataReceived(msg);
             }

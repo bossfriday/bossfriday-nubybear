@@ -1,22 +1,24 @@
-package cn.bossfriday.common.http.url;
+package cn.bossfriday.common.http.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * UrlElement
  *
  * @author chenx
  */
+@Getter
 @AllArgsConstructor
 public class UrlElement {
 
     /**
      * type
      */
-    final UrlElementType type;
+    private UrlElementType type;
 
     /**
      * name
      */
-    final String name;
+    private String name;
 }

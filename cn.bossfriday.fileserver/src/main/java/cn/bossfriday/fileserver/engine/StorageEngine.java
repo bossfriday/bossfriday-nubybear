@@ -1,15 +1,15 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.BizException;
-import cn.bossfriday.fileserver.actors.module.WriteTmpFileResult;
+import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.entity.*;
 import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
+import cn.bossfriday.fileserver.engine.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

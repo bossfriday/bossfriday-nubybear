@@ -4,7 +4,7 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.Base58Util;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
-import cn.bossfriday.fileserver.engine.entity.MetaDataIndex;
+import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.URL_PREFIX_STORAGE_VERSION;
 import static cn.bossfriday.fileserver.common.FileServerConst.URL_RESOURCE;
-import static cn.bossfriday.fileserver.engine.entity.MetaData.*;
-import static cn.bossfriday.fileserver.engine.entity.MetaDataIndex.HASH_CODE_LENGTH;
+import static cn.bossfriday.fileserver.engine.model.MetaData.*;
+import static cn.bossfriday.fileserver.engine.model.MetaDataIndex.HASH_CODE_LENGTH;
 
 /**
  * MetaDataHandler

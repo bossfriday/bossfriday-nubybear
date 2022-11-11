@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.engine.entity;
+package cn.bossfriday.fileserver.engine.model;
 
 import cn.bossfriday.fileserver.engine.core.ICodec;
 import lombok.*;
