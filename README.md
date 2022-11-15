@@ -1,10 +1,11 @@
-# Protype Release Note
-* 上传
-* Base64上传
-* Range断点续传上传（TODO）
-* 下载
+# Release Note
+* 普通全量上传（完成）
+* Base64上传（完成）
+* Range断点续传上传（完成）
+* 普通全量下载（完成）
 * Range断点续传下载（TODO）
-* 压力测试
+* 文件删除（TODO）
+* 压力测试（完成）
 * ActorRPC放弃Disruptor改回最初使用的LinkedBlockingQueue。原因：环形缓存区内存不会释放，不利于传输文件这种大消息体的应用场景。另外形缓存区容量如果不大Disruptor性能与LinkedBlockingQueue差异不大。
 
 ## 性能
