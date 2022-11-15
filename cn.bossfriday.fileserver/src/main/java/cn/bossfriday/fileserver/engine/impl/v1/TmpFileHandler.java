@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
+import cn.bossfriday.common.combo.Combo2;
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.Func;
@@ -22,8 +23,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.FILE_DEFAULT_EXT;
-import static cn.bossfriday.fileserver.common.FileServerConst.FILE_UPLOADING_TMP_FILE_EXT;
+import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
 /**
  * TmpFileHandler
@@ -36,14 +36,14 @@ public class TmpFileHandler implements ITmpFileHandler {
     private LruHashMap<String, FileChannel> tmpFileChannelMap = new LruHashMap<>(5000, new Func.Action2<String, FileChannel>() {
 
         @Override
-        public void invoke(String arg1, FileChannel arg2) {
+        public void invoke(String fileTransactionId, FileChannel fileChannel) {
             try {
-                arg2.close();
+                fileChannel.close();
             } catch (Exception ex) {
-                // ignore
+                log.error("FileChannel close failed! fileTransactionId: " + fileTransactionId + ")", ex);
             }
         }
-    }, 1000 * 60 * 30L);
+    }, DEFAULT_LRU_DURATION);
 
     @Override
     public WriteTmpFileResult write(WriteTmpFileMsg msg) {
@@ -56,7 +56,6 @@ public class TmpFileHandler implements ITmpFileHandler {
         WriteTmpFileResult result = null;
         int chunkedDataSize = msg.getData().length;
         if (chunkedDataSize == 0) {
-            log.warn("chunkedDataSize=0: " + fileTransactionId);
             return null;
         }
 
@@ -68,26 +67,21 @@ public class TmpFileHandler implements ITmpFileHandler {
 
             tmpFileChannel = this.getTmpFileChannel(msg);
             FileUtil.transferFrom(tmpFileChannel, msg.getData(), msg.getOffset());
-            long tempFileWriteIndex = ctx.addAndGetTempFileWriteIndex(msg.getData().length);
+            Combo2<Long, Long> tempFileSavedCounter = ctx.addAndGetTempFileSavedCounter(chunkedDataSize, msg.getRange());
+            long rangeSavedCounterValue = tempFileSavedCounter.getV1();
+            long tempFileSavedCounterValue = tempFileSavedCounter.getV2();
 
             // 临时文件完成
-            if (tempFileWriteIndex == msg.getFileTotalSize()) {
+            if (tempFileSavedCounterValue == msg.getFileTotalSize()) {
                 tmpFileChannel.close();
                 this.tmpFileChannelMap.remove(fileTransactionId);
-
-                result = new WriteTmpFileResult();
+                result = getWriteTmpFileResult(msg, true);
                 renameTmpFile(msg, result);
-
-                result.setFileTransactionId(msg.getFileTransactionId());
-                result.setResult(OperationResult.OK);
-                result.setStorageEngineVersion(msg.getStorageEngineVersion());
-                result.setStorageNamespace(msg.getStorageNamespace());
-                result.setClusterNodeName(FileServerConfigManager.getCurrentClusterNodeName());
-                result.setKeepAlive(msg.isKeepAlive());
-                result.setTimestamp(System.currentTimeMillis());
-                result.setFileTotalSize(msg.getFileTotalSize());
-                result.setFileName(msg.getFileName());
                 log.info("tmpFile process done :" + fileTransactionId);
+            } else if (msg.isRangeUpload() && rangeSavedCounterValue == msg.getRange().getLength()) {
+                // 断点续传分片写入完成
+                result = getWriteTmpFileResult(msg, false);
+                log.info("range process done ,fileTransactionId: " + fileTransactionId + ", range:" + msg.getRange().toString());
             }
         } catch (Exception ex) {
             log.error("write tmpFile error!", ex);
@@ -205,5 +199,32 @@ public class TmpFileHandler implements ITmpFileHandler {
         }
 
         result.setFilePath(newFile.getAbsolutePath());
+    }
+
+    /**
+     * getWriteTmpFileResult
+     *
+     * @param msg
+     * @param isFullDone
+     * @return
+     */
+    private static WriteTmpFileResult getWriteTmpFileResult(WriteTmpFileMsg msg, boolean isFullDone) {
+        if (msg == null) {
+            throw new BizException("the input WriteTmpFileMsg is null!");
+        }
+
+        WriteTmpFileResult result = new WriteTmpFileResult();
+        result.setFileTransactionId(msg.getFileTransactionId());
+        result.setResult(OperationResult.OK);
+        result.setStorageEngineVersion(msg.getStorageEngineVersion());
+        result.setStorageNamespace(msg.getStorageNamespace());
+        result.setClusterNodeName(FileServerConfigManager.getCurrentClusterNodeName());
+        result.setKeepAlive(msg.isKeepAlive());
+        result.setTimestamp(System.currentTimeMillis());
+        result.setFileTotalSize(msg.getFileTotalSize());
+        result.setFileName(msg.getFileName());
+        result.setRange(isFullDone ? null : msg.getRange());
+
+        return result;
     }
 }

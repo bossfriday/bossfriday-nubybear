@@ -2,8 +2,11 @@ package cn.bossfriday.fileserver.common;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;
+import cn.bossfriday.common.utils.UUIDUtil;
+import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
+import cn.bossfriday.fileserver.engine.StorageTracker;
 import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 import io.netty.buffer.Unpooled;
@@ -29,14 +32,14 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
  * @author chenx
  */
 @Slf4j
-public class HttpFileServerHelper {
+public class FileServerHelper {
 
     private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
     private static final String PNG = "png";
     private static final String FIREFOX = "Firefox";
     private static final String CHROME = "Chrome";
 
-    private HttpFileServerHelper() {
+    private FileServerHelper() {
 
     }
 
@@ -66,6 +69,29 @@ public class HttpFileServerHelper {
     }
 
     /**
+     * getFileTransactionId
+     *
+     * @param httpRequest
+     * @return
+     */
+    public static String getFileTransactionId(HttpRequest httpRequest) {
+        if (httpRequest == null) {
+            throw new BizException("The input http request is null!");
+        }
+
+        if (!httpRequest.headers().contains(HEADER_FILE_TRANSACTION_ID)) {
+            return UUIDUtil.getShortString();
+        }
+
+        String getFromHeaderValue = httpRequest.headers().get(HEADER_FILE_TRANSACTION_ID);
+        if (StringUtils.isEmpty(getFromHeaderValue)) {
+            throw new BizException(HEADER_FILE_TRANSACTION_ID + " header value is empty!");
+        }
+
+        return getFromHeaderValue;
+    }
+
+    /**
      * getHeaderValue
      *
      * @param httpRequest
@@ -73,7 +99,7 @@ public class HttpFileServerHelper {
      * @return
      */
     public static String getHeaderValue(HttpRequest httpRequest, String headerName) {
-        if (httpRequest == null || StringUtils.isEmpty(headerName)) {
+        if (httpRequest == null) {
             throw new BizException("The input http request is null!");
         }
 
@@ -95,9 +121,9 @@ public class HttpFileServerHelper {
      * @param status
      * @param contentType
      * @param responseContent
-     * @param isCloseChannel
+     * @param isForceCloseChannel 如果不强制close，则看是否keepAlive
      */
-    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String contentType, String responseContent, boolean isCloseChannel) {
+    public static void sendResponse(String fileTransactionId, HttpResponseStatus status, String contentType, String responseContent, boolean isForceCloseChannel) {
         FileTransactionContext fileCtx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
         if (fileCtx == null) {
             log.warn("FileTransactionContext not existed: " + fileTransactionId);
@@ -126,9 +152,41 @@ public class HttpFileServerHelper {
         ChannelFuture future = ctx.channel().writeAndFlush(response);
         if (!isKeepAlive) {
             future.addListener(ChannelFutureListener.CLOSE);
+        } else if (isForceCloseChannel) {
+            future.addListener(ChannelFutureListener.CLOSE);
         }
 
-        removeContext(fileTransactionId, ctx, isCloseChannel);
+        // unregister fileContext
+        FileTransactionContextManager.getInstance().unregisterContext(fileTransactionId);
+    }
+
+    /**
+     * sendRangeUploadNoContentResponse
+     *
+     * @param fileTransactionId
+     * @param rangeHeaderValue
+     */
+    public static void sendRangeUploadNoContentResponse(String fileTransactionId, String rangeHeaderValue) {
+        FileTransactionContext fileCtx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
+        if (fileCtx == null) {
+            log.warn("FileTransactionContext not existed: " + fileTransactionId);
+            return;
+        }
+
+        ChannelHandlerContext ctx = fileCtx.getCtx();
+        boolean isKeepAlive = fileCtx.isKeepAlive();
+
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NO_CONTENT, Unpooled.copiedBuffer("", CharsetUtil.UTF_8));
+        response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        response.headers().set(HttpHeaderNames.CONTENT_RANGE, rangeHeaderValue);
+
+        ChannelFuture future = ctx.channel().writeAndFlush(response);
+        if (!isKeepAlive) {
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
+
+        // reset ChannelHandlerContext
+        fileCtx.setCtx(null);
     }
 
     /**
@@ -186,21 +244,20 @@ public class HttpFileServerHelper {
     }
 
     /**
-     * removeContext
+     * abnormallyDeleteTmpFile 异常情况临时文件删除
      *
      * @param fileTransactionId
-     * @param ctx
-     * @param isCloseChannel
+     * @param version
      */
-    private static void removeContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isCloseChannel) {
-        try {
-            FileTransactionContextManager.getInstance().removeContext(fileTransactionId);
-
-            if (isCloseChannel) {
-                ctx.channel().close();
-            }
-        } catch (Exception ex) {
-            log.error("removeContext error!", ex);
+    public static void abnormallyDeleteTmpFile(String fileTransactionId, int version) {
+        if (StringUtils.isEmpty(fileTransactionId)) {
+            return;
         }
+
+        StorageTracker.getInstance().onDeleteTmpFileMsg(DeleteTmpFileMsg.builder()
+                .fileTransactionId(fileTransactionId)
+                .storageEngineVersion(version)
+                .build());
+        log.info("abnormallyDeleteTmpFile() done, fileTransactionId:" + fileTransactionId);
     }
 }

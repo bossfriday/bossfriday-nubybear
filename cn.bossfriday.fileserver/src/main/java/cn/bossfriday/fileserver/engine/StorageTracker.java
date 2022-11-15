@@ -6,7 +6,7 @@ import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.fileserver.actors.model.*;
-import cn.bossfriday.fileserver.common.HttpFileServerHelper;
+import cn.bossfriday.fileserver.common.FileServerHelper;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
@@ -82,13 +82,23 @@ public class StorageTracker {
      */
     public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+
             return;
         }
 
-        // 强制路由：同一个fileTransaction要求在同一个集群节点处理
-        RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
-        ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
+        // 零时文件写入整体完成
+        if (msg.isFullDone()) {
+            // 强制路由：同一个fileTransaction要求在同一个集群节点处理
+            RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
+            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
+
+            return;
+        }
+
+        // 当前Range分片写入完成（发送204 NoContent应答）
+        String rangeHeaderValue = msg.getRange().getRangeResponseHeaderValue(msg.getFileTotalSize());
+        FileServerHelper.sendRangeUploadNoContentResponse(msg.getFileTransactionId(), rangeHeaderValue);
     }
 
     /**
@@ -98,7 +108,8 @@ public class StorageTracker {
      */
     public void onUploadResultReceived(FileUploadResult msg) throws IOException {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+
             return;
         }
 
@@ -107,7 +118,7 @@ public class StorageTracker {
         IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(metaDataIndex.getStoreEngineVersion());
         String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
         String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
-        HttpFileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
+        FileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
         log.info(fileTransactionId + " upload done:" + uploadResponseBody);
     }
 
@@ -126,7 +137,7 @@ public class StorageTracker {
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onDownloadRequestReceived() process error: " + fileTransactionId, ex);
-            HttpFileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+            FileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
 
@@ -140,13 +151,15 @@ public class StorageTracker {
         try {
             final String tid = fileTransactionId = msg.getFileTransactionId();
             if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-                HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+                FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+
                 return;
             }
 
             FileTransactionContext fileCtx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
             if (fileCtx == null) {
                 log.warn("FileTransactionContext not existed: " + fileTransactionId);
+
                 return;
             }
 
@@ -158,11 +171,11 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() == 0) {
                 // write response header
-                String fileName = HttpFileServerHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
+                String fileName = FileServerHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpFileServerHelper.getContentType(metaData.getFileName()));
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerHelper.getContentType(metaData.getFileName()));
                 response.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
                     response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
@@ -194,7 +207,7 @@ public class StorageTracker {
                     } finally {
                         if (msg.getChunkIndex() == msg.getChunkCount() - 1) {
                             // 最后1个分片完成
-                            FileTransactionContextManager.getInstance().removeContext(tid);
+                            FileTransactionContextManager.getInstance().unregisterContext(tid);
                             ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
                             log.info("download process done: " + tid);
                         }
@@ -213,7 +226,7 @@ public class StorageTracker {
                 this.onDownloadRequestReceived(fileDownloadMsg);
             }
         } catch (Exception ex) {
-            HttpFileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
         }
     }
 

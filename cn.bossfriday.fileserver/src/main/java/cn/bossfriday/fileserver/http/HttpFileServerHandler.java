@@ -1,12 +1,12 @@
 package cn.bossfriday.fileserver.http;
 
 import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.http.RangeParser;
 import cn.bossfriday.common.http.UrlParser;
-import cn.bossfriday.common.utils.UUIDUtil;
-import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
+import cn.bossfriday.common.http.model.Range;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.common.HttpFileServerHelper;
+import cn.bossfriday.fileserver.common.FileServerHelper;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
@@ -20,7 +20,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 
 import java.net.URI;
 import java.net.URLDecoder;
@@ -55,11 +54,11 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     private FileUploadType fileUploadType;
     private byte[] base64AggregatedData;
     private String metaDataIndexString;
+    private Range range;
 
     private StringBuilder errorMsg = new StringBuilder();
-    private int version = 0;
+    private int version = DEFAULT_STORAGE_ENGINE_VERSION;
     private long tempFilePartialDataOffset = 0;
-    private long filePartitionSize = 0;
     private long fileTotalSize = 0;
     private int base64AggregateIndex = 0;
     private boolean isKeepAlive = false;
@@ -91,8 +90,11 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("exceptionCaught: " + this.fileTransactionId, cause);
-        ctx.channel().close();
-        this.abnormallyDeleteTmpFile();
+        if (ctx.channel().isActive()) {
+            ctx.channel().close();
+        }
+
+        FileServerHelper.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
     }
 
     /**
@@ -105,10 +107,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         try {
             this.request = httpRequest;
             this.isKeepAlive = HttpUtil.isKeepAlive(httpRequest);
-            if (StringUtils.isEmpty(this.fileTransactionId)) {
-                this.fileTransactionId = UUIDUtil.getShortString();
-                FileTransactionContextManager.getInstance().addContext(this.fileTransactionId, ctx, this.isKeepAlive, this.request.headers().get("USER-AGENT"));
-            }
+            this.fileTransactionId = FileServerHelper.getFileTransactionId(httpRequest);
+            FileTransactionContextManager.getInstance().registerContext(this.fileTransactionId, ctx, this.isKeepAlive, this.request.headers().get("USER-AGENT"));
 
             if (HttpMethod.GET.equals(httpRequest.method())) {
                 this.parseUrl(DOWNLOAD_URL_PARSER);
@@ -125,12 +125,16 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 this.fileUploadType = FileUploadType.getByName(this.getUrlArgValue(this.pathArgsMap, URI_ARGS_NAME_UPLOAD_TYPE));
 
                 if (this.fileUploadType == FileUploadType.FULL_UPLOAD) {
-                    this.filePartitionSize = this.fileTotalSize = Long.parseLong(HttpFileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                    // 全量上传
+                    this.fileTotalSize = Long.parseLong(FileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
                 } else if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
-                    int contentLength = Integer.parseInt(HttpFileServerHelper.getHeaderValue(this.request, String.valueOf(HttpHeaderNames.CONTENT_LENGTH)));
+                    // Base64上传
+                    int contentLength = Integer.parseInt(FileServerHelper.getHeaderValue(this.request, String.valueOf(HttpHeaderNames.CONTENT_LENGTH)));
                     this.base64AggregatedData = new byte[contentLength];
                 } else if (this.fileUploadType == FileUploadType.RANGE_UPLOAD) {
-                    // TODO: 断点上传
+                    // 断点上传
+                    this.fileTotalSize = Long.parseLong(FileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                    this.range = RangeParser.parseAndGetFirstRange(FileServerHelper.getHeaderValue(this.request, HttpHeaderNames.RANGE.toString()));
                 }
 
                 return;
@@ -201,7 +205,8 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         if (this.hasError()) {
-            HttpFileServerHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
+            FileServerHelper.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
+            FileServerHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
         }
     }
 
@@ -282,7 +287,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             msg.setStorageNamespace(this.storageNamespace);
             msg.setKeepAlive(this.isKeepAlive);
             msg.setFileName(URLDecoder.decode(currentPartialData.getFilename(), StandardCharsets.UTF_8.name()));
-            msg.setFilePartitionSize(this.filePartitionSize);
+            msg.setRange(this.range);
             msg.setFileTotalSize(this.fileTotalSize);
             msg.setOffset(this.tempFilePartialDataOffset);
             msg.setData(partialData);
@@ -334,7 +339,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 msg.setStorageNamespace(this.storageNamespace);
                 msg.setKeepAlive(this.isKeepAlive);
                 msg.setFileName(this.fileTransactionId + "." + this.getUrlArgValue(this.queryArgsMap, URI_ARGS_NAME_EXT));
-                msg.setFilePartitionSize(decodedFullData.length);
+                msg.setRange(this.range);
                 msg.setFileTotalSize(decodedFullData.length);
                 msg.setOffset(this.tempFilePartialDataOffset);
                 msg.setData(decodedFullData);
@@ -381,7 +386,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private void deleteFile(HttpContent httpContent) {
         if (httpContent instanceof LastHttpContent && !this.hasError()) {
-            // TODO: 文件删除
+            // 文件删除逻辑实现...
         }
     }
 
@@ -412,7 +417,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             URI uri = new URI(this.request.uri());
             this.pathArgsMap = urlParser.parsePath(uri);
             this.queryArgsMap = urlParser.parseQuery(uri);
-            this.version = HttpFileServerHelper.parserEngineVersionString(UrlParser.getArgsValue(this.pathArgsMap, URI_ARGS_NAME_ENGINE_VERSION));
+            this.version = FileServerHelper.parserEngineVersionString(UrlParser.getArgsValue(this.pathArgsMap, URI_ARGS_NAME_ENGINE_VERSION));
         } catch (Exception ex) {
             log.error("HttpFileServerHandler.parseUrl() error!", ex);
             this.errorMsg.append(ex.getMessage());
@@ -442,20 +447,5 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private boolean hasError() {
         return this.errorMsg.length() > 0;
-    }
-
-    /**
-     * 异常情况下临时文件删除
-     */
-    private void abnormallyDeleteTmpFile() {
-        if (StringUtils.isEmpty(this.fileTransactionId)) {
-            return;
-        }
-
-        StorageTracker.getInstance().onDeleteTmpFileMsg(DeleteTmpFileMsg.builder()
-                .fileTransactionId(this.fileTransactionId)
-                .storageEngineVersion(this.version)
-                .build());
-        log.info("abnormallyDeleteTmpFile() done, fileTransactionId:" + this.fileTransactionId);
     }
 }

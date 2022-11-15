@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -37,10 +36,10 @@ public class FileUploadTest {
                 @Override
                 public void run() {
                     try {
-                        normalUpload();
+//                        normalUpload();
 //                        download();
 //                        base64Upload();
-//                        rangeUpload();
+                        rangeUpload();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -121,12 +120,7 @@ public class FileUploadTest {
         try {
             httpClient = HttpClients.createDefault();
             httpPost = new HttpPost("http://127.0.0.1:18086/full/v1/normal");
-
-            // header
-            httpPost.addHeader(HttpHeaderNames.CONNECTION.toString(), "Keep-Alive");
             httpPost.addHeader(HEADER_FILE_TOTAL_SIZE, String.valueOf(file.length()));
-
-            // multipart body
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
             builder.addBinaryBody("upfile", file, ContentType.create("application/x-zip-compressed"), URLEncoder.encode(file.getName(), "UTF-8"));
@@ -173,23 +167,23 @@ public class FileUploadTest {
         int chunkCount = fileTotalSize % chunkSize == 0 ? (fileTotalSize / chunkSize) : (fileTotalSize / chunkSize + 1);
         String fileTransactionId = UUID.randomUUID().toString();
 
-        CloseableHttpClient httpClient = null;
-        HttpPost httpPost = null;
-        CloseableHttpResponse httpResponse = null;
-        try {
-            for (int i = 0; i < chunkCount; i++) {
-                int beginOffset = i * chunkSize;
-                int endOffset = (i + 1) * chunkSize - 1;
-                if (endOffset > fileTotalSize) {
-                    endOffset = fileTotalSize - 1;
-                }
+        // 测试一下httpClient连接复用情况下fileServer处理是否符合逾期（N个断点上传请求复用一个httpClient）
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        for (int i = 0; i < chunkCount; i++) {
+            int beginOffset = i * chunkSize;
+            int endOffset = (i + 1) * chunkSize - 1;
+            if (endOffset > fileTotalSize) {
+                endOffset = fileTotalSize - 1;
+            }
 
-                String range = "bytes=" + beginOffset + "-" + endOffset;
-                int rangeLength = endOffset - beginOffset + 1;
-                byte[] rangeData = new byte[rangeLength];
-                readFile(localFile, beginOffset, rangeData);
+            String range = "bytes=" + beginOffset + "-" + endOffset;
+            int rangeLength = endOffset - beginOffset + 1;
+            byte[] rangeData = new byte[rangeLength];
+            readFile(localFile, beginOffset, rangeData);
 
-                httpClient = HttpClients.createDefault();
+            HttpPost httpPost = null;
+            CloseableHttpResponse httpResponse = null;
+            try {
                 httpPost = new HttpPost("http://127.0.0.1:18086/range/v1/normal");
                 httpPost.addHeader(HttpHeaderNames.CONNECTION.toString(), "Keep-Alive");
                 httpPost.addHeader(HttpHeaderNames.RANGE.toString(), range);
@@ -197,34 +191,36 @@ public class FileUploadTest {
                 httpPost.addHeader(HEADER_FILE_TOTAL_SIZE, String.valueOf(fileTotalSize));
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create();
                 builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-                builder.addBinaryBody("upfile", rangeData, ContentType.create("application/x-zip-compressed"), localFile.getName());
+                builder.addBinaryBody("upfile", rangeData, ContentType.create("application/x-zip-compressed"), URLEncoder.encode(localFile.getName(), "UTF-8"));
                 HttpEntity entity = builder.build();
                 httpPost.setEntity(entity);
-                HttpResponse response = httpClient.execute(httpPost);
+                httpResponse = httpClient.execute(httpPost);
+                HttpEntity respEntity = httpResponse.getEntity();
+                if (respEntity == null) {
+                    String responseRangeHeaderValue = httpResponse.getHeaders(HttpHeaderNames.CONTENT_RANGE.toString())[0].getValue();
+                    System.out.println(httpResponse.getStatusLine().getStatusCode() + ":" + responseRangeHeaderValue);
+                } else {
+                    System.out.println(EntityUtils.toString(respEntity));
+                }
+            } finally {
+                if (httpPost != null) {
+                    httpPost.releaseConnection();
+                }
 
-                int status = response.getStatusLine().getStatusCode();
-                System.out.println(status + " - " + EntityUtils.toString(httpResponse.getEntity()));
-            }
-        } finally {
-            if (httpPost != null) {
-                httpPost.releaseConnection();
-            }
-
-            if (httpResponse != null) {
-                try {
-                    httpResponse.close();
-                } catch (Exception e) {
-                    log.error("httpResponse close error!", e);
+                if (httpResponse != null) {
+                    try {
+                        httpResponse.close();
+                    } catch (Exception e) {
+                        log.error("httpResponse close error!", e);
+                    }
                 }
             }
+        }
 
-            if (httpClient != null) {
-                try {
-                    httpClient.close();
-                } catch (Exception e) {
-                    log.error("httpClient close error!", e);
-                }
-            }
+        try {
+            httpClient.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

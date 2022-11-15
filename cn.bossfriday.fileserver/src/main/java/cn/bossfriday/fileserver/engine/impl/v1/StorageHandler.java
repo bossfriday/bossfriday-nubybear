@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_CHANNEL_LRU_DURATION;
 import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTENSION_NAME;
 
 /**
@@ -43,7 +44,7 @@ public class StorageHandler implements IStorageHandler {
                 log.warn("FileChannel close failed: " + key);
             }
         }
-    }, 1000 * 60 * 60L * 8);
+    }, STORAGE_FILE_CHANNEL_LRU_DURATION);
 
     @Override
     public StorageIndex getStorageIndex(String namespace) throws IOException {

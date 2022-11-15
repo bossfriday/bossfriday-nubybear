@@ -109,7 +109,7 @@ public class StorageEngine extends BaseStorageEngine {
         if (data == null) {
             throw new BizException("WriteTmpFileResult is null!");
         }
-
+        
         String fileTransactionId = data.getFileTransactionId();
         int engineVersion = data.getStorageEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);

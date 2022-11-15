@@ -26,9 +26,7 @@ public class TmpFileActor extends BaseTypedActor<WriteTmpFileMsg> {
     public void onMessageReceived(WriteTmpFileMsg msg) {
         ActorRef sender = this.getSender();
         /**
-         * 为了保障临时文件顺序写盘，每个事务使用唯一线程。
-         * 实际上多线程写临时文件的结果也是正确的（因为提前计算好了offset）
-         * 这里主要目的为：对磁盘友好
+         * 保障FileTransactionId与其处理线程的一致性的原因为：临时文件的写盘机制是零拷贝+顺序写，
          */
         StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(new Runnable() {
             @Override
@@ -38,6 +36,12 @@ public class TmpFileActor extends BaseTypedActor<WriteTmpFileMsg> {
         });
     }
 
+    /**
+     * process
+     *
+     * @param sender
+     * @param msg
+     */
     private void process(ActorRef sender, WriteTmpFileMsg msg) {
         WriteTmpFileResult result = null;
         try {

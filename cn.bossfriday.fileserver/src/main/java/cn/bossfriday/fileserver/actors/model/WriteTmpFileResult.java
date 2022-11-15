@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.actors.model;
 
+import cn.bossfriday.common.http.model.Range;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,8 +73,22 @@ public class WriteTmpFileResult {
      */
     private String filePath;
 
+    /**
+     * range
+     */
+    private Range range;
+
     public WriteTmpFileResult(String fileTransactionId, OperationResult result) {
         this.fileTransactionId = fileTransactionId;
         this.result = result;
+    }
+
+    /**
+     * isFullDone
+     *
+     * @return
+     */
+    public boolean isFullDone() {
+        return this.range == null;
     }
 }

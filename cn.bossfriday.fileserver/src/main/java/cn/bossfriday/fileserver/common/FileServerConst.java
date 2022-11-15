@@ -15,6 +15,8 @@ public class FileServerConst {
      * storage
      */
     public static final int DEFAULT_STORAGE_ENGINE_VERSION = 1;
+    public static final long DEFAULT_LRU_DURATION = 1000L * 3600 * 2;
+    public static final long STORAGE_FILE_CHANNEL_LRU_DURATION = 1000L * 3600 * 8;
     public static final int MAX_STORAGE_VERSION = 255;
     public static final int DOWNLOAD_CHUNK_SIZE = 32 * 1024;
     public static final String STORAGE_FILE_EXTENSION_NAME = "data";

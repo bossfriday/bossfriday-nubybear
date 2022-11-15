@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.actors.model;
 
+import cn.bossfriday.common.http.model.Range;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,9 +43,9 @@ public class WriteTmpFileMsg {
     private String fileName;
 
     /**
-     * filePartitionSize
+     * range（断点上传用）
      */
-    private long filePartitionSize;
+    private Range range;
 
     /**
      * fileTotalSize
@@ -60,4 +61,13 @@ public class WriteTmpFileMsg {
      * data
      */
     private byte[] data;
+
+    /**
+     * 是否断点上传
+     *
+     * @return
+     */
+    public boolean isRangeUpload() {
+        return this.range != null;
+    }
 }
