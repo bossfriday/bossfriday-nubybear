@@ -6,6 +6,8 @@
 * Range断点续传下载（TODO）
 * 文件删除（TODO）
 * 压力测试（完成）
+* 异常恢复（TODO）：服务异常重启，断电宕机等情况下数据恢复；
+* 高可用（TODO）：集群下的主从、文件副本等；
 * ActorRPC放弃Disruptor改回最初使用的LinkedBlockingQueue。原因：环形缓存区内存不会释放，不利于传输文件这种大消息体的应用场景。另外形缓存区容量如果不大Disruptor性能与LinkedBlockingQueue差异不大。
 
 ## 性能
