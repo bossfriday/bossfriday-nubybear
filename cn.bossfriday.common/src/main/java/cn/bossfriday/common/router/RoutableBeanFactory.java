@@ -20,12 +20,12 @@ public class RoutableBeanFactory {
      * @param msg
      * @return
      */
-    public static RoutableBean buildRandomRouteBean(String method, Object msg) {
+    public static RoutableBean<Object> buildRandomRouteBean(String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
         String routeKey = UUIDUtil.getShortString();
         byte routeType = RouteType.RANDOM_ROUTE.getValue();
 
-        return new RoutableBean(appId, routeKey, method, null, null, msg, routeType);
+        return new RoutableBean<>(appId, routeKey, method, null, null, msg, routeType);
     }
 
     /**
@@ -36,11 +36,11 @@ public class RoutableBeanFactory {
      * @param msg
      * @return
      */
-    public static RoutableBean buildKeyRouteBean(String routeKey, String method, Object msg) {
+    public static RoutableBean<Object> buildKeyRouteBean(String routeKey, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
         byte routeType = RouteType.KEY_ROUTE.getValue();
 
-        return new RoutableBean(appId, routeKey, method, null, null, msg, routeType);
+        return new RoutableBean<>(appId, routeKey, method, null, null, msg, routeType);
     }
 
     /**
@@ -51,11 +51,11 @@ public class RoutableBeanFactory {
      * @param msg
      * @return
      */
-    public static RoutableBean buildResourceIdRouteBean(String resourceId, String method, Object msg) {
+    public static RoutableBean<Object> buildResourceIdRouteBean(String resourceId, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
         byte routeType = RouteType.RESOURCE_ID_ROUTE.getValue();
 
-        return new RoutableBean(appId, null, method, resourceId, null, msg, routeType);
+        return new RoutableBean<>(appId, null, method, resourceId, null, msg, routeType);
     }
 
     /**
@@ -66,10 +66,10 @@ public class RoutableBeanFactory {
      * @param msg
      * @return
      */
-    public static RoutableBean buildForceRouteBean(String clusterNodeName, String method, Object msg) {
+    public static RoutableBean<Object> buildForceRouteBean(String clusterNodeName, String method, Object msg) {
         long appId = RoutableBean.DEFAULT_APP_ID;
         byte routeType = RouteType.FORCE_ROUTE.getValue();
 
-        return new RoutableBean(appId, null, method, null, clusterNodeName, msg, routeType);
+        return new RoutableBean<>(appId, null, method, null, clusterNodeName, msg, routeType);
     }
 }

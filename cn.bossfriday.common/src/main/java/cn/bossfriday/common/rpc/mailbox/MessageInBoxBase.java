@@ -40,7 +40,7 @@ public class MessageInBoxBase extends BaseMailBox {
         try {
             EventLoopGroup bossGroup = new NioEventLoopGroup(1);
             EventLoopGroup workerGroup = new NioEventLoopGroup();
-            this.server.run(bossGroup, workerGroup);
+            this.server.start(bossGroup, workerGroup);
 
             super.start();
         } catch (Exception e) {
@@ -67,7 +67,7 @@ public class MessageInBoxBase extends BaseMailBox {
             super.queue.clear();
 
             if (this.server != null) {
-                this.server.close();
+                this.server.stop();
             }
         } catch (Exception e) {
             log.error("MessageInBox stop() error!", e);

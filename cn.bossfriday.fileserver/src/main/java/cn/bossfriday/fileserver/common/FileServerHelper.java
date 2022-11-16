@@ -7,8 +7,6 @@ import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageTracker;
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -16,6 +14,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -52,17 +51,17 @@ public class FileServerHelper {
     public static int parserEngineVersionString(String versionString) {
         final int versionPrefixLength = URL_PREFIX_STORAGE_VERSION.length();
         if (StringUtils.isEmpty(versionString) || versionString.length() <= versionPrefixLength) {
-            throw new BizException("invalid engine version!");
+            throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
         }
 
         int version = 0;
         try {
             version = Integer.parseInt(versionString.substring(versionPrefixLength));
             if (version < DEFAULT_STORAGE_ENGINE_VERSION || version > MAX_STORAGE_VERSION) {
-                throw new BizException("invalid engine version!");
+                throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
             }
         } catch (Exception ex) {
-            throw new BizException("invalid engine version!");
+            throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
         }
 
         return version;
@@ -150,9 +149,8 @@ public class FileServerHelper {
         response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 
         ChannelFuture future = ctx.channel().writeAndFlush(response);
-        if (!isKeepAlive) {
-            future.addListener(ChannelFutureListener.CLOSE);
-        } else if (isForceCloseChannel) {
+        boolean isCloseChannel = !isKeepAlive || isForceCloseChannel;
+        if (isCloseChannel) {
             future.addListener(ChannelFutureListener.CLOSE);
         }
 
@@ -223,17 +221,16 @@ public class FileServerHelper {
      * @param agent
      * @param fileName
      * @return
-     * @throws Base64DecodingException
      * @throws UnsupportedEncodingException
      */
-    public static String encodedDownloadFileName(String agent, String fileName) throws Base64DecodingException, UnsupportedEncodingException {
+    public static String encodedDownloadFileName(String agent, String fileName) throws UnsupportedEncodingException {
         if (StringUtils.isEmpty(agent)) {
             return URLEncoder.encode(fileName, StandardCharsets.UTF_8.name());
         }
 
         String result = "";
         if (-1 != agent.indexOf(FIREFOX)) {
-            result = "=?UTF-8?B?" + (new String(Base64.decode(fileName.getBytes(StandardCharsets.UTF_8)))) + "?=";
+            result = "=?UTF-8?B?" + (new String(Base64.encodeBase64(fileName.getBytes(StandardCharsets.UTF_8)))) + "?=";
         } else if (-1 != agent.indexOf(CHROME)) {
             result = new String(fileName.getBytes(), StandardCharsets.ISO_8859_1);
         } else {

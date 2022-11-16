@@ -38,8 +38,8 @@ public class FileUploadTest {
                     try {
 //                        normalUpload();
 //                        download();
-//                        base64Upload();
-                        rangeUpload();
+                        base64Upload();
+//                        rangeUpload();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

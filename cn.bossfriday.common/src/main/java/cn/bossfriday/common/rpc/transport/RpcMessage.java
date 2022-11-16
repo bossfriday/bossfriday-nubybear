@@ -1,5 +1,6 @@
 package cn.bossfriday.common.rpc.transport;
 
+import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.UUIDUtil;
 import lombok.Data;
 import org.apache.commons.lang.StringUtils;
@@ -71,7 +72,7 @@ public class RpcMessage {
      */
     public String getSessionString() {
         if (this.session == null || this.session.length == 0) {
-            throw new RuntimeException("Message.session is null or empty!");
+            throw new BizException("Message.session is null or empty!");
         }
 
         return UUIDUtil.getShortString(this.session);

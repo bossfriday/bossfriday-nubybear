@@ -58,4 +58,9 @@ public class FileServerConst {
      */
     public static final String HEADER_FILE_TOTAL_SIZE = "X-File-Total-Size";
     public static final String HEADER_FILE_TRANSACTION_ID = "X-File-TransactionId";
+
+    /**
+     * tip message
+     */
+    public static final String TIP_MSG_INVALID_ENGINE_VERSION = "invalid engine version!";
 }

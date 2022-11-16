@@ -10,18 +10,15 @@ import io.netty.channel.EventLoopGroup;
 public interface IServer {
 
     /**
-     * run
+     * start
      *
      * @param bossGroup
      * @param workerGroup
-     * @throws Exception
      */
-    void run(EventLoopGroup bossGroup, EventLoopGroup workerGroup) throws Exception;
+    void start(EventLoopGroup bossGroup, EventLoopGroup workerGroup);
 
     /**
-     * close
-     *
-     * @throws Exception
+     * stop
      */
-    void close() throws Exception;
+    void stop();
 }

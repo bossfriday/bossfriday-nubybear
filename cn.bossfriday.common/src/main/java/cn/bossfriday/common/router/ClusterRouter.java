@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static cn.bossfriday.common.Const.PATH_DELIMITER;
+
 /**
  * ClusterRouter
  *
@@ -57,8 +59,8 @@ public class ClusterRouter {
                          int virtualNodesNum) throws InterruptedException {
         this.zkHandler = new ZkHandler(zkAddress);
         this.currentNode = new ClusterNode(nodeName, virtualNodesNum, host, port);
-        this.basePath = "/" + systemName;
-        this.clusterNodeHomePath = this.basePath + "/" + Const.ZK_PATH_CLUSTER_NODE;
+        this.basePath = PATH_DELIMITER + systemName;
+        this.clusterNodeHomePath = this.basePath + PATH_DELIMITER + Const.ZK_PATH_CLUSTER_NODE;
 
         this.initActorSystem(nodeName, host, port);
         this.discoveryService();
@@ -91,7 +93,7 @@ public class ClusterRouter {
                 return;
             }
 
-            String zkNodePath = this.basePath + "/" + Const.ZK_PATH_CLUSTER_NODE + "/" + this.currentNode.getName();
+            String zkNodePath = this.basePath + PATH_DELIMITER + Const.ZK_PATH_CLUSTER_NODE + PATH_DELIMITER + this.currentNode.getName();
             if (this.zkHandler.checkExist(zkNodePath)) {
                 this.zkHandler.deleteNode(zkNodePath);
             }
@@ -118,7 +120,7 @@ public class ClusterRouter {
             List<ClusterNode> clusterNodes = new ArrayList<>();
             this.clusterNodeHashMap = new HashMap<>(16);
             for (String nodeName : clusterNodeNameList) {
-                ClusterNode clusterNode = this.zkHandler.getData(this.clusterNodeHomePath + "/" + nodeName, ClusterNode.class);
+                ClusterNode clusterNode = this.zkHandler.getData(this.clusterNodeHomePath + PATH_DELIMITER + nodeName, ClusterNode.class);
                 if (clusterNode == null) {
                     throw new BizException("getClusterNode from zk failed!(nodeName:" + nodeName + ")");
                 }
@@ -237,7 +239,7 @@ public class ClusterRouter {
      * @param sender
      * @return
      */
-    public String routeMessage(RoutableBean routableBean, ActorRef sender) {
+    public String routeMessage(RoutableBean<Object> routableBean, ActorRef sender) {
         if (routableBean == null) {
             throw new BizException("routeMsg is null!");
         }

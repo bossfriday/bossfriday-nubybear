@@ -34,17 +34,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
      * refresh（上层代码保障线程安全，因为这里保障不了clusterNodes读取的线程安全）
      */
     public void refresh() {
-        if (CollectionUtils.isEmpty(this.clusterNodes)) {
-            throw new BizException("clusterNodes is null or empty!");
-        }
-
-        Collections.sort(this.clusterNodes, (o1, o2) -> o1.compareTo(o2));
-
-        if (this.hashRingNodes == null) {
-            this.hashRingNodes = new TreeMap<>();
-        } else {
-            this.hashRingNodes.clear();
-        }
+        this.refreshPrepare();
 
         for (T node : this.clusterNodes) {
             // 虚拟节点数设置较大将影响一定性能（设置为成千上万也没有必要）
@@ -108,5 +98,22 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
      */
     private Long hash(String key) {
         return MurmurHashUtil.hash64(key);
+    }
+
+    /**
+     * refreshPrepare
+     */
+    private void refreshPrepare() {
+        if (CollectionUtils.isEmpty(this.clusterNodes)) {
+            throw new BizException("clusterNodes is null or empty!");
+        }
+
+        Collections.sort(this.clusterNodes, (o1, o2) -> o1.compareTo(o2));
+
+        if (this.hashRingNodes == null) {
+            this.hashRingNodes = new TreeMap<>();
+        } else {
+            this.hashRingNodes.clear();
+        }
     }
 }

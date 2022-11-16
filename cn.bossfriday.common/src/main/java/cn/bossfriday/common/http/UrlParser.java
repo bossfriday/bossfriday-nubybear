@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cn.bossfriday.common.Const.URL_DELIMITER;
+import static cn.bossfriday.common.Const.PATH_DELIMITER;
 
 /**
  * UrlParser
@@ -29,7 +29,7 @@ public class UrlParser {
 
     public UrlParser(@NonNull final String template) {
         this.validate(template);
-        final String[] pathElements = template.split(URL_DELIMITER);
+        final String[] pathElements = template.split(PATH_DELIMITER);
 
         for (final String element : pathElements) {
             if (this.isAttribute(element)) {
@@ -51,7 +51,7 @@ public class UrlParser {
         String path = uri.getPath();
         this.validate(path);
         final Map<String, String> pathArgsMap = new HashMap<>(16);
-        final String[] pathElements = path.split(URL_DELIMITER);
+        final String[] pathElements = path.split(PATH_DELIMITER);
         if (pathElements.length != this.urlElements.size()) {
             return pathArgsMap;
         }
@@ -123,8 +123,8 @@ public class UrlParser {
      * @param path
      */
     private void validate(@NonNull final String path) {
-        if (!path.startsWith(URL_DELIMITER)) {
-            throw new BizException("A template must start with " + URL_DELIMITER);
+        if (!path.startsWith(PATH_DELIMITER)) {
+            throw new BizException("A template must start with " + PATH_DELIMITER);
         }
     }
 

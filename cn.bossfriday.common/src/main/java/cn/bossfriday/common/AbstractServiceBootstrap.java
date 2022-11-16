@@ -51,6 +51,9 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
             ClusterRouterFactory.getClusterRouter().startActorSystem();
             this.start();
             log.info(config.getSystemName() + " startup() done.");
+        } catch (InterruptedException interEx) {
+            log.error("Bootstrap.startup() InterruptedException!", interEx);
+            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             log.error("Bootstrap.startup() error!", ex);
         }

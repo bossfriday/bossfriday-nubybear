@@ -21,6 +21,9 @@ public class FileServerBootstrap extends AbstractServiceBootstrap {
             StorageHandlerFactory.init();
             StorageEngine.getInstance().start();
             HttpFileServer.start();
+        } catch (InterruptedException e) {
+            log.error("FileServerBootstrap.start() InterruptedException!", e);
+            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             log.error("FileServerBootstrap.start() error!", ex);
         }

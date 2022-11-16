@@ -21,7 +21,7 @@ public class Const {
      * common
      */
     public static final int CPU_PROCESSORS = CPUS;
-    public static final String URL_DELIMITER = "/";
+    public static final String PATH_DELIMITER = "/";
 
     /**
      * thread pool name
@@ -37,7 +37,7 @@ public class Const {
     public static final String DEAD_LETTER_ACTOR_HOST = "0.0.0.0";
     public static final int DEAD_LETTER_ACTOR_PORT = 0;
     public static final long DEFAULT_CALLBACK_ACTOR_TTL = 5000L;
-    
+
     /**
      * queues（最好做成配置）
      */
