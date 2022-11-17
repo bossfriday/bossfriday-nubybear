@@ -16,7 +16,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -280,22 +283,6 @@ public class FileUploadTest {
             in.read(buffer);
 
             return new Combo2<>(size, Base64.encodeBase64String(buffer));
-        }
-    }
-
-    /**
-     * byte2file
-     *
-     * @param file
-     * @param data
-     */
-    public static void byte2file(File file, byte[] data) {
-        try {
-            FileOutputStream outputStream = new FileOutputStream(file);
-            outputStream.write(data);
-            outputStream.close();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

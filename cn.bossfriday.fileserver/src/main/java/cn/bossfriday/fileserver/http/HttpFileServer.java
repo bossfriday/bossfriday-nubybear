@@ -50,7 +50,6 @@ public class HttpFileServer {
                                protected void initChannel(SocketChannel socketChannel) {
                                    socketChannel.pipeline().addLast(new HttpRequestDecoder());
                                    socketChannel.pipeline().addLast(new HttpResponseEncoder());
-                                   // 下载为ChunkedWriteFileContent方式
                                    socketChannel.pipeline().addLast(new ChunkedWriteHandler());
                                    socketChannel.pipeline().addLast(new HttpFileServerHandler());
                                }
