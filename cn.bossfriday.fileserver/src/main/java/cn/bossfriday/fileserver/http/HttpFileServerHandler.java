@@ -94,6 +94,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             ctx.channel().close();
         }
 
+        // 异常情况临时文件删除
         FileServerHelper.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
     }
 

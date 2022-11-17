@@ -35,8 +35,7 @@ public class HttpFileServer {
      */
     public static void start() throws InterruptedException {
         int port = FileServerConfigManager.getFileServerConfig().getHttpPort();
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        // EventLoopGroup默认nThreads为CPU核数*2
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -51,7 +50,7 @@ public class HttpFileServer {
                                protected void initChannel(SocketChannel socketChannel) {
                                    socketChannel.pipeline().addLast(new HttpRequestDecoder());
                                    socketChannel.pipeline().addLast(new HttpResponseEncoder());
-                                   // chunk下载 need to chunkedWriteHttpResponse
+                                   // 下载为ChunkedWriteFileContent方式
                                    socketChannel.pipeline().addLast(new ChunkedWriteHandler());
                                    socketChannel.pipeline().addLast(new HttpFileServerHandler());
                                }
