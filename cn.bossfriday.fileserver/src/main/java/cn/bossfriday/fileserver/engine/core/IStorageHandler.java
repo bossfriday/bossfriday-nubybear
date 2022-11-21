@@ -1,5 +1,6 @@
 package cn.bossfriday.fileserver.engine.core;
 
+import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.model.MetaData;
 import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
@@ -80,4 +81,13 @@ public interface IStorageHandler {
      * @throws IOException
      */
     MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException;
+
+    /**
+     * delete
+     *
+     * @param metaDataIndex
+     * @return
+     * @throws IOException
+     */
+    OperationResult delete(MetaDataIndex metaDataIndex) throws IOException;
 }

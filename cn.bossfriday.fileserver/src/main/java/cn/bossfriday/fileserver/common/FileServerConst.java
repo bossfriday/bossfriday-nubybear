@@ -45,6 +45,7 @@ public class FileServerConst {
     public static final String ACTOR_FS_DEL_TMP_FILE = ACTOR_PREFIX_FS + "delTmpFile";
     public static final String ACTOR_FS_UPLOAD = ACTOR_PREFIX_FS + "upload";
     public static final String ACTOR_FS_DOWNLOAD = ACTOR_PREFIX_FS + "download";
+    public static final String ACTOR_FS_DELETE = ACTOR_PREFIX_FS + "delete";
 
     /**
      * file

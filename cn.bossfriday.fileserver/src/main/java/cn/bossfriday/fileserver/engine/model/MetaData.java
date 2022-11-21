@@ -27,8 +27,11 @@ public class MetaData implements ICodec<MetaData> {
      * 存储引擎版本（1字节）
      */
     private int storeEngineVersion;
+
     /**
-     * 文件状态标识（1字节）
+     * 文件状态标识（1字节）：
+     * 后续如果要扩展更多标志位（1字节最多表达8个标志位），
+     * 可以新引入一个storageEngineVersion去实现（即新版本下fileStatus改为2字节）
      */
     private int fileStatus;
 

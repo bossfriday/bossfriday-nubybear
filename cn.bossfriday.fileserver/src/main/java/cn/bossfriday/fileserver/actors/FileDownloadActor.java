@@ -4,10 +4,12 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
+import cn.bossfriday.fileserver.FileServerUtils;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
+import cn.bossfriday.fileserver.engine.enums.FileStatus;
 import cn.bossfriday.fileserver.engine.model.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.model.MetaData;
 import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
@@ -34,6 +36,12 @@ public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
             MetaData metaData = (msg.getChunkIndex() == FIRST_CHUNK_INDEX) ? StorageEngine.getInstance().getMetaData(metaDataIndex) : msg.getMetaData();
+
+            // 如果文件被删除返回404
+            if (FileServerUtils.isFileStatusTrue(metaData.getFileStatus(), FileStatus.IS_BIT1)) {
+                result = new FileDownloadResult(msg.getFileTransactionId(), OperationResult.NOT_FOUND);
+                return;
+            }
 
             long fileTotalSize = metaData.getFileTotalSize();
             long chunkIndex = msg.getChunkIndex();

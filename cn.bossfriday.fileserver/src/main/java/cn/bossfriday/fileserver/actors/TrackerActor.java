@@ -2,6 +2,7 @@ package cn.bossfriday.fileserver.actors;
 
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
+import cn.bossfriday.fileserver.actors.model.FileDeleteResult;
 import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
 import cn.bossfriday.fileserver.actors.model.FileUploadResult;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
@@ -35,6 +36,10 @@ public class TrackerActor extends BaseUntypedActor {
             if (msg instanceof FileDownloadResult) {
                 StorageTracker.getInstance().onDownloadResult((FileDownloadResult) msg);
                 return;
+            }
+
+            if (msg instanceof FileDeleteResult) {
+                StorageTracker.getInstance().onFileDeleteResultMsg((FileDeleteResult) msg);
             }
         } catch (Exception ex) {
             log.error("TrackerActor process error!", ex);

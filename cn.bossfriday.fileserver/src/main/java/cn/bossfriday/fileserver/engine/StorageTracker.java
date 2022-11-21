@@ -5,8 +5,8 @@ import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
+import cn.bossfriday.fileserver.FileServerUtils;
 import cn.bossfriday.fileserver.actors.model.*;
-import cn.bossfriday.fileserver.common.FileServerHelper;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
@@ -82,7 +82,7 @@ public class StorageTracker {
      */
     public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
 
             return;
         }
@@ -98,7 +98,7 @@ public class StorageTracker {
 
         // 当前Range分片写入完成（发送204 NoContent应答）
         String rangeHeaderValue = msg.getRange().getRangeResponseHeaderValue(msg.getFileTotalSize());
-        FileServerHelper.sendRangeUploadNoContentResponse(msg.getFileTransactionId(), rangeHeaderValue);
+        FileServerUtils.sendRangeUploadNoContentResponse(msg.getFileTransactionId(), rangeHeaderValue);
     }
 
     /**
@@ -108,7 +108,7 @@ public class StorageTracker {
      */
     public void onUploadResultReceived(FileUploadResult msg) throws IOException {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
 
             return;
         }
@@ -118,7 +118,7 @@ public class StorageTracker {
         IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(metaDataIndex.getStoreEngineVersion());
         String path = metaDataHandler.downloadUrlEncode(metaDataIndex);
         String uploadResponseBody = "{\"rc_url\":{\"path\":\"" + path + "\",\"type\":0}}";
-        FileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
+        FileServerUtils.sendResponse(fileTransactionId, HttpResponseStatus.OK, String.valueOf(HttpHeaderValues.APPLICATION_JSON), uploadResponseBody, false);
         log.info(fileTransactionId + " upload done:" + uploadResponseBody);
     }
 
@@ -137,7 +137,7 @@ public class StorageTracker {
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onDownloadRequestReceived() process error: " + fileTransactionId, ex);
-            FileServerHelper.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+            FileServerUtils.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         }
     }
 
@@ -151,7 +151,7 @@ public class StorageTracker {
         try {
             final String tid = fileTransactionId = msg.getFileTransactionId();
             if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
-                FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+                FileServerUtils.sendResponse(msg.getFileTransactionId(), msg.getResult().getStatus(), msg.getResult().getMsg());
 
                 return;
             }
@@ -171,11 +171,11 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() == 0) {
                 // write response header
-                String fileName = FileServerHelper.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
+                String fileName = FileServerUtils.encodedDownloadFileName(fileCtx.getUserAgent(), metaData.getFileName());
                 HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
                 response.headers().set(HttpHeaderNames.CONTENT_LENGTH, String.valueOf(metaData.getFileTotalSize()));
                 response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-                response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerHelper.getContentType(metaData.getFileName()));
+                response.headers().set(HttpHeaderNames.CONTENT_TYPE, FileServerUtils.getContentType(metaData.getFileName()));
                 response.headers().set(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName + ";filename*=UTF-8" + fileName);
                 if (fileCtx.isKeepAlive()) {
                     response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
@@ -226,7 +226,7 @@ public class StorageTracker {
                 this.onDownloadRequestReceived(fileDownloadMsg);
             }
         } catch (Exception ex) {
-            FileServerHelper.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
+            FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
         }
     }
 
@@ -238,5 +238,33 @@ public class StorageTracker {
     public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) {
         RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
         ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
+    }
+
+    /**
+     * 文件删除请求
+     *
+     * @param msg
+     */
+    public void onFileDeleteMsg(FileDeleteMsg msg) {
+        String fileTransactionId = "";
+        try {
+            // 强制路由：在主节点上进行删除（如果将来实现了高可用，则通过主从同步机制进行副本文件的删除）
+            fileTransactionId = msg.getFileTransactionId();
+            MetaDataIndex index = msg.getMetaDataIndex();
+            RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DELETE, msg);
+            ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
+        } catch (Exception ex) {
+            log.error("onFileDeleteMsg() process error: " + fileTransactionId, ex);
+            FileServerUtils.sendResponse(fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+    }
+
+    /**
+     * 文件删除结果
+     *
+     * @param msg
+     */
+    public void onFileDeleteResultMsg(FileDeleteResult msg) {
+        FileServerUtils.sendResponse(msg.getFileTransactionId(), msg.getResult().getStatus(), msg.getResult().getMsg());
     }
 }

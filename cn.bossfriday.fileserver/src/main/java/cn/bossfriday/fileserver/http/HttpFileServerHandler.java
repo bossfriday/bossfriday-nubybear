@@ -4,9 +4,10 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.http.RangeParser;
 import cn.bossfriday.common.http.UrlParser;
 import cn.bossfriday.common.http.model.Range;
+import cn.bossfriday.fileserver.FileServerUtils;
+import cn.bossfriday.fileserver.actors.model.FileDeleteMsg;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.common.FileServerHelper;
 import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
@@ -95,7 +96,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         }
 
         // 异常情况临时文件删除
-        FileServerHelper.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
+        FileServerUtils.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
     }
 
     /**
@@ -108,7 +109,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
         try {
             this.request = httpRequest;
             this.isKeepAlive = HttpUtil.isKeepAlive(httpRequest);
-            this.fileTransactionId = FileServerHelper.getFileTransactionId(httpRequest);
+            this.fileTransactionId = FileServerUtils.getFileTransactionId(httpRequest);
             FileTransactionContextManager.getInstance().registerContext(this.fileTransactionId, ctx, this.isKeepAlive, this.request.headers().get("USER-AGENT"));
 
             if (HttpMethod.GET.equals(httpRequest.method())) {
@@ -127,15 +128,15 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
 
                 if (this.fileUploadType == FileUploadType.FULL_UPLOAD) {
                     // 全量上传
-                    this.fileTotalSize = Long.parseLong(FileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                    this.fileTotalSize = Long.parseLong(FileServerUtils.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
                 } else if (this.fileUploadType == FileUploadType.BASE_64_UPLOAD) {
                     // Base64上传
-                    int contentLength = Integer.parseInt(FileServerHelper.getHeaderValue(this.request, String.valueOf(HttpHeaderNames.CONTENT_LENGTH)));
+                    int contentLength = Integer.parseInt(FileServerUtils.getHeaderValue(this.request, String.valueOf(HttpHeaderNames.CONTENT_LENGTH)));
                     this.base64AggregatedData = new byte[contentLength];
                 } else if (this.fileUploadType == FileUploadType.RANGE_UPLOAD) {
                     // 断点上传
-                    this.fileTotalSize = Long.parseLong(FileServerHelper.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
-                    this.range = RangeParser.parseAndGetFirstRange(FileServerHelper.getHeaderValue(this.request, HttpHeaderNames.RANGE.toString()));
+                    this.fileTotalSize = Long.parseLong(FileServerUtils.getHeaderValue(this.request, HEADER_FILE_TOTAL_SIZE));
+                    this.range = RangeParser.parseAndGetFirstRange(FileServerUtils.getHeaderValue(this.request, HttpHeaderNames.RANGE.toString()));
                 }
 
                 return;
@@ -199,15 +200,15 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      * lastHttpContentChannelRead
      */
     private void lastHttpContentChannelRead() {
-        this.reset();
+        this.resetHttpRequest();
 
         if (this.base64AggregatedData != null) {
             this.base64AggregatedData = null;
         }
 
         if (this.hasError()) {
-            FileServerHelper.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
-            FileServerHelper.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
+            FileServerUtils.abnormallyDeleteTmpFile(this.fileTransactionId, this.version);
+            FileServerUtils.sendResponse(this.fileTransactionId, HttpResponseStatus.INTERNAL_SERVER_ERROR, this.errorMsg.toString());
         }
     }
 
@@ -387,14 +388,25 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
      */
     private void deleteFile(HttpContent httpContent) {
         if (httpContent instanceof LastHttpContent && !this.hasError()) {
-            // 文件删除逻辑实现...
+            try {
+                IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
+                MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
+                FileDeleteMsg msg = FileDeleteMsg.builder()
+                        .fileTransactionId(this.fileTransactionId)
+                        .metaDataIndex(metaDataIndex)
+                        .build();
+                StorageTracker.getInstance().onFileDeleteMsg(msg);
+            } catch (Exception ex) {
+                log.error("HttpFileServerHandler.deleteFile() error!", ex);
+                throw new BizException("delete file error!");
+            }
         }
     }
 
     /**
-     * reset
+     * resetHttpRequest
      */
-    private void reset() {
+    private void resetHttpRequest() {
         try {
             this.request = null;
             if (this.decoder != null) {
@@ -402,9 +414,9 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 this.decoder = null;
             }
 
-            log.info("reset done: " + this.fileTransactionId);
+            log.info("HttpFileServerHandler.resetHttpRequest() done: " + this.fileTransactionId);
         } catch (Exception e) {
-            log.error("HttpFileServerHandler.reset() error!", e);
+            log.error("HttpFileServerHandler.resetHttpRequest() error!", e);
         }
     }
 
@@ -418,7 +430,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             URI uri = new URI(this.request.uri());
             this.pathArgsMap = urlParser.parsePath(uri);
             this.queryArgsMap = urlParser.parseQuery(uri);
-            this.version = FileServerHelper.parserEngineVersionString(UrlParser.getArgsValue(this.pathArgsMap, URI_ARGS_NAME_ENGINE_VERSION));
+            this.version = FileServerUtils.parserEngineVersionString(UrlParser.getArgsValue(this.pathArgsMap, URI_ARGS_NAME_ENGINE_VERSION));
         } catch (Exception ex) {
             log.error("HttpFileServerHandler.parseUrl() error!", ex);
             this.errorMsg.append(ex.getMessage());

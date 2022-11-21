@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.common;
+package cn.bossfriday.fileserver;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;
@@ -7,6 +7,7 @@ import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageTracker;
+import cn.bossfriday.fileserver.engine.enums.FileStatus;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -26,19 +27,19 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
 
 /**
- * HttpFileServerHelper
+ * FileServerUtils
  *
  * @author chenx
  */
 @Slf4j
-public class FileServerHelper {
+public class FileServerUtils {
 
     private static final MimetypesFileTypeMap MIMETYPES_FILE_TYPE_MAP = new MimetypesFileTypeMap();
     private static final String PNG = "png";
     private static final String FIREFOX = "Firefox";
     private static final String CHROME = "Chrome";
 
-    private FileServerHelper() {
+    private FileServerUtils() {
 
     }
 
@@ -256,5 +257,27 @@ public class FileServerHelper {
                 .storageEngineVersion(version)
                 .build());
         log.info("abnormallyDeleteTmpFile() done, fileTransactionId:" + fileTransactionId);
+    }
+
+    /**
+     * setFileStatus 设置文件状态标志位
+     *
+     * @param value
+     * @param fileStatus
+     * @return
+     */
+    public static int setFileStatus(int value, FileStatus fileStatus) {
+        return fileStatus.getValue() | value;
+    }
+
+    /**
+     * isFileStatusTrue 判断文件状态标志位
+     *
+     * @param value
+     * @param fileStatus
+     * @return
+     */
+    public static boolean isFileStatusTrue(int value, FileStatus fileStatus) {
+        return (value & fileStatus.getValue()) > 0;
     }
 }

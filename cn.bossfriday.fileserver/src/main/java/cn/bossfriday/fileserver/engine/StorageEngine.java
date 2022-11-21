@@ -4,6 +4,7 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
+import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
@@ -109,7 +110,7 @@ public class StorageEngine extends BaseStorageEngine {
         if (data == null) {
             throw new BizException("WriteTmpFileResult is null!");
         }
-        
+
         String fileTransactionId = data.getFileTransactionId();
         int engineVersion = data.getStorageEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);
@@ -226,6 +227,21 @@ public class StorageEngine extends BaseStorageEngine {
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(version);
 
         return storageHandler.getMetaData(metaDataIndex);
+    }
+
+    /**
+     * 文件删除
+     *
+     * @param metaDataIndex
+     * @return
+     * @throws IOException
+     */
+    public OperationResult delete(MetaDataIndex metaDataIndex) throws IOException {
+        if (metaDataIndex == null) {
+            throw new BizException("MetaDataIndex is null!");
+        }
+
+        return StorageHandlerFactory.getStorageHandler(metaDataIndex.getStoreEngineVersion()).delete(metaDataIndex);
     }
 
     /**

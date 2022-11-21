@@ -2,6 +2,8 @@ package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.*;
+import cn.bossfriday.fileserver.FileServerUtils;
+import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
@@ -94,7 +96,7 @@ public class StorageHandler implements IStorageHandler {
         try {
             metaDataBytes = MetaData.builder()
                     .storeEngineVersion(recoverableTmpFile.getStoreEngineVersion())
-                    .fileStatus(FileStatus.NORMAL.getValue())
+                    .fileStatus(FileStatus.DEFAULT.getValue())
                     .timestamp(recoverableTmpFile.getTimestamp())
                     .fileName(recoverableTmpFile.getFileName())
                     .fileTotalSize(recoverableTmpFile.getFileTotalSize())
@@ -124,7 +126,7 @@ public class StorageHandler implements IStorageHandler {
                 File tmpFile = new File(recoverableTmpFile.getFilePath());
                 Files.delete(tmpFile.toPath());
             } catch (Exception ex) {
-                log.error("apply finally error!", ex);
+                log.error("StorageHandler.apply() finally error!", ex);
             }
         }
     }
@@ -136,7 +138,7 @@ public class StorageHandler implements IStorageHandler {
 
     @Override
     public RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws IOException {
-        // TODO: 服务重启临时文件落盘恢复
+        // [待实现]服务重启临时文件落盘恢复
         return null;
     }
 
@@ -166,6 +168,35 @@ public class StorageHandler implements IStorageHandler {
         byte[] metaDataBytes = FileUtil.transferTo(storageFileChannel, metaDataIndex.getOffset(), metaDataIndex.getMetaDataLength(), false);
 
         return new MetaData().deserialize(metaDataBytes);
+    }
+
+    @Override
+    public OperationResult delete(MetaDataIndex metaDataIndex) throws IOException {
+        MetaData metaData = this.getMetaData(metaDataIndex);
+        // 当前状态为已删除
+        if (FileServerUtils.isFileStatusTrue(metaData.getFileStatus(), FileStatus.IS_BIT1)) {
+            return OperationResult.OK;
+        }
+
+        // 设置状态为删除
+        FileChannel storageFileChannel = null;
+        try {
+            metaData.setFileStatus(FileServerUtils.setFileStatus(metaData.getFileStatus(), FileStatus.IS_BIT1));
+            byte[] metaDataBytes = metaData.serialize();
+            storageFileChannel = this.getFileChannel(metaDataIndex.getStorageNamespace(), metaDataIndex.getTime());
+            FileUtil.transferFrom(storageFileChannel, metaDataBytes, metaDataIndex.getOffset());
+        } finally {
+            try {
+                if (storageFileChannel != null) {
+                    storageFileChannel.force(true);
+                }
+            } catch (Exception ex) {
+                log.error("StorageHandler.delete() finally error!", ex);
+                return OperationResult.SYSTEM_ERROR;
+            }
+        }
+
+        return OperationResult.OK;
     }
 
     /**

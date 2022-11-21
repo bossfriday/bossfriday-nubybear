@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
@@ -39,10 +40,11 @@ public class FileUploadTest {
                 @Override
                 public void run() {
                     try {
-//                        normalUpload();
+                        normalUpload();
 //                        download();
-                        base64Upload();
+//                        base64Upload();
 //                        rangeUpload();
+//                        fileDelete();
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -90,6 +92,42 @@ public class FileUploadTest {
 
             if (httpGet != null) {
                 httpGet.releaseConnection();
+            }
+
+            if (httpResponse != null) {
+                try {
+                    httpResponse.close();
+                } catch (Exception e) {
+                    log.error("httpResponse close error!", e);
+                }
+            }
+
+            if (httpClient != null) {
+                try {
+                    httpClient.close();
+                } catch (Exception e) {
+                    log.error("httpClient close error!", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * fileDelete
+     */
+    private static void fileDelete() throws Exception {
+        CloseableHttpClient httpClient = null;
+        HttpDelete httpDelete = null;
+        CloseableHttpResponse httpResponse = null;
+        try {
+            httpClient = HttpClients.createDefault();
+            httpDelete = new HttpDelete("http://127.0.0.1:18086/resource/v1/qJ7CX96mTeJ1T5byfTrvZdGALyMLXapKVpHwCrv7ysNMpo7ndYpxWu2nWg6u");
+            httpResponse = httpClient.execute(httpDelete);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            System.out.println(statusCode);
+        } finally {
+            if (httpDelete != null) {
+                httpDelete.releaseConnection();
             }
 
             if (httpResponse != null) {
