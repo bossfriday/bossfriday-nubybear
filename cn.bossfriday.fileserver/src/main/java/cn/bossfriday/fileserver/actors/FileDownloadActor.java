@@ -4,7 +4,6 @@ import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
-import cn.bossfriday.fileserver.FileServerUtils;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
@@ -13,6 +12,7 @@ import cn.bossfriday.fileserver.engine.enums.FileStatus;
 import cn.bossfriday.fileserver.engine.model.ChunkedMetaData;
 import cn.bossfriday.fileserver.engine.model.MetaData;
 import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
+import cn.bossfriday.fileserver.utils.FileServerUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;

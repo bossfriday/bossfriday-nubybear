@@ -82,7 +82,11 @@ public class StorageEngine extends BaseStorageEngine {
 
     @Override
     protected void shutdown() {
-        // just reserve
+        try {
+            this.loadRecoverableTmpFile();
+        } catch (Exception ex) {
+            log.error("StorageEngine.shutdown() error!", ex);
+        }
     }
 
     @Override
@@ -156,8 +160,8 @@ public class StorageEngine extends BaseStorageEngine {
                 .build();
 
         this.recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
-        log.info("recoverableTmpFileHashMap.size=" + this.recoverableTmpFileHashMap.size());
         this.publishEvent(recoverableTmpFile);
+        log.info("StorageEngine.upload() done:" + recoverableTmpFile);
 
         return metaDataIndex;
     }

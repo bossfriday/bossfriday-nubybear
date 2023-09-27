@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver;
+package cn.bossfriday.fileserver.utils;
 
 import cn.bossfriday.common.exception.BizException;
 import cn.bossfriday.common.utils.FileUtil;

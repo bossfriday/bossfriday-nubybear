@@ -7,7 +7,7 @@ import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.rpc.dispatch.ActorDispatcher;
 import cn.bossfriday.common.rpc.interfaces.IActorMsgDecoder;
 import cn.bossfriday.common.rpc.interfaces.IActorMsgEncoder;
-import cn.bossfriday.common.rpc.mailbox.MessageInBoxBase;
+import cn.bossfriday.common.rpc.mailbox.MessageInBox;
 import cn.bossfriday.common.rpc.mailbox.MessageSendBox;
 import cn.bossfriday.common.utils.UUIDUtil;
 import lombok.Getter;
@@ -34,7 +34,7 @@ public class ActorSystem {
     private InetSocketAddress selfAddress;
 
     @Getter
-    private MessageInBoxBase inBox;
+    private MessageInBox inBox;
 
     @Getter
     private MessageSendBox sendBox;
@@ -57,7 +57,7 @@ public class ActorSystem {
         this.workerNodeName = workerNodeName;
         this.selfAddress = selfAddress;
         this.dispatcher = new ActorDispatcher(this);
-        this.inBox = new MessageInBoxBase(Const.EACH_RECEIVE_QUEUE_SIZE, selfAddress.getPort(), this.dispatcher);
+        this.inBox = new MessageInBox(Const.EACH_RECEIVE_QUEUE_SIZE, selfAddress.getPort(), this.dispatcher);
         this.sendBox = new MessageSendBox(this.inBox, selfAddress);
     }
 

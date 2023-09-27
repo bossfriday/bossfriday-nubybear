@@ -19,11 +19,11 @@ import static cn.bossfriday.common.Const.EACH_SEND_QUEUE_SIZE;
 @Slf4j
 public class MessageSendBox extends BaseMailBox {
 
-    private MessageInBoxBase inBox;
+    private MessageInBox inBox;
     private InetSocketAddress selfAddress;
     private ConcurrentHashMap<InetSocketAddress, NettyClient> clientMap = new ConcurrentHashMap<>();
 
-    public MessageSendBox(MessageInBoxBase inBox, InetSocketAddress selfAddress) {
+    public MessageSendBox(MessageInBox inBox, InetSocketAddress selfAddress) {
         super(new LinkedBlockingQueue<>(EACH_SEND_QUEUE_SIZE));
 
         this.inBox = inBox;

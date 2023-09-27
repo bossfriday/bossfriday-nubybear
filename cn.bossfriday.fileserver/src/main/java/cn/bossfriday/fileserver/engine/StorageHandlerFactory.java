@@ -14,7 +14,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_EN
 
 /**
  * StorageHandlerFactory
- * 存储处理工厂：不到实现则使用默认存储引擎版本实现，方便多版本实现装饰
+ * 存储处理工厂：找不到实现则使用默认存储引擎版本实现，方便多版本实现装饰
  *
  * @author chenx
  */

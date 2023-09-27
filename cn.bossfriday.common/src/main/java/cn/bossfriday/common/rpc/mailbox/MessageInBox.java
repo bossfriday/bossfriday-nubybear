@@ -18,19 +18,19 @@ import static cn.bossfriday.common.Const.SLOW_QUEUE_THRESHOLD;
  * @author chenx
  */
 @Slf4j
-public class MessageInBoxBase extends BaseMailBox {
+public class MessageInBox extends BaseMailBox {
 
     private final NettyServer server;
     private ActorDispatcher dispatcher;
 
-    public MessageInBoxBase(int size, int port, ActorDispatcher actorDispatcher) {
+    public MessageInBox(int size, int port, ActorDispatcher actorDispatcher) {
 
         super(new LinkedBlockingQueue<RpcMessage>(size));
         this.dispatcher = actorDispatcher;
         this.server = new NettyServer(port, new IMsgHandler() {
             @Override
             public void msgHandle(RpcMessage msg) {
-                MessageInBoxBase.super.put(msg);
+                MessageInBox.super.put(msg);
             }
         });
     }
