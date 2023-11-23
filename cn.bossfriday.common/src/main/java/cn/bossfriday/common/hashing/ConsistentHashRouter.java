@@ -108,7 +108,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
             throw new BizException("clusterNodes is null or empty!");
         }
 
-        Collections.sort(this.clusterNodes, (o1, o2) -> o1.compareTo(o2));
+        Collections.sort(this.clusterNodes, BaseClusterNode::compareTo);
 
         if (this.hashRingNodes == null) {
             this.hashRingNodes = new TreeMap<>();
