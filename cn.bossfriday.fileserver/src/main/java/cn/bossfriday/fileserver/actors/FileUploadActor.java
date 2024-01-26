@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.actors;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
@@ -31,7 +31,7 @@ public class FileUploadActor extends BaseTypedActor<WriteTmpFileResult> {
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = StorageEngine.getInstance().upload(msg);
             if (metaDataIndex == null) {
-                throw new BizException("MetaDataIndex is null: " + fileTransactionId);
+                throw new ServiceRuntimeException("MetaDataIndex is null: " + fileTransactionId);
             }
 
             result = new FileUploadResult(msg.getFileTransactionId(), OperationResult.OK, metaDataIndex);

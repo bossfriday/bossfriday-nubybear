@@ -1,7 +1,7 @@
 package cn.bossfriday.common.zk;
 
 import cn.bossfriday.common.Const;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.GsonUtil;
 import cn.bossfriday.common.utils.ThreadPoolUtil;
@@ -100,7 +100,7 @@ public class ZkHandler {
      */
     public void deleteNode(String path) throws Exception {
         if (StringUtils.isBlank(path)) {
-            throw new BizException("zkNodePath is blank!");
+            throw new ServiceRuntimeException("zkNodePath is blank!");
         }
 
         this.client.delete().deletingChildrenIfNeeded().forPath(path);
@@ -135,7 +135,7 @@ public class ZkHandler {
      */
     public void addListener4Node(String path, final ZkNodeChangeListener listener) throws Exception {
         if (listener == null) {
-            throw new BizException("listener is null!");
+            throw new ServiceRuntimeException("listener is null!");
         }
 
         final NodeCache nodeCache = new NodeCache(this.client, path, false);
@@ -151,7 +151,7 @@ public class ZkHandler {
      */
     public void addListener4Children(String path, final ZkChildrenChangeListener listener) throws Exception {
         if (listener == null) {
-            throw new BizException("listener is null!");
+            throw new ServiceRuntimeException("listener is null!");
         }
 
         final PathChildrenCache childrenCache = new PathChildrenCache(this.client, path, true);
@@ -202,7 +202,7 @@ public class ZkHandler {
      */
     public boolean setData(String path, String json) throws Exception {
         if (path == null) {
-            throw new BizException("path is null");
+            throw new ServiceRuntimeException("path is null");
         }
 
         String data = "";
@@ -219,7 +219,7 @@ public class ZkHandler {
      */
     public String getData(String path) throws Exception {
         if (path == null) {
-            throw new BizException("path is null");
+            throw new ServiceRuntimeException("path is null");
         }
 
         byte[] bytes = this.client.getData().forPath(path);
@@ -244,7 +244,7 @@ public class ZkHandler {
      */
     private void addNode(String path, Object obj, CreateMode mode) throws Exception {
         if (obj == null) {
-            throw new BizException("input obj is null!");
+            throw new ServiceRuntimeException("input obj is null!");
         }
 
         String jsonStr = "";

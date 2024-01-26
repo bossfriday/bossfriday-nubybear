@@ -1,7 +1,7 @@
 package cn.bossfriday.common.router;
 
 import cn.bossfriday.common.Const;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.hashing.ConsistentHashRouter;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.actor.ActorMsgPayloadCodec;
@@ -122,13 +122,13 @@ public class ClusterRouter {
             for (String nodeName : clusterNodeNameList) {
                 ClusterNode clusterNode = this.zkHandler.getData(this.clusterNodeHomePath + PATH_DELIMITER + nodeName, ClusterNode.class);
                 if (clusterNode == null) {
-                    throw new BizException("getClusterNode from zk failed!(nodeName:" + nodeName + ")");
+                    throw new ServiceRuntimeException("getClusterNode from zk failed!(nodeName:" + nodeName + ")");
                 }
 
                 clusterNodes.add(clusterNode);
 
                 if (this.clusterNodeHashMap.containsKey(clusterNode.getName())) {
-                    throw new BizException("duplicated nodeName!(" + clusterNode.getName() + ")");
+                    throw new ServiceRuntimeException("duplicated nodeName!(" + clusterNode.getName() + ")");
                 }
 
                 this.clusterNodeHashMap.put(clusterNode.getName(), clusterNode);
@@ -200,7 +200,7 @@ public class ClusterRouter {
         this.readLock.lock();
         try {
             if (!this.clusterNodeHashMap.containsKey(nodeName)) {
-                throw new BizException("clusterNode not existed or alive!");
+                throw new ServiceRuntimeException("clusterNode not existed or alive!");
             }
 
             return this.clusterNodeHashMap.get(nodeName);
@@ -241,7 +241,7 @@ public class ClusterRouter {
      */
     public String routeMessage(RoutableBean<Object> routableBean, ActorRef sender) {
         if (routableBean == null) {
-            throw new BizException("routeMsg is null!");
+            throw new ServiceRuntimeException("routeMsg is null!");
         }
 
         if (sender == null) {
@@ -258,16 +258,16 @@ public class ClusterRouter {
         } else if (routableBean.getRouteType() == RouteType.RESOURCE_ID_ROUTE.getValue()) {
             targetClusterNode = this.getTargetClusterNode(routableBean.getMethod(), routableBean.getTargetResourceId());
         } else {
-            throw new BizException("unknown routeType!");
+            throw new ServiceRuntimeException("unknown routeType!");
         }
 
         if (targetClusterNode == null) {
-            throw new BizException("routeMessage() failed by getTargetClusterNode() failed!");
+            throw new ServiceRuntimeException("routeMessage() failed by getTargetClusterNode() failed!");
         }
 
         ActorRef actor = this.actorSystem.actorOf(targetClusterNode.getHost(), targetClusterNode.getPort(), routableBean.getMethod());
         if (actor == null) {
-            throw new BizException("routeMessage() failed by actorOf() failed!");
+            throw new ServiceRuntimeException("routeMessage() failed by actorOf() failed!");
         }
 
         actor.tell(routableBean.getPayload(), sender);
@@ -363,7 +363,7 @@ public class ClusterRouter {
      */
     private void validateMethod(String method) {
         if (method.indexOf(JOINT_MARK) >= 0) {
-            throw new BizException("method shouldn't indexOf " + JOINT_MARK);
+            throw new ServiceRuntimeException("method shouldn't indexOf " + JOINT_MARK);
         }
     }
 }

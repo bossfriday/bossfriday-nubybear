@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import org.apache.commons.lang.StringUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -31,11 +31,11 @@ public class ByteUtil {
      *
      * @param bytes
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      */
     public static int bytesToUnsignedInt16(byte[] bytes) {
         if (bytes.length != INT_16_BYTES_LENGTH) {
-            throw new BizException("bytes.length must be 2.");
+            throw new ServiceRuntimeException("bytes.length must be 2.");
         }
 
         return bytes[0] << 8 & 0xFF00 | bytes[1] & 0xFF;
@@ -60,11 +60,11 @@ public class ByteUtil {
      *
      * @param bytes
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      */
     public static int bytesToUnsignedInt24(byte[] bytes) {
         if (bytes.length != INT_24_BYTES_LENGTH) {
-            throw new BizException("bytes.length must be 3.");
+            throw new ServiceRuntimeException("bytes.length must be 3.");
         }
 
         return (bytes[2] & 0xFF) | ((bytes[1] & 0xFF) << 8) | ((bytes[0] & 0x0F) << 16);
@@ -149,11 +149,11 @@ public class ByteUtil {
      *
      * @param str
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      */
     public static byte[] string2Bytes(String str) {
         if (StringUtils.isEmpty(str)) {
-            throw new BizException("input string is empty!");
+            throw new ServiceRuntimeException("input string is empty!");
         }
 
         return str.getBytes(StandardCharsets.UTF_8);
@@ -164,11 +164,11 @@ public class ByteUtil {
      *
      * @param bytes
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      */
     public static String bytes2String(byte[] bytes) {
         if (bytes == null) {
-            throw new BizException("input bytes is null!");
+            throw new ServiceRuntimeException("input bytes is null!");
         }
 
         return new String(bytes, StandardCharsets.UTF_8);

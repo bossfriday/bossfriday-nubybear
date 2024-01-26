@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.UnsupportedEncodingException;
@@ -27,12 +27,12 @@ public class MurmurHashUtil {
      *
      * @param key
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      * @throws UnsupportedEncodingException
      */
     public static long hash64(String key) {
         if (StringUtils.isEmpty(key)) {
-            throw new BizException("input key is null or empty!");
+            throw new ServiceRuntimeException("input key is null or empty!");
         }
 
         return hash64(key.getBytes(StandardCharsets.UTF_8));
@@ -53,12 +53,12 @@ public class MurmurHashUtil {
      *
      * @param key
      * @return
-     * @throws BizException
+     * @throws ServiceRuntimeException
      * @throws UnsupportedEncodingException
      */
     public static int hash32(String key) {
         if (StringUtils.isEmpty(key)) {
-            throw new BizException("input key is null or empty!");
+            throw new ServiceRuntimeException("input key is null or empty!");
         }
 
         return hash(key.getBytes(StandardCharsets.UTF_8), 0x1234ABCD);

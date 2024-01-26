@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ThreadFactoryBuilder;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
@@ -32,7 +32,7 @@ public abstract class BaseStorageEngine {
         this.ringBuffer = this.queue.start();
 
         if (this.ringBuffer == null) {
-            throw new BizException("BaseStorageEngine.start() error!");
+            throw new ServiceRuntimeException("BaseStorageEngine.start() error!");
         }
 
         this.startup();

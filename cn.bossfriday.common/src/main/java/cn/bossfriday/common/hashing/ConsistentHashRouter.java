@@ -1,6 +1,6 @@
 package cn.bossfriday.common.hashing;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +39,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
         for (T node : this.clusterNodes) {
             // 虚拟节点数设置较大将影响一定性能（设置为成千上万也没有必要）
             if (node.getVirtualNodesNum() > 100) {
-                throw new BizException("node.virtualNodesNum must less than 100!");
+                throw new ServiceRuntimeException("node.virtualNodesNum must less than 100!");
             }
 
             List<String> nodeMethods = node.methods;
@@ -51,7 +51,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
                 for (int n = 0; n < node.getVirtualNodesNum(); n++) {
                     long key = this.getKey(node.getName(), method, n);
                     if (this.hashRingNodes.containsKey(key)) {
-                        throw new BizException("duplicated hash ring node! (name:" + node.getName() + ", method:" + method + ", virtualShardNum:" + n + ")");
+                        throw new ServiceRuntimeException("duplicated hash ring node! (name:" + node.getName() + ", method:" + method + ", virtualShardNum:" + n + ")");
                     }
 
                     this.hashRingNodes.put(key, node);
@@ -105,7 +105,7 @@ public class ConsistentHashRouter<T extends BaseClusterNode> {
      */
     private void refreshPrepare() {
         if (CollectionUtils.isEmpty(this.clusterNodes)) {
-            throw new BizException("clusterNodes is null or empty!");
+            throw new ServiceRuntimeException("clusterNodes is null or empty!");
         }
 
         Collections.sort(this.clusterNodes, BaseClusterNode::compareTo);

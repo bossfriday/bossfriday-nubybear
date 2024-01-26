@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.actors;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
@@ -52,7 +52,7 @@ public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
             if (chunkIndex + 1 >= chunkCount) {
                 int x = (int) (chunkCount * DOWNLOAD_CHUNK_SIZE - fileTotalSize);
                 if (x < 0) {
-                    throw new BizException("invalid chunkCount: (chunkCount * chunkSize - fileTotalSize) < 0");
+                    throw new ServiceRuntimeException("invalid chunkCount: (chunkCount * chunkSize - fileTotalSize) < 0");
                 }
 
                 limit = DOWNLOAD_CHUNK_SIZE - x;

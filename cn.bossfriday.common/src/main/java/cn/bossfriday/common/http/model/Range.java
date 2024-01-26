@@ -1,6 +1,6 @@
 package cn.bossfriday.common.http.model;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import lombok.Getter;
 
@@ -24,11 +24,11 @@ public class Range {
 
     public Range(long firstBytePos, long lastBytePos) {
         if (firstBytePos < 0 || lastBytePos < 0) {
-            throw new BizException("Range.firstBytePos and Range.lastBytePos must >=0!");
+            throw new ServiceRuntimeException("Range.firstBytePos and Range.lastBytePos must >=0!");
         }
 
         if (lastBytePos <= firstBytePos) {
-            throw new BizException("Range.lastBytePos must > Range.firstBytePos");
+            throw new ServiceRuntimeException("Range.lastBytePos must > Range.firstBytePos");
         }
 
         this.firstBytePos = firstBytePos;

@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.*;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
@@ -65,11 +65,11 @@ public class StorageHandler implements IStorageHandler {
     @Override
     public StorageIndex ask(StorageIndex storageIndex, long dataLength) throws IOException {
         if (storageIndex == null) {
-            throw new BizException("storageIndex is null");
+            throw new ServiceRuntimeException("storageIndex is null");
         }
 
         if (dataLength <= 0) {
-            throw new BizException("dataLength <= 0");
+            throw new ServiceRuntimeException("dataLength <= 0");
         }
 
         int currentTime = Integer.parseInt(DateUtil.date2Str(new Date(), DateUtil.DEFAULT_DATE_HYPHEN_FORMAT));
@@ -86,7 +86,7 @@ public class StorageHandler implements IStorageHandler {
     @Override
     public Long apply(RecoverableTmpFile recoverableTmpFile) throws IOException {
         if (recoverableTmpFile == null) {
-            throw new BizException("RecoverableTmpFile is null");
+            throw new ServiceRuntimeException("RecoverableTmpFile is null");
         }
 
         byte[] metaDataBytes = null;
@@ -145,15 +145,15 @@ public class StorageHandler implements IStorageHandler {
     @Override
     public byte[] chunkedDownload(MetaDataIndex metaDataIndex, long fileTotalSize, long offset, int limit) throws IOException {
         if (offset < 0 && limit <= 0) {
-            throw new BizException("invalid position or length: " + offset + "/" + limit);
+            throw new ServiceRuntimeException("invalid position or length: " + offset + "/" + limit);
         }
 
         if (offset >= fileTotalSize) {
-            throw new BizException("invalid position: position(" + offset + ") >= fileTotalSize(" + fileTotalSize + ")");
+            throw new ServiceRuntimeException("invalid position: position(" + offset + ") >= fileTotalSize(" + fileTotalSize + ")");
         }
 
         if (offset + limit > fileTotalSize) {
-            throw new BizException("invalid position and length: position(" + offset + ") + length(" + limit + ") > fileTotalSize(" + fileTotalSize + ")");
+            throw new ServiceRuntimeException("invalid position and length: position(" + offset + ") + length(" + limit + ") > fileTotalSize(" + fileTotalSize + ")");
         }
 
         FileChannel storageFileChannel = this.getFileChannel(metaDataIndex.getStorageNamespace(), metaDataIndex.getTime());
@@ -226,7 +226,7 @@ public class StorageHandler implements IStorageHandler {
             return fileChannel;
         } catch (Exception ex) {
             log.error("StorageHandler.getFileChannel() error!", ex);
-            throw new BizException("StorageHandler.getFileChannel() error! " + ex.getMessage());
+            throw new ServiceRuntimeException("StorageHandler.getFileChannel() error! " + ex.getMessage());
         } finally {
             this.fileChannelLock.writeLock().unlock();
         }
@@ -273,7 +273,7 @@ public class StorageHandler implements IStorageHandler {
         if (!storageFile.exists()) {
             synchronized (StorageHandler.class) {
                 if (!storageFile.createNewFile()) {
-                    throw new BizException("Create storage file failed! namespace:" + namespace + ", time:" + time);
+                    throw new ServiceRuntimeException("Create storage file failed! namespace:" + namespace + ", time:" + time);
                 }
             }
         }

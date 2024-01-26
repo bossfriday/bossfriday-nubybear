@@ -1,7 +1,7 @@
 package cn.bossfriday.common.rpc.dispatch;
 
 import cn.bossfriday.common.Const;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.rpc.interfaces.IExecutor;
@@ -112,7 +112,7 @@ public class ActorDispatcher {
                 }
 
                 if (executor == null) {
-                    throw new BizException("executor is null!");
+                    throw new ServiceRuntimeException("executor is null!");
                 }
 
                 executor.process(message, this.actorSystem);

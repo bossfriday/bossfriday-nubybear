@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -121,7 +121,7 @@ public class UUIDUtil {
         long lsb = 0;
 
         if (data.length != UUID_BYTES_LENGTH) {
-            throw new BizException("data must be 16 bytes in length");
+            throw new ServiceRuntimeException("data must be 16 bytes in length");
         }
 
         for (int i = 0; i < UUID_SIGNIFICANT_BYTES_LENGTH; i++) {

@@ -1,7 +1,7 @@
 package cn.bossfriday.common.router;
 
 import cn.bossfriday.common.conf.ServiceConfig;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -46,7 +46,7 @@ public class ClusterRouterFactory {
      */
     public static ClusterRouter getClusterRouter() {
         if (clusterRouter == null) {
-            throw new BizException("plz invoke build() firstly!");
+            throw new ServiceRuntimeException("plz invoke build() firstly!");
         }
 
         return clusterRouter;

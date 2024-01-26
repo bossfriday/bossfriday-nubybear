@@ -1,6 +1,6 @@
 package cn.bossfriday.common.http;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.http.model.UrlElement;
 import cn.bossfriday.common.http.model.UrlElementType;
 import lombok.NonNull;
@@ -74,7 +74,7 @@ public class UrlParser {
                     break;
 
                 default:
-                    throw new BizException("invalid RestUrlTemplateElement !");
+                    throw new ServiceRuntimeException("invalid RestUrlTemplateElement !");
             }
         }
 
@@ -111,7 +111,7 @@ public class UrlParser {
      */
     public static String getArgsValue(Map<String, String> argsMap, String name) {
         if (MapUtils.isEmpty(argsMap) || !argsMap.containsKey(name)) {
-            throw new BizException("URI args not existed, name:" + name + " !");
+            throw new ServiceRuntimeException("URI args not existed, name:" + name + " !");
         }
 
         return argsMap.get(name);
@@ -124,7 +124,7 @@ public class UrlParser {
      */
     private void validate(@NonNull final String path) {
         if (!path.startsWith(PATH_DELIMITER)) {
-            throw new BizException("A template must start with " + PATH_DELIMITER);
+            throw new ServiceRuntimeException("A template must start with " + PATH_DELIMITER);
         }
     }
 

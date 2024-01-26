@@ -3,7 +3,9 @@
     <httpPort>18086</httpPort>
     <storageRootPath>fileData</storageRootPath>
     <namespaces>
-        <namespace name="normal" expireDay="180"/> <!--普通空间-->
-        <namespace name="forever" expireDay="-1"/> <!--永久存储空间-->
+        <!--普通空间-->
+        <namespace name="normal" expireDay="180"/>
+        <!--永久存储空间-->
+        <namespace name="forever" expireDay="-1"/>
     </namespaces>
 </config>

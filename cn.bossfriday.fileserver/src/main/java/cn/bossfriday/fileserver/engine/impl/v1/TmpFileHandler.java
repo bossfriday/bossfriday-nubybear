@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.combo.Combo2;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.Func;
 import cn.bossfriday.common.utils.LruHashMap;
@@ -48,7 +48,7 @@ public class TmpFileHandler implements ITmpFileHandler {
     @Override
     public WriteTmpFileResult write(WriteTmpFileMsg msg) {
         if (msg == null) {
-            throw new BizException("WriteTmpFileMsg is null!");
+            throw new ServiceRuntimeException("WriteTmpFileMsg is null!");
         }
 
         String fileTransactionId = msg.getFileTransactionId();
@@ -62,7 +62,7 @@ public class TmpFileHandler implements ITmpFileHandler {
         try {
             FileTransactionContext ctx = FileTransactionContextManager.getInstance().getContext(fileTransactionId);
             if (ctx == null) {
-                throw new BizException("FileTransactionContext is null!(" + fileTransactionId + ")");
+                throw new ServiceRuntimeException("FileTransactionContext is null!(" + fileTransactionId + ")");
             }
 
             tmpFileChannel = this.getTmpFileChannel(msg);
@@ -105,17 +105,17 @@ public class TmpFileHandler implements ITmpFileHandler {
     public String rename(String transferCompletedTmpFilePath, String recoverableTmpFileName) {
         File oldFile = new File(transferCompletedTmpFilePath);
         if (!oldFile.exists()) {
-            throw new BizException("TmpFile not existed: " + transferCompletedTmpFilePath);
+            throw new ServiceRuntimeException("TmpFile not existed: " + transferCompletedTmpFilePath);
         }
 
         File tmpDir = StorageEngine.getInstance().getTmpDir();
         File newFile = new File(tmpDir, recoverableTmpFileName);
         if (newFile.exists()) {
-            throw new BizException("RecoverableTmpFile already existed: " + recoverableTmpFileName);
+            throw new ServiceRuntimeException("RecoverableTmpFile already existed: " + recoverableTmpFileName);
         }
 
         if (!oldFile.renameTo(newFile)) {
-            throw new BizException("rename RecoverableTmpFile failed: " + recoverableTmpFileName);
+            throw new ServiceRuntimeException("rename RecoverableTmpFile failed: " + recoverableTmpFileName);
         }
 
         return newFile.getAbsolutePath();
@@ -191,11 +191,11 @@ public class TmpFileHandler implements ITmpFileHandler {
         String newFilePath = tmpFile.getAbsolutePath().substring(0, tmpFile.getAbsolutePath().lastIndexOf(".")) + "." + extName;
         File newFile = new File(newFilePath);
         if (newFile.exists()) {
-            throw new BizException("newTmpFile already existed! path:" + newFilePath);
+            throw new ServiceRuntimeException("newTmpFile already existed! path:" + newFilePath);
         }
 
         if (!tmpFile.renameTo(newFile)) {
-            throw new BizException("rename tmpFile failed: " + fileTransactionId);
+            throw new ServiceRuntimeException("rename tmpFile failed: " + fileTransactionId);
         }
 
         result.setFilePath(newFile.getAbsolutePath());
@@ -210,7 +210,7 @@ public class TmpFileHandler implements ITmpFileHandler {
      */
     private static WriteTmpFileResult getWriteTmpFileResult(WriteTmpFileMsg msg, boolean isFullDone) {
         if (msg == null) {
-            throw new BizException("the input WriteTmpFileMsg is null!");
+            throw new ServiceRuntimeException("the input WriteTmpFileMsg is null!");
         }
 
         WriteTmpFileResult result = new WriteTmpFileResult();

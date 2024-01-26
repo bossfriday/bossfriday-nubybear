@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 
 import java.io.*;
 import java.nio.channels.Channels;
@@ -58,7 +58,7 @@ public class FileUtil {
      */
     public static void transferFrom(FileChannel destFileChannel, byte[] data, long position, boolean isCloseDestFileChannel) throws IOException {
         if (destFileChannel == null) {
-            throw new BizException("destFileChannel is null!");
+            throw new ServiceRuntimeException("destFileChannel is null!");
         }
 
         try (ByteArrayInputStream srcInput = new ByteArrayInputStream(data);

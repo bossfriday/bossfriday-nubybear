@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.common.enums;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -43,6 +43,6 @@ public enum FileUploadType {
             }
         }
 
-        throw new BizException("invalid FileUploadType, name:" + name + " !");
+        throw new ServiceRuntimeException("invalid FileUploadType, name:" + name + " !");
     }
 }

@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.dispatch;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.rpc.actor.pool.ActorPool;
@@ -37,7 +37,7 @@ public class ActorExecutor implements IExecutor {
                          Class<? extends BaseUntypedActor> cls,
                          Object... args) {
         if (StringUtils.isEmpty(method)) {
-            throw new BizException("ActorExecutor.method is null or empty!");
+            throw new ServiceRuntimeException("ActorExecutor.method is null or empty!");
         }
 
         this.processThreadPool = threadPool;

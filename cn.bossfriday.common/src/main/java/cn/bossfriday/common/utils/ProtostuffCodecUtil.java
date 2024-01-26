@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
@@ -36,7 +36,7 @@ public class ProtostuffCodecUtil {
         try {
             Schema<T> schema = getSchema(clazz);
             if (schema == null) {
-                throw new BizException(clazz.getName() + " Schema is null!");
+                throw new ServiceRuntimeException(clazz.getName() + " Schema is null!");
             }
 
             return ProtostuffIOUtil.toByteArray(obj, schema, buffer);
@@ -56,7 +56,7 @@ public class ProtostuffCodecUtil {
     public static <T> T deserialize(byte[] data, Class<T> clazz) {
         Schema<T> schema = getSchema(clazz);
         if (schema == null) {
-            throw new BizException(clazz.getName() + " Schema is null!");
+            throw new ServiceRuntimeException(clazz.getName() + " Schema is null!");
         }
 
         T obj = schema.newMessage();

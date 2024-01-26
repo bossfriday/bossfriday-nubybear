@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.context;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.LruHashMap;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +49,7 @@ public class FileTransactionContextManager {
      */
     public FileTransactionContext getContext(String fileTransactionId) {
         if (!this.contextMap.containsKey(fileTransactionId)) {
-            throw new BizException("FileTransactionContext not registered!");
+            throw new ServiceRuntimeException("FileTransactionContext not registered!");
         }
 
         return this.contextMap.get(fileTransactionId);
@@ -75,7 +75,7 @@ public class FileTransactionContextManager {
      */
     public void registerContext(String fileTransactionId, ChannelHandlerContext ctx, boolean isKeepAlive, String userAgent) {
         if (StringUtils.isEmpty(fileTransactionId)) {
-            throw new BizException("fileTransactionId is null or empty!");
+            throw new ServiceRuntimeException("fileTransactionId is null or empty!");
         }
 
         // 断点上传为同一个fileTransactionId下的多次不同的Http请求

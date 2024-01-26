@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.transport;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -89,7 +89,7 @@ public class RpcMessageCodec {
      *
      * @param out
      * @param str
-     * @throws BizException
+     * @throws ServiceRuntimeException
      * @throws IOException
      */
     private static void writeMethod(DataOutputStream out, String str) throws IOException {
@@ -101,7 +101,7 @@ public class RpcMessageCodec {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
         int length = bytes.length;
         if (length > MAX_VALUE_UNSIGNED_INT8) {
-            throw new BizException("encode string too long, length:" + length);
+            throw new ServiceRuntimeException("encode string too long, length:" + length);
         }
 
         out.writeByte((byte) length);
@@ -142,7 +142,7 @@ public class RpcMessageCodec {
 
         int length = data.length;
         if (length > MAX_VALUE_UNSIGNED_INT24) {
-            throw new BizException("encode data too long, length:" + length);
+            throw new ServiceRuntimeException("encode data too long, length:" + length);
         }
 
         out.write(ByteUtil.unsignedInt24ToBytes(length));

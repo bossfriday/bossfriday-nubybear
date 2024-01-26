@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.actor;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.interfaces.IActorMsgEncoder;
 import cn.bossfriday.common.rpc.mailbox.MessageSendBox;
@@ -68,7 +68,7 @@ public class ActorRef {
      */
     public void tell(Object message, ActorRef sender) {
         if (sender == null) {
-            throw new BizException("sender is null!");
+            throw new ServiceRuntimeException("sender is null!");
         }
 
         if (this.sendBox != null) {

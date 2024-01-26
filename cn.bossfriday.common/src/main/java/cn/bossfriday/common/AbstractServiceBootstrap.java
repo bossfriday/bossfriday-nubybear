@@ -1,7 +1,7 @@
 package cn.bossfriday.common;
 
 import cn.bossfriday.common.conf.ServiceConfig;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
 import cn.bossfriday.common.plugin.PluginElement;
 import cn.bossfriday.common.register.ActorRegister;
@@ -42,7 +42,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
     public void startup(ServiceConfig config) {
         try {
             if (config == null) {
-                throw new BizException("ServiceConfig is null");
+                throw new ServiceRuntimeException("ServiceConfig is null");
             }
 
             ClusterRouterFactory.build(config);

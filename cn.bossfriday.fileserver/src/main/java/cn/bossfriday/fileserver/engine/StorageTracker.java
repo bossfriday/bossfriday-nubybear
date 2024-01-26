@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
@@ -166,7 +166,7 @@ public class StorageTracker {
             ChannelHandlerContext ctx = fileCtx.getCtx();
             MetaData metaData = msg.getMetaData();
             if (metaData == null) {
-                throw new BizException("metaData is null: " + fileTransactionId);
+                throw new ServiceRuntimeException("metaData is null: " + fileTransactionId);
             }
 
             if (msg.getChunkIndex() == 0) {

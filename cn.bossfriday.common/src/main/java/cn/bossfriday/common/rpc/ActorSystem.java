@@ -1,7 +1,7 @@
 package cn.bossfriday.common.rpc;
 
 import cn.bossfriday.common.Const;
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.rpc.dispatch.ActorDispatcher;
@@ -103,7 +103,7 @@ public class ActorSystem {
      */
     public void registerActor(String method, int min, int max, ExecutorService pool, Class<? extends BaseUntypedActor> cls, Object... args) {
         if (StringUtils.isEmpty(method)) {
-            throw new BizException("method is null");
+            throw new ServiceRuntimeException("method is null");
         }
 
         this.dispatcher.registerActor(method, min, max, pool, cls, args);
@@ -120,7 +120,7 @@ public class ActorSystem {
      */
     public void registerActor(String method, int min, int max, Class<? extends BaseUntypedActor> cls, Object... args) {
         if (StringUtils.isEmpty(method)) {
-            throw new BizException("method is null");
+            throw new ServiceRuntimeException("method is null");
         }
 
         this.dispatcher.registerActor(method, min, max, cls, args);

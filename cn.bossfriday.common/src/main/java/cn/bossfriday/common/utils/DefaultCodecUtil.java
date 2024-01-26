@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import org.apache.commons.lang.ArrayUtils;
 
 import java.io.*;
@@ -25,7 +25,7 @@ public class DefaultCodecUtil {
      */
     public static byte[] encode(Object obj) throws IOException {
         if (obj == null) {
-            throw new BizException("The input object is null!");
+            throw new ServiceRuntimeException("The input object is null!");
         }
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -47,7 +47,7 @@ public class DefaultCodecUtil {
      */
     public static Object decode(byte[] bytes) throws IOException, ClassNotFoundException {
         if (ArrayUtils.isEmpty(bytes)) {
-            throw new BizException("The input bytes is empty!");
+            throw new ServiceRuntimeException("The input bytes is empty!");
         }
 
         try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);

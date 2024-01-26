@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
@@ -112,7 +112,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public synchronized MetaDataIndex upload(WriteTmpFileResult data) throws IOException {
         if (data == null) {
-            throw new BizException("WriteTmpFileResult is null!");
+            throw new ServiceRuntimeException("WriteTmpFileResult is null!");
         }
 
         String fileTransactionId = data.getFileTransactionId();
@@ -127,12 +127,12 @@ public class StorageEngine extends BaseStorageEngine {
         StorageIndex resultIndex = storageHandler.ask(currentStorageIndex, metaDataTotalLength);
 
         if (resultIndex == null) {
-            throw new BizException("Result StorageIndex is null: " + data.getFileTransactionId());
+            throw new ServiceRuntimeException("Result StorageIndex is null: " + data.getFileTransactionId());
         }
 
         long metaDataIndexOffset = resultIndex.getOffset() - metaDataTotalLength;
         if (metaDataIndexOffset < 0) {
-            throw new BizException("metaDataIndexOffset <0: " + data.getFileTransactionId());
+            throw new ServiceRuntimeException("metaDataIndexOffset <0: " + data.getFileTransactionId());
         }
 
         MetaDataIndex metaDataIndex = MetaDataIndex.builder()
@@ -178,11 +178,11 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public ChunkedMetaData chunkedDownload(MetaDataIndex metaDataIndex, MetaData metaData, long offset, int limit) throws IOException {
         if (metaDataIndex == null) {
-            throw new BizException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException("MetaDataIndex is null!");
         }
 
         if (metaData == null) {
-            throw new BizException("MetaData is null!");
+            throw new ServiceRuntimeException("MetaData is null!");
         }
 
         // 临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式
@@ -224,7 +224,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
-            throw new BizException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException("MetaDataIndex is null!");
         }
 
         int version = metaDataIndex.getStoreEngineVersion();
@@ -242,7 +242,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public OperationResult delete(MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
-            throw new BizException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException("MetaDataIndex is null!");
         }
 
         return StorageHandlerFactory.getStorageHandler(metaDataIndex.getStoreEngineVersion()).delete(metaDataIndex);
@@ -346,7 +346,7 @@ public class StorageEngine extends BaseStorageEngine {
     private StorageIndex getStorageIndex(String namespace, int storageEngineVersion) {
         String key = getStorageIndexMapKey(namespace, storageEngineVersion);
         if (!this.storageIndexMap.containsKey(key)) {
-            throw new BizException("StorageIndex not existed: " + key);
+            throw new ServiceRuntimeException("StorageIndex not existed: " + key);
         }
 
         return this.storageIndexMap.get(key);

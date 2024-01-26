@@ -1,6 +1,6 @@
 package cn.bossfriday.common.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -52,11 +52,11 @@ public class XmlParserUtil {
      */
     public static <T> T parse(InputStream input, Class<T> type) throws JAXBException, IOException {
         if (input == null) {
-            throw new BizException("input is null!");
+            throw new ServiceRuntimeException("input is null!");
         }
 
         if (type == null) {
-            throw new BizException("type is null!");
+            throw new ServiceRuntimeException("type is null!");
         }
 
         try {

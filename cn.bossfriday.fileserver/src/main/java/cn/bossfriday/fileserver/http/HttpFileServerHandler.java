@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.http.RangeParser;
 import cn.bossfriday.common.http.UrlParser;
 import cn.bossfriday.common.http.model.Range;
@@ -150,7 +150,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            throw new BizException("unsupported HttpMethod!");
+            throw new ServiceRuntimeException("unsupported HttpMethod!");
         } catch (Exception ex) {
             log.error("HttpRequest process error!", ex);
             this.errorMsg.append(ex.getMessage());
@@ -376,7 +376,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadMsg);
             } catch (Exception ex) {
                 log.error("HttpFileServerHandler.fileDownload() error!", ex);
-                throw new BizException("File download error!");
+                throw new ServiceRuntimeException("File download error!");
             }
         }
     }
@@ -398,7 +398,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
                 StorageTracker.getInstance().onFileDeleteMsg(msg);
             } catch (Exception ex) {
                 log.error("HttpFileServerHandler.deleteFile() error!", ex);
-                throw new BizException("delete file error!");
+                throw new ServiceRuntimeException("delete file error!");
             }
         }
     }

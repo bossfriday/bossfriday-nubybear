@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.Base58Util;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
@@ -70,11 +70,11 @@ public class MetaDataHandler implements IMetaDataHandler {
      */
     private static void obfuscateMetaDataIndex(byte[] bytes) {
         if (bytes == null) {
-            throw new BizException("bytes is null");
+            throw new ServiceRuntimeException("bytes is null");
         }
 
         if (bytes.length <= HASH_CODE_LENGTH) {
-            throw new BizException("bytes.length <= " + HASH_CODE_LENGTH);
+            throw new ServiceRuntimeException("bytes.length <= " + HASH_CODE_LENGTH);
         }
 
         int leftBytesSize = bytes.length - HASH_CODE_LENGTH;

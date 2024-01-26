@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.utils;
 
-import cn.bossfriday.common.exception.BizException;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
@@ -52,17 +52,17 @@ public class FileServerUtils {
     public static int parserEngineVersionString(String versionString) {
         final int versionPrefixLength = URL_PREFIX_STORAGE_VERSION.length();
         if (StringUtils.isEmpty(versionString) || versionString.length() <= versionPrefixLength) {
-            throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
+            throw new ServiceRuntimeException(TIP_MSG_INVALID_ENGINE_VERSION);
         }
 
         int version = 0;
         try {
             version = Integer.parseInt(versionString.substring(versionPrefixLength));
             if (version < DEFAULT_STORAGE_ENGINE_VERSION || version > MAX_STORAGE_VERSION) {
-                throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
+                throw new ServiceRuntimeException(TIP_MSG_INVALID_ENGINE_VERSION);
             }
         } catch (Exception ex) {
-            throw new BizException(TIP_MSG_INVALID_ENGINE_VERSION);
+            throw new ServiceRuntimeException(TIP_MSG_INVALID_ENGINE_VERSION);
         }
 
         return version;
@@ -76,7 +76,7 @@ public class FileServerUtils {
      */
     public static String getFileTransactionId(HttpRequest httpRequest) {
         if (httpRequest == null) {
-            throw new BizException("The input http request is null!");
+            throw new ServiceRuntimeException("The input http request is null!");
         }
 
         if (!httpRequest.headers().contains(HEADER_FILE_TRANSACTION_ID)) {
@@ -85,7 +85,7 @@ public class FileServerUtils {
 
         String getFromHeaderValue = httpRequest.headers().get(HEADER_FILE_TRANSACTION_ID);
         if (StringUtils.isEmpty(getFromHeaderValue)) {
-            throw new BizException(HEADER_FILE_TRANSACTION_ID + " header value is empty!");
+            throw new ServiceRuntimeException(HEADER_FILE_TRANSACTION_ID + " header value is empty!");
         }
 
         return getFromHeaderValue;
@@ -100,15 +100,15 @@ public class FileServerUtils {
      */
     public static String getHeaderValue(HttpRequest httpRequest, String headerName) {
         if (httpRequest == null) {
-            throw new BizException("The input http request is null!");
+            throw new ServiceRuntimeException("The input http request is null!");
         }
 
         if (StringUtils.isEmpty(headerName)) {
-            throw new BizException("The input http header name is empty!");
+            throw new ServiceRuntimeException("The input http header name is empty!");
         }
 
         if (!httpRequest.headers().contains(headerName)) {
-            throw new BizException("Request must contains valid " + headerName + " header!");
+            throw new ServiceRuntimeException("Request must contains valid " + headerName + " header!");
         }
 
         return httpRequest.headers().get(headerName);
