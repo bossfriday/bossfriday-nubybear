@@ -48,6 +48,27 @@ public class ZkHandler {
     }
 
     /**
+     * creatingParentsIfNeeded
+     *
+     * @param path
+     * @throws Exception
+     */
+    public void creatingParentsIfNeeded(String path) throws Exception {
+        this.creatingParentsIfNeeded(path, CreateMode.PERSISTENT);
+    }
+
+    /**
+     * creatingParentsIfNeeded
+     *
+     * @param path
+     * @param createMode
+     * @throws Exception
+     */
+    public void creatingParentsIfNeeded(String path, CreateMode createMode) throws Exception {
+        this.client.create().creatingParentsIfNeeded().withMode(createMode).forPath(path);
+    }
+
+    /**
      * addPersistedNode
      *
      * @param path

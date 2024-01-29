@@ -24,7 +24,7 @@ public class ClusterRouterFactory {
      * @param serviceConfig
      * @throws InterruptedException
      */
-    public static void build(ServiceConfig serviceConfig) throws InterruptedException {
+    public static void build(ServiceConfig serviceConfig) throws Exception {
         if (clusterRouter == null) {
             synchronized (ClusterRouterFactory.class) {
                 if (clusterRouter == null) {

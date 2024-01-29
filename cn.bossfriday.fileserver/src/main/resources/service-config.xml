@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <systemName>nubybear</systemName>
-    <zkAddress>127.0.0.1:2181</zkAddress>
+    <zkAddress>localhost:2181</zkAddress>
     <clusterNode>
         <name>fs-node1</name>
         <host>127.0.0.1</host>

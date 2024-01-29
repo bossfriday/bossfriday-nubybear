@@ -56,11 +56,17 @@ public class ClusterRouter {
                          String nodeName,
                          String host,
                          int port,
-                         int virtualNodesNum) throws InterruptedException {
+                         int virtualNodesNum) throws Exception {
         this.zkHandler = new ZkHandler(zkAddress);
         this.currentNode = new ClusterNode(nodeName, virtualNodesNum, host, port);
         this.basePath = PATH_DELIMITER + systemName;
         this.clusterNodeHomePath = this.basePath + PATH_DELIMITER + Const.ZK_PATH_CLUSTER_NODE;
+
+        // 自动创建根节点
+        if (!this.zkHandler.checkExist(this.clusterNodeHomePath)) {
+            this.zkHandler.creatingParentsIfNeeded(this.clusterNodeHomePath);
+            log.info("create ZK base path done, path: {}", this.clusterNodeHomePath);
+        }
 
         this.initActorSystem(nodeName, host, port);
         this.discoveryService();
@@ -93,7 +99,7 @@ public class ClusterRouter {
                 return;
             }
 
-            String zkNodePath = this.basePath + PATH_DELIMITER + Const.ZK_PATH_CLUSTER_NODE + PATH_DELIMITER + this.currentNode.getName();
+            String zkNodePath = this.clusterNodeHomePath + PATH_DELIMITER + this.currentNode.getName();
             if (this.zkHandler.checkExist(zkNodePath)) {
                 this.zkHandler.deleteNode(zkNodePath);
             }
