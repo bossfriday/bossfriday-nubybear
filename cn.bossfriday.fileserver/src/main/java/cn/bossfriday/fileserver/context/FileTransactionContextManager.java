@@ -17,6 +17,8 @@ import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_CHANN
 public class FileTransactionContextManager {
 
     private LruHashMap<String, FileTransactionContext> contextMap;
+
+    @SuppressWarnings("squid:S3077")
     private static volatile FileTransactionContextManager instance = null;
 
     /**

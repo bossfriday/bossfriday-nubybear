@@ -36,6 +36,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
 @Slf4j
 public class StorageTracker {
 
+    @SuppressWarnings("squid:S3077")
     private static volatile StorageTracker instance = null;
 
     @Getter
@@ -71,7 +72,7 @@ public class StorageTracker {
      */
     public void onPartialUploadDataReceived(WriteTmpFileMsg msg) {
         // 按fileTransactionId路由
-        RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_TMP_FILE, msg);
+        RoutableBean<Object> routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_TMP_FILE, msg);
         ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
 
@@ -90,7 +91,7 @@ public class StorageTracker {
         // 零时文件写入整体完成
         if (msg.isFullDone()) {
             // 强制路由：同一个fileTransaction要求在同一个集群节点处理
-            RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
+            RoutableBean<Object> routableBean = RoutableBeanFactory.buildForceRouteBean(msg.getClusterNodeName(), ACTOR_FS_UPLOAD, msg);
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
 
             return;
@@ -133,7 +134,7 @@ public class StorageTracker {
             // 强制路由：优先从主节点下载
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex index = msg.getMetaDataIndex();
-            RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DOWNLOAD, msg);
+            RoutableBean<Object> routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DOWNLOAD, msg);
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onDownloadRequestReceived() process error: " + fileTransactionId, ex);
@@ -236,7 +237,7 @@ public class StorageTracker {
      * @param msg
      */
     public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) {
-        RoutableBean routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
+        RoutableBean<Object> routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
         ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
 
@@ -251,7 +252,7 @@ public class StorageTracker {
             // 强制路由：在主节点上进行删除（如果将来实现了高可用，则通过主从同步机制进行副本文件的删除）
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex index = msg.getMetaDataIndex();
-            RoutableBean routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DELETE, msg);
+            RoutableBean<Object> routableBean = RoutableBeanFactory.buildForceRouteBean(index.getClusterNode(), ACTOR_FS_DELETE, msg);
             ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
         } catch (Exception ex) {
             log.error("onFileDeleteMsg() process error: " + fileTransactionId, ex);

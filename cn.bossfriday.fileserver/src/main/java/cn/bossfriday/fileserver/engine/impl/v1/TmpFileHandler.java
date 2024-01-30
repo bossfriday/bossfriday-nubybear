@@ -3,7 +3,6 @@ package cn.bossfriday.fileserver.engine.impl.v1;
 import cn.bossfriday.common.combo.Combo2;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
-import cn.bossfriday.common.utils.Func;
 import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
@@ -33,15 +32,11 @@ import static cn.bossfriday.fileserver.common.FileServerConst.*;
 @Slf4j
 @CurrentStorageEngineVersion
 public class TmpFileHandler implements ITmpFileHandler {
-    private LruHashMap<String, FileChannel> tmpFileChannelMap = new LruHashMap<>(5000, new Func.Action2<String, FileChannel>() {
-
-        @Override
-        public void invoke(String fileTransactionId, FileChannel fileChannel) {
-            try {
-                fileChannel.close();
-            } catch (Exception ex) {
-                log.error("FileChannel close failed! fileTransactionId: " + fileTransactionId + ")", ex);
-            }
+    private LruHashMap<String, FileChannel> tmpFileChannelMap = new LruHashMap<>(5000, (fileTransactionId, fileChannel) -> {
+        try {
+            fileChannel.close();
+        } catch (Exception ex) {
+            log.error("FileChannel close failed! fileTransactionId: " + fileTransactionId + ")", ex);
         }
     }, DEFAULT_LRU_DURATION);
 
@@ -143,6 +138,7 @@ public class TmpFileHandler implements ITmpFileHandler {
      * @return
      * @throws IOException
      */
+    @SuppressWarnings("squid:S2095")
     private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws IOException {
         String fileTransactionId = msg.getFileTransactionId();
         if (this.tmpFileChannelMap.containsKey(fileTransactionId)) {

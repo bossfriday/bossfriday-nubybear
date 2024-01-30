@@ -1,7 +1,10 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
-import cn.bossfriday.common.utils.*;
+import cn.bossfriday.common.utils.Base58Util;
+import cn.bossfriday.common.utils.DateUtil;
+import cn.bossfriday.common.utils.FileUtil;
+import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
@@ -36,15 +39,11 @@ import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTEN
 public class StorageHandler implements IStorageHandler {
 
     protected final ReentrantReadWriteLock fileChannelLock = new ReentrantReadWriteLock();
-    protected LruHashMap<String, FileChannel> storageFileChannelMap = new LruHashMap<>(1000, new Func.Action2<String, FileChannel>() {
-
-        @Override
-        public void invoke(String key, FileChannel fileChannel) {
-            try {
-                fileChannel.close();
-            } catch (Exception ex) {
-                log.warn("FileChannel close failed: " + key);
-            }
+    protected LruHashMap<String, FileChannel> storageFileChannelMap = new LruHashMap<>(1000, (key, fileChannel) -> {
+        try {
+            fileChannel.close();
+        } catch (Exception ex) {
+            log.warn("FileChannel close failed: " + key);
         }
     }, STORAGE_FILE_CHANNEL_LRU_DURATION);
 
@@ -80,9 +79,10 @@ public class StorageHandler implements IStorageHandler {
 
         storageIndex.addOffset(dataLength);
 
-        return storageIndex.clone();
+        return storageIndex.getClonedStorageIndex();
     }
 
+    @SuppressWarnings("squid:S2093")
     @Override
     public Long apply(RecoverableTmpFile recoverableTmpFile) throws IOException {
         if (recoverableTmpFile == null) {
@@ -192,7 +192,6 @@ public class StorageHandler implements IStorageHandler {
                 }
             } catch (Exception ex) {
                 log.error("StorageHandler.delete() finally error!", ex);
-                return OperationResult.SYSTEM_ERROR;
             }
         }
 
@@ -206,6 +205,7 @@ public class StorageHandler implements IStorageHandler {
      * @param time
      * @return
      */
+    @SuppressWarnings("squid:S2093")
     protected FileChannel getFileChannel(String namespace, int time) {
         String key = namespace + "-" + time;
         this.fileChannelLock.readLock().lock();

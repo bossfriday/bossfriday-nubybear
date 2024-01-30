@@ -29,8 +29,12 @@ import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
 @Slf4j
 public class StorageEngine extends BaseStorageEngine {
 
+    @SuppressWarnings("squid:S3077")
     private static volatile StorageEngine instance = null;
     private static final int RECOVERABLE_TMP_FILE_WARNING_THRESHOLD = 10000;
+
+    private static final String META_DATA_INDEX_IS_NULL = "MetaDataIndex is null!";
+    private static final String META_DATA_IS_NULL = "MetaData is null!";
 
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
@@ -178,11 +182,11 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public ChunkedMetaData chunkedDownload(MetaDataIndex metaDataIndex, MetaData metaData, long offset, int limit) throws IOException {
         if (metaDataIndex == null) {
-            throw new ServiceRuntimeException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException(META_DATA_INDEX_IS_NULL);
         }
 
         if (metaData == null) {
-            throw new ServiceRuntimeException("MetaData is null!");
+            throw new ServiceRuntimeException(META_DATA_IS_NULL);
         }
 
         // 临时文件落盘采用零拷贝+顺序写盘方式非常高效，因此这里采用自旋等待的无锁方式
@@ -224,7 +228,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public MetaData getMetaData(MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
-            throw new ServiceRuntimeException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException(META_DATA_INDEX_IS_NULL);
         }
 
         int version = metaDataIndex.getStoreEngineVersion();
@@ -242,7 +246,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     public OperationResult delete(MetaDataIndex metaDataIndex) throws IOException {
         if (metaDataIndex == null) {
-            throw new ServiceRuntimeException("MetaDataIndex is null!");
+            throw new ServiceRuntimeException(META_DATA_INDEX_IS_NULL);
         }
 
         return StorageHandlerFactory.getStorageHandler(metaDataIndex.getStoreEngineVersion()).delete(metaDataIndex);

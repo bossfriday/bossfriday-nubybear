@@ -46,10 +46,15 @@ public class StorageIndex {
         this.offset += length;
     }
 
-    @Override
-    public StorageIndex clone() {
+    /**
+     * getClonedStorageIndex
+     *
+     * @return
+     */
+    public StorageIndex getClonedStorageIndex() {
         return StorageIndex.builder()
                 .storeEngineVersion(this.storeEngineVersion)
+                .storageNamespace(this.storageNamespace)
                 .time(this.time)
                 .offset(this.offset)
                 .build();

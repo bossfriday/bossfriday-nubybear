@@ -95,10 +95,10 @@ public class StorageHandlerFactory {
      * @param map
      * @param cls
      */
-    private static void loadStorageHandlerImpl(ConcurrentHashMap map, Class cls) {
+    private static <T> void loadStorageHandlerImpl(ConcurrentHashMap<Integer, T> map, Class<T> cls) {
         try {
-            Set<Class<?>> classes = new Reflections().getSubTypesOf(cls);
-            for (Class<?> item : classes) {
+            Set<Class<? extends T>> classes = new Reflections().getSubTypesOf(cls);
+            for (Class<? extends T> item : classes) {
                 CurrentStorageEngineVersion engineVersion = item.getAnnotation(CurrentStorageEngineVersion.class);
                 if (engineVersion == null) {
                     return;

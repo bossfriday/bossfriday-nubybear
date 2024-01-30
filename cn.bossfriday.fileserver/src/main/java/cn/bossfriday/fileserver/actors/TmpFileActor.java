@@ -28,12 +28,7 @@ public class TmpFileActor extends BaseTypedActor<WriteTmpFileMsg> {
         /**
          * 保障FileTransactionId与其处理线程的一致性的原因为：临时文件的写盘机制是零拷贝+顺序写，
          */
-        StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(new Runnable() {
-            @Override
-            public void run() {
-                TmpFileActor.this.process(sender, msg);
-            }
-        });
+        StorageDispatcher.getUploadThread(msg.getFileTransactionId()).execute(() -> TmpFileActor.this.process(sender, msg));
     }
 
     /**
