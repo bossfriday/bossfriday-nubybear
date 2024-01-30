@@ -1,6 +1,7 @@
 package cn.bossfriday.fileserver.test;
 
 import cn.bossfriday.common.combo.Combo2;
+import cn.bossfriday.common.utils.FileUtil;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -16,43 +17,44 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TOTAL_SIZE;
 import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TRANSACTION_ID;
 
 @Slf4j
+@RunWith(MockitoJUnitRunner.class)
 public class FileUploadTest {
 
-    public static void main(String[] args) {
-        ExecutorService threadPool = Executors.newFixedThreadPool(8);
-        for (int i = 0; i < 1; i++) {
-            threadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        normalUpload();
-//                        download();
-//                        base64Upload();
-//                        rangeUpload();
-//                        fileDelete();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-            });
-        }
+    @Before
+    public void mockInit() {
 
-        threadPool.shutdown();
+    }
+
+    @Test
+    public void normalUploadTest() {
+        Assertions.assertDoesNotThrow(() -> normalUpload());
+    }
+
+    @Test
+    public void rangeUploadTest() {
+        Assertions.assertDoesNotThrow(() -> rangeUpload());
+    }
+
+    @Test
+    public void base64UploadTest() {
+        Assertions.assertDoesNotThrow(() -> base64Upload());
     }
 
     /**
@@ -168,7 +170,6 @@ public class FileUploadTest {
             HttpEntity entity = builder.build();
             httpPost.setEntity(entity);
 
-            // execute
             httpResponse = httpClient.execute(httpPost);
             System.out.println(EntityUtils.toString(httpResponse.getEntity()));
         } finally {
@@ -192,8 +193,6 @@ public class FileUploadTest {
                 }
             }
         }
-
-        log.info("done");
     }
 
     /**
@@ -220,7 +219,7 @@ public class FileUploadTest {
             String range = "bytes=" + beginOffset + "-" + endOffset;
             int rangeLength = endOffset - beginOffset + 1;
             byte[] rangeData = new byte[rangeLength];
-            readFile(localFile, beginOffset, rangeData);
+            FileUtil.readFile(localFile, beginOffset, rangeData);
 
             HttpPost httpPost = null;
             CloseableHttpResponse httpResponse = null;
@@ -323,31 +322,4 @@ public class FileUploadTest {
             return new Combo2<>(size, Base64.encodeBase64String(buffer));
         }
     }
-
-    /**
-     * readFile
-     *
-     * @param file
-     * @param offset
-     * @param targetBytes
-     * @throws Exception
-     */
-    public static void readFile(File file, long offset, byte[] targetBytes) throws Exception {
-        RandomAccessFile raf = null;
-
-        try {
-            raf = new RandomAccessFile(file, "r");
-            raf.seek(offset);
-            raf.readFully(targetBytes);
-        } finally {
-            try {
-                if (raf != null) {
-                    raf.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
 }

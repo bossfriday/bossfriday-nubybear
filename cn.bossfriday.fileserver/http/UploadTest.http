@@ -1,0 +1,15 @@
+### 普通全量上传
+POST http://localhost:18086/full/v1/normal
+X-File-Total-Size: 5923914
+Cache-Control: no-cache
+Content-Type: multipart/form-data; boundary=Boundary12345
+
+--Boundary12345
+Content-Disposition: form-data; name="type"
+
+image/png
+--Boundary12345
+Content-Disposition: form-data; name="upfile"; filename="UploadTest%E4%B8%AD%E6%96%87123.pdf"
+
+< D:\02-Code\bossfriday\bossfriday-nubybear\files\UploadTest中文123.pdf
+--Boundary12345

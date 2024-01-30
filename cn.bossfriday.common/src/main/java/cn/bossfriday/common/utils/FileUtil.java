@@ -117,4 +117,30 @@ public class FileUtil {
     public static byte[] transferTo(FileChannel srcFileChannel, long position, int length) throws IOException {
         return transferTo(srcFileChannel, position, length, true);
     }
+
+    /**
+     * readFile
+     *
+     * @param file
+     * @param offset
+     * @param targetBytes
+     * @throws Exception
+     */
+    public static void readFile(File file, long offset, byte[] targetBytes) throws IOException {
+        RandomAccessFile raf = null;
+
+        try {
+            raf = new RandomAccessFile(file, "r");
+            raf.seek(offset);
+            raf.readFully(targetBytes);
+        } finally {
+            try {
+                if (raf != null) {
+                    raf.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
