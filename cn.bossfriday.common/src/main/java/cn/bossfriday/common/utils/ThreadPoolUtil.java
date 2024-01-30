@@ -162,10 +162,10 @@ public class ThreadPoolUtil {
      * @param workerQueueSize
      * @return
      */
-    private static BlockingQueue getWorkerBlockingQueue(int workerQueueSize) {
+    private static BlockingQueue<Runnable> getWorkerBlockingQueue(int workerQueueSize) {
         int queueMaxSize = workerQueueSize > 0 ? workerQueueSize : Integer.MAX_VALUE;
 
-        return new LinkedBlockingQueue(queueMaxSize);
+        return new LinkedBlockingQueue<>(queueMaxSize);
     }
 
     /**
@@ -175,6 +175,7 @@ public class ThreadPoolUtil {
      * @param coreSize
      * @return
      */
+    @SuppressWarnings("squid:S1172")
     private static int getCoreSize(String name, int coreSize) {
         // 有配置优先走配置
         return coreSize;

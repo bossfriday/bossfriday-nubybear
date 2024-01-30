@@ -1,5 +1,6 @@
 package cn.bossfriday.common.rpc.actor;
 
+import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ProtostuffCodecUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +66,10 @@ public class ActorMsgPayloadCodec {
 
             int available = in.available();
             byte[] data = new byte[available];
-            in.read(data);
+            int read = in.read(data);
+            if (read <= 0) {
+                throw new ServiceRuntimeException("read 0 byte!");
+            }
 
             return ProtostuffCodecUtil.deserialize(data, clazz);
         } catch (Exception e) {

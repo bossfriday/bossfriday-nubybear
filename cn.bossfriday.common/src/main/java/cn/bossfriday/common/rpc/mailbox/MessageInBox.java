@@ -23,9 +23,9 @@ public class MessageInBox extends BaseMailBox {
     private final NettyServer server;
     private ActorDispatcher dispatcher;
 
+    @SuppressWarnings("squid:S1604")
     public MessageInBox(int size, int port, ActorDispatcher actorDispatcher) {
-
-        super(new LinkedBlockingQueue<RpcMessage>(size));
+        super(new LinkedBlockingQueue<>(size));
         this.dispatcher = actorDispatcher;
         this.server = new NettyServer(port, new IMsgHandler() {
             @Override

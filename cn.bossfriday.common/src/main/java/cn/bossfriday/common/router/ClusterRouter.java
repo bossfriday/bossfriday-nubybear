@@ -346,6 +346,7 @@ public class ClusterRouter {
      * @param host
      * @param port
      */
+    @SuppressWarnings("squid:S1604")
     private void initActorSystem(String nodeName, String host, int port) {
         this.actorSystem = ActorSystem.create(nodeName, new InetSocketAddress(host, port));
         this.actorSystem.setMsgEncoder(new IActorMsgEncoder() {

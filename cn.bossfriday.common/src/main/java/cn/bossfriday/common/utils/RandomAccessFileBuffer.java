@@ -11,6 +11,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @author chenx
  */
+@SuppressWarnings("all")
 public class RandomAccessFileBuffer implements Closeable {
     /**
      * 缓冲区 内存页 64KB

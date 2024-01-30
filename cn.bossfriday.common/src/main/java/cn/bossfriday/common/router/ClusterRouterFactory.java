@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClusterRouterFactory {
 
+    @SuppressWarnings("squid:S3077")
     private static volatile ClusterRouter clusterRouter;
 
     private ClusterRouterFactory() {

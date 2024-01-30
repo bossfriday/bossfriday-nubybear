@@ -127,20 +127,9 @@ public class FileUtil {
      * @throws Exception
      */
     public static void readFile(File file, long offset, byte[] targetBytes) throws IOException {
-        RandomAccessFile raf = null;
-
-        try {
-            raf = new RandomAccessFile(file, "r");
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(offset);
             raf.readFully(targetBytes);
-        } finally {
-            try {
-                if (raf != null) {
-                    raf.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 }

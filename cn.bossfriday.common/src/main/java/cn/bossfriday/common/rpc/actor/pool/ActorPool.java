@@ -21,7 +21,7 @@ public class ActorPool {
     private String method;
 
     public ActorPool(int min, int max, String method, Class<? extends BaseUntypedActor> cls, Object... args) {
-        GenericObjectPoolConfig config = new GenericObjectPoolConfig<>();
+        GenericObjectPoolConfig<BaseUntypedActor> config = new GenericObjectPoolConfig<>();
         config.setMinIdle(min);
         config.setMaxIdle(max);
         config.setMaxTotal(max);

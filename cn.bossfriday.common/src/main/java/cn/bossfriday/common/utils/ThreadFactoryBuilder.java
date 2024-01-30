@@ -129,6 +129,7 @@ public final class ThreadFactoryBuilder {
      * @param builder
      * @return
      */
+    @SuppressWarnings("squid:S1604")
     private static ThreadFactory build(ThreadFactoryBuilder builder) {
         final String nameFormat = builder.nameFormat;
         final Boolean daemon = builder.daemon;

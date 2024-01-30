@@ -46,6 +46,7 @@ public class NettyClient {
     /**
      * connect
      */
+    @SuppressWarnings("squid:S1604")
     public void connect() {
         if (this.connState.get() == ConnStatus.CONNECTING || this.connState.get() == ConnStatus.CONNECTED) {
             return;

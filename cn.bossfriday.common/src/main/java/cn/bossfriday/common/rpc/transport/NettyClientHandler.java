@@ -24,6 +24,7 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcMessage> 
         // default implementation ignored
     }
 
+    @SuppressWarnings("squid:S1604")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final EventLoop eventLoop = ctx.channel().eventLoop();
