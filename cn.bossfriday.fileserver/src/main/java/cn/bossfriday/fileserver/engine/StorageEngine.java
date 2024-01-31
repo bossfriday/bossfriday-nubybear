@@ -74,7 +74,7 @@ public class StorageEngine extends BaseStorageEngine {
             // 过期文件自动清理
             this.cleanupExpiredFiles();
 
-            // 服务非正常停止可能导致RecoverableTmpFile未落盘
+            // 服务非正常停止可能导致RecoverableTmpFile未落盘（由于写盘采用顺序写+零拷贝的方式，实际中碰到的几率几乎为0）
             this.loadRecoverableTmpFile();
 
             // 加载存储指针
