@@ -42,16 +42,25 @@ public class FileUploadTest {
 
     }
 
+    /**
+     * 普通全量上传
+     */
     @Test
     public void normalUploadTest() {
         Assertions.assertDoesNotThrow(() -> normalUpload());
     }
 
+    /**
+     * 断点续传
+     */
     @Test
     public void rangeUploadTest() {
         Assertions.assertDoesNotThrow(() -> rangeUpload());
     }
 
+    /**
+     * Base64字符串上传
+     */
     @Test
     public void base64UploadTest() {
         Assertions.assertDoesNotThrow(() -> base64Upload());
