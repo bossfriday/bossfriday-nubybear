@@ -10,7 +10,7 @@ import com.lmax.disruptor.dsl.ProducerType;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * FileTransactionContext
+ * BaseStorageEngine
  *
  * @author chenx
  */
