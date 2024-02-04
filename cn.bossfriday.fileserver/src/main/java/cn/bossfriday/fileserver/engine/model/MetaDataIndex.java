@@ -46,7 +46,7 @@ public class MetaDataIndex implements ICodec<MetaDataIndex> {
     private long offset;
 
     /**
-     * 元数据长度（不包含FileDta）
+     * 元数据长度（不包含FileData）
      */
     private int metaDataLength;
 
