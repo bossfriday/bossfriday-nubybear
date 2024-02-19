@@ -14,13 +14,14 @@ public class Base58Util {
     private static final int[] INDEXES = new int[128];
 
     private Base58Util() {
-
+        // just do nothing
     }
 
     static {
         for (int i = 0; i < INDEXES.length; i++) {
             INDEXES[i] = -1;
         }
+
         for (int i = 0; i < ALPHABET.length; i++) {
             INDEXES[ALPHABET[i]] = i;
         }
@@ -38,6 +39,7 @@ public class Base58Util {
         }
 
         input = copyOfRange(input, 0, input.length);
+
         // Count leading zeroes.
         int zeroCount = 0;
         while (zeroCount < input.length && input[zeroCount] == 0) {
@@ -50,10 +52,11 @@ public class Base58Util {
 
         int startAt = zeroCount;
         while (startAt < input.length) {
-            byte mod = divmod58(input, startAt);
+            byte mod = divMod58(input, startAt);
             if (input[startAt] == 0) {
                 ++startAt;
             }
+
             temp[--j] = (byte) ALPHABET[mod];
         }
 
@@ -68,6 +71,7 @@ public class Base58Util {
         }
 
         byte[] output = copyOfRange(temp, j, temp.length);
+
         return new String(output, StandardCharsets.US_ASCII);
     }
 
@@ -84,6 +88,7 @@ public class Base58Util {
         }
 
         byte[] input58 = new byte[input.length()];
+
         // Transform the String to a base58 byte sequence
         for (int i = 0; i < input.length(); ++i) {
             char c = input.charAt(i);
@@ -92,6 +97,7 @@ public class Base58Util {
             if (c >= 0 && c < 128) {
                 digit58 = INDEXES[c];
             }
+
             if (digit58 < 0) {
                 throw new IllegalArgumentException("Illegal character " + c + " at " + i);
             }
@@ -111,7 +117,7 @@ public class Base58Util {
 
         int startAt = zeroCount;
         while (startAt < input58.length) {
-            byte mod = divmod256(input58, startAt);
+            byte mod = divMod256(input58, startAt);
             if (input58[startAt] == 0) {
                 ++startAt;
             }
@@ -145,7 +151,7 @@ public class Base58Util {
      * @param startAt
      * @return
      */
-    private static byte divmod58(byte[] number, int startAt) {
+    private static byte divMod58(byte[] number, int startAt) {
         int remainder = 0;
         for (int i = startAt; i < number.length; i++) {
             int digit256 = number[i] & 0xFF;
@@ -166,14 +172,13 @@ public class Base58Util {
      * @param startAt
      * @return
      */
-    private static byte divmod256(byte[] number58, int startAt) {
+    private static byte divMod256(byte[] number58, int startAt) {
         int remainder = 0;
         for (int i = startAt; i < number58.length; i++) {
             int digit58 = number58[i] & 0xFF;
             int temp = remainder * 58 + digit58;
 
             number58[i] = (byte) (temp / 256);
-
             remainder = temp % 256;
         }
 

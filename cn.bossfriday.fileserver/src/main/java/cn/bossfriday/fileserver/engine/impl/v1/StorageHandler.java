@@ -17,6 +17,7 @@ import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
 import cn.bossfriday.fileserver.engine.model.StorageIndex;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_CHANNEL_LRU_DURATION;
@@ -132,14 +134,30 @@ public class StorageHandler implements IStorageHandler {
     }
 
     @Override
-    public String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws IOException {
-        return Base58Util.encode(metaDataIndex.serialize()) + "." + metaDataIndex.getFileExtName();
+    public String getRecoverableTmpFileName(RecoverableTmpFile recoverableTmpFile) throws IOException {
+        if (Objects.isNull(recoverableTmpFile)) {
+            throw new ServiceRuntimeException("recoverableTmpFile is null!");
+        }
+
+        recoverableTmpFile.setFilePath("");
+        byte[] data = recoverableTmpFile.serialize();
+        String extName = FileUtil.getFileExt(recoverableTmpFile.getFileName());
+
+        return Base58Util.encode(data) + "." + extName;
     }
 
     @Override
-    public RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws IOException {
-        // [待实现]服务重启临时文件落盘恢复
-        return null;
+    public RecoverableTmpFile getRecoverableTmpFile(String tempDir, String recoverableTmpFileName) throws IOException {
+        String fileNameWithoutExtension = FileUtil.getFileNameWithoutExtension(recoverableTmpFileName);
+        if (StringUtils.isEmpty(fileNameWithoutExtension)) {
+            throw new ServiceRuntimeException("recoverableTmpFileNameWithoutExtension is empty!");
+        }
+
+        byte[] data = Base58Util.decode(fileNameWithoutExtension);
+        RecoverableTmpFile recoverableTmpFile = new RecoverableTmpFile().deserialize(data);
+        recoverableTmpFile.setFilePath(FileUtil.mergeFilePath(tempDir, recoverableTmpFileName));
+
+        return recoverableTmpFile;
     }
 
     @Override

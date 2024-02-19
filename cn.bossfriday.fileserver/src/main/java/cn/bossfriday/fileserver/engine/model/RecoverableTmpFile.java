@@ -1,6 +1,9 @@
 package cn.bossfriday.fileserver.engine.model;
 
+import cn.bossfriday.fileserver.engine.core.ICodec;
 import lombok.*;
+
+import java.io.*;
 
 /**
  * RecoverableTmpFile
@@ -12,7 +15,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecoverableTmpFile {
+public class RecoverableTmpFile implements ICodec<RecoverableTmpFile> {
 
     /**
      * fileTransactionId
@@ -58,4 +61,51 @@ public class RecoverableTmpFile {
      * filePath
      */
     private String filePath;
+
+    @Override
+    public byte[] serialize() throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             DataOutputStream dos = new DataOutputStream(out)) {
+            dos.writeUTF(this.fileTransactionId);
+            dos.writeInt(this.storeEngineVersion);
+            dos.writeUTF(this.storageNamespace);
+            dos.writeInt(this.time);
+            dos.writeLong(this.offset);
+            dos.writeLong(this.timestamp);
+            dos.writeUTF(this.fileName);
+            dos.writeLong(this.fileTotalSize);
+            dos.writeUTF(this.filePath);
+
+            return out.toByteArray();
+        }
+    }
+
+    @Override
+    public RecoverableTmpFile deserialize(byte[] bytes) throws IOException {
+        try (ByteArrayInputStream in = new ByteArrayInputStream(bytes);
+             DataInputStream dis = new DataInputStream(in)) {
+            String fileTransactionId = dis.readUTF();
+            int storeEngineVersion = dis.readInt();
+            String storageNamespace = dis.readUTF();
+            int time = dis.readInt();
+            long offset = dis.readLong();
+            long timestamp = dis.readLong();
+            String fileName = dis.readUTF();
+            long fileTotalSize = dis.readLong();
+            String filePath = dis.readUTF();
+
+            return RecoverableTmpFile.builder()
+                    .fileTransactionId(fileTransactionId)
+                    .storeEngineVersion(storeEngineVersion)
+                    .storageNamespace(storageNamespace)
+                    .time(time)
+                    .offset(offset)
+                    .timestamp(timestamp)
+                    .fileName(fileName)
+                    .fileTotalSize(fileTotalSize)
+                    .filePath(filePath)
+                    .build();
+        }
+    }
 }
+

@@ -1,12 +1,14 @@
 package cn.bossfriday.common.utils;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Paths;
 
 /**
  * FileUtil
@@ -39,12 +41,46 @@ public class FileUtil {
      * @return
      */
     public static String getFileExt(String fileName) {
+        if (StringUtils.isEmpty(fileName)) {
+            return "";
+        }
+
         int index = fileName.lastIndexOf(".");
         if (index == -1) {
             return "";
         }
 
         return fileName.substring(index + 1).toLowerCase();
+    }
+
+    /**
+     * getFileNameWithoutExtension
+     *
+     * @param fileName
+     * @return
+     */
+    public static String getFileNameWithoutExtension(String fileName) {
+        if (StringUtils.isEmpty(fileName)) {
+            return "";
+        }
+
+        int index = fileName.lastIndexOf(".");
+        if (index == -1) {
+            return "";
+        }
+
+        return fileName.substring(0, index);
+    }
+
+    /**
+     * mergeFilePath
+     *
+     * @param basePath
+     * @param relativePath
+     * @return
+     */
+    public static String mergeFilePath(String basePath, String relativePath) {
+        return Paths.get(basePath).resolve(relativePath).toString();
     }
 
     /**

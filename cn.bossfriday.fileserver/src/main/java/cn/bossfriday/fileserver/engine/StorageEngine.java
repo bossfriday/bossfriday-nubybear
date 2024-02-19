@@ -1,6 +1,7 @@
 package cn.bossfriday.fileserver.engine;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
+import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
@@ -16,23 +17,22 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.FILE_PATH_TMP;
+import static cn.bossfriday.fileserver.common.FileServerConst.*;
 
 /**
- * StorageDispatcher
+ * StorageEngine
  *
  * @author chenx
  */
 @Slf4j
+@SuppressWarnings("squid:S6548")
 public class StorageEngine extends BaseStorageEngine {
 
-    @SuppressWarnings("squid:S3077")
-    private static volatile StorageEngine instance = null;
-    private static final int RECOVERABLE_TMP_FILE_WARNING_THRESHOLD = 10000;
-
+    private static final int RECOVERABLE_TMP_FILE_WARNING_THRESHOLD = 1024 * 5;
     private static final String META_DATA_INDEX_IS_NULL = "MetaDataIndex is null!";
     private static final String META_DATA_IS_NULL = "MetaData is null!";
 
@@ -49,7 +49,7 @@ public class StorageEngine extends BaseStorageEngine {
     private HashMap<String, StorageNamespace> namespaceMap;
 
     private StorageEngine() {
-        super(128 * 1024);
+        super(RECOVERABLE_TMP_FILE_WARNING_THRESHOLD * 2);
         this.init();
     }
 
@@ -57,15 +57,7 @@ public class StorageEngine extends BaseStorageEngine {
      * getInstance
      */
     public static StorageEngine getInstance() {
-        if (instance == null) {
-            synchronized (StorageEngine.class) {
-                if (instance == null) {
-                    instance = new StorageEngine();
-                }
-            }
-        }
-
-        return instance;
+        return SingletonHolder.INSTANCE;
     }
 
     @Override
@@ -74,8 +66,8 @@ public class StorageEngine extends BaseStorageEngine {
             // 过期文件自动清理
             this.cleanupExpiredFiles();
 
-            // 服务非正常停止可能导致RecoverableTmpFile未落盘（由于写盘采用顺序写+零拷贝的方式，实际中碰到的几率几乎为0）
-            this.loadRecoverableTmpFile();
+            // 临时文件恢复
+            this.recoverTmpFile();
 
             // 加载存储指针
             this.loadStorageIndex();
@@ -87,7 +79,7 @@ public class StorageEngine extends BaseStorageEngine {
     @Override
     protected void shutdown() {
         try {
-            this.loadRecoverableTmpFile();
+            this.recoverTmpFile();
         } catch (Exception ex) {
             log.error("StorageEngine.shutdown() error!", ex);
         }
@@ -97,10 +89,11 @@ public class StorageEngine extends BaseStorageEngine {
     protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) {
         String fileTransactionId = event.getFileTransactionId();
         try {
+            // 存储文件落盘（FileChannel.transferFrom()零拷贝顺序写盘：Disruptor保障先进先出）
             IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(event.getStoreEngineVersion());
             long metaDataIndexHash64 = storageHandler.apply(event);
             this.recoverableTmpFileHashMap.remove(metaDataIndexHash64);
-            log.info("RecoverableTmpFile apply done: " + fileTransactionId + ",offset:" + event.getOffset());
+            log.info("RecoverableTmpFile apply done, fileTransactionId: " + fileTransactionId + ", offset:" + event.getOffset());
         } catch (Exception ex) {
             log.error("onRecoverableTmpFileEvent() error!" + fileTransactionId, ex);
         }
@@ -108,7 +101,6 @@ public class StorageEngine extends BaseStorageEngine {
 
     /**
      * upload 文件上传
-     * synchronized：为了保障落盘为顺序写盘
      *
      * @param data
      * @return
@@ -119,6 +111,7 @@ public class StorageEngine extends BaseStorageEngine {
             throw new ServiceRuntimeException("WriteTmpFileResult is null!");
         }
 
+        // 申请存储空间
         String fileTransactionId = data.getFileTransactionId();
         int engineVersion = data.getStorageEngineVersion();
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(engineVersion);
@@ -149,8 +142,7 @@ public class StorageEngine extends BaseStorageEngine {
                 .fileExtName(data.getFileExtName())
                 .build();
 
-        String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(metaDataIndex);
-        String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
+        // 构建临时文件
         RecoverableTmpFile recoverableTmpFile = RecoverableTmpFile.builder()
                 .fileTransactionId(fileTransactionId)
                 .storeEngineVersion(data.getStorageEngineVersion())
@@ -160,9 +152,12 @@ public class StorageEngine extends BaseStorageEngine {
                 .timestamp(data.getTimestamp())
                 .fileName(data.getFileName())
                 .fileTotalSize(data.getFileTotalSize())
-                .filePath(recoverableTmpFilePath)
                 .build();
+        String recoverableTmpFileName = storageHandler.getRecoverableTmpFileName(recoverableTmpFile);
+        String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
+        recoverableTmpFile.setFilePath(recoverableTmpFilePath);
 
+        // 入Disruptor队列，之后零拷贝顺序写盘；
         this.recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
         this.publishEvent(recoverableTmpFile);
         log.info("StorageEngine.upload() done:" + recoverableTmpFile);
@@ -197,7 +192,7 @@ public class StorageEngine extends BaseStorageEngine {
 
             if (this.recoverableTmpFileHashMap.size() > RECOVERABLE_TMP_FILE_WARNING_THRESHOLD) {
                 // 这种情况经常发生则建议横向扩容（先hardCode，可以考虑做成配置及对接业务监控等）
-                log.warn("StorageEngine.recoverableTmpFileHashMap.size() is: " + this.recoverableTmpFileHashMap.size());
+                log.error("StorageEngine.recoverableTmpFileHashMap.size() > RECOVERABLE_TMP_FILE_WARNING_THRESHOLD! (" + this.recoverableTmpFileHashMap.size() + ")");
             }
 
             // 如果临时文件没有落盘则开始自旋
@@ -267,8 +262,7 @@ public class StorageEngine extends BaseStorageEngine {
             });
 
             // 目录初始化
-            this.baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(),
-                    FileServerConfigManager.getCurrentClusterNodeName());
+            this.baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(), FileServerConfigManager.getCurrentClusterNodeName());
             if (!this.baseDir.exists()) {
                 this.baseDir.mkdirs();
             }
@@ -285,7 +279,7 @@ public class StorageEngine extends BaseStorageEngine {
                 this.tmpDir.mkdirs();
             }
         } catch (Exception e) {
-            log.error("StorageEngine init error!", e);
+            log.error("StorageEngine.init() error!", e);
         }
     }
 
@@ -309,14 +303,32 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     /**
-     * loadRecoverableTmpFile
+     * 临时文件恢复
+     * 服务非正常停止可能导致RecoverableTmpFile未落盘（由于写盘采用顺序写+零拷贝的方式，实际中碰到的几率几乎为0）
      */
-    private void loadRecoverableTmpFile() {
-        /**
-         * TODO:
-         * 1.加载RecoverableTmpFile集合
-         * 2.RecoverableTmpFile集合排序：按照offset排序（必须保障顺序）
-         */
+    private void recoverTmpFile() {
+        IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(DEFAULT_STORAGE_ENGINE_VERSION);
+        File[] tmpFiles = this.tmpDir.listFiles();
+        for (File tmpFile : tmpFiles) {
+            try {
+                String tmpFileName = tmpFile.getName();
+                String tmpFileExtName = FileUtil.getFileExt(tmpFileName);
+                if (FILE_UPLOADING_TMP_FILE_EXT.equalsIgnoreCase(tmpFileExtName)) {
+                    // 未完成垃圾临时文件清理
+                    Files.delete(tmpFile.toPath());
+                    log.info("Delete ing temp file done, {}", tmpFileName);
+
+                    continue;
+                }
+
+                RecoverableTmpFile recoverableTmpFile = storageHandler.getRecoverableTmpFile(this.tmpDir.getAbsolutePath(), tmpFileName);
+                System.out.println("=======>" + recoverableTmpFile);
+            } catch (Exception ex) {
+                log.error("StorageEngine.recoverTmpFile() error!", ex);
+            }
+        }
+
+        log.info("StorageEngine.recoverTmpFile() done.");
     }
 
     /**
@@ -354,5 +366,12 @@ public class StorageEngine extends BaseStorageEngine {
         }
 
         return this.storageIndexMap.get(key);
+    }
+
+    /**
+     * SingletonHolder
+     */
+    private static class SingletonHolder {
+        private static final StorageEngine INSTANCE = new StorageEngine();
     }
 }

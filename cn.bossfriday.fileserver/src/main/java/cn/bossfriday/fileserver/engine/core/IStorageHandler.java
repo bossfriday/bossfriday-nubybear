@@ -25,7 +25,7 @@ public interface IStorageHandler {
     StorageIndex getStorageIndex(String namespace) throws IOException;
 
     /**
-     * askStorage(申请存储)
+     * ask(申请存储)
      *
      * @param storageIndex
      * @param metaDataLength
@@ -44,22 +44,22 @@ public interface IStorageHandler {
     Long apply(RecoverableTmpFile recoverableTmpFile) throws IOException;
 
     /**
-     * getRecoverableTmpFileName（获取可直接落盘/恢复临时文件）
+     * getRecoverableTmpFileName
      *
-     * @param metaDataIndex
-     * @return
+     * @param recoverableTmpFile
      * @throws IOException
      */
-    String getRecoverableTmpFileName(MetaDataIndex metaDataIndex) throws IOException;
+    String getRecoverableTmpFileName(RecoverableTmpFile recoverableTmpFile) throws IOException;
 
     /**
-     * recoverableTmpFileName（意外恢复使用）
+     * getRecoverableTmpFile
      *
+     * @param tempDir
      * @param recoverableTmpFileName
      * @return
      * @throws IOException
      */
-    RecoverableTmpFile getRecoverableTmpFile(String recoverableTmpFileName) throws IOException;
+    RecoverableTmpFile getRecoverableTmpFile(String tempDir, String recoverableTmpFileName) throws IOException;
 
     /**
      * chunkedDownload
