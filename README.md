@@ -14,6 +14,7 @@
 > * **高可用暂时不考虑实现的主要原因是实现了之后其实可以直接商用（目前只是考虑供学习交流使用）。几年前实现那版以上都进行了实现，并且经历了上百家私有部署IM的项目及公司内部使用的考验；**
 > * **接口均没有鉴权（一般来说删除接口需要鉴权、上传接口酌情鉴权），需要鉴权的自行实现。**
 > * **ActorRPC放弃Disruptor改回最初使用的LinkedBlockingQueue。原因：环形缓存区内存不会释放，不利于传输文件这种大消息体的应用场景。另外形缓存区容量如果不大Disruptor性能与LinkedBlockingQueue差异不大。**
+> * **介绍：[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
 
 ## 性能
 
