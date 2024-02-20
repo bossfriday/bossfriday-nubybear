@@ -14,11 +14,15 @@ import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
 import cn.bossfriday.fileserver.engine.model.*;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static cn.bossfriday.fileserver.common.FileServerConst.*;
@@ -66,7 +70,7 @@ public class StorageEngine extends BaseStorageEngine {
             // 过期文件自动清理
             this.cleanupExpiredFiles();
 
-            // 临时文件恢复
+            // 未落盘临时文件异常恢复
             this.recoverTmpFile();
 
             // 加载存储指针
@@ -89,7 +93,7 @@ public class StorageEngine extends BaseStorageEngine {
     protected void onRecoverableTmpFileEvent(RecoverableTmpFile event) {
         String fileTransactionId = event.getFileTransactionId();
         try {
-            // 存储文件落盘（FileChannel.transferFrom()零拷贝顺序写盘：Disruptor保障先进先出）
+            // 存储文件落盘（Disruptor保障先进先出）
             IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(event.getStoreEngineVersion());
             long metaDataIndexHash64 = storageHandler.apply(event);
             this.recoverableTmpFileHashMap.remove(metaDataIndexHash64);
@@ -157,9 +161,8 @@ public class StorageEngine extends BaseStorageEngine {
         String recoverableTmpFilePath = tmpFileHandler.rename(data.getFilePath(), recoverableTmpFileName);
         recoverableTmpFile.setFilePath(recoverableTmpFilePath);
 
-        // 入Disruptor队列，之后零拷贝顺序写盘；
-        this.recoverableTmpFileHashMap.put(metaDataIndex.hash64(), recoverableTmpFile);
-        this.publishEvent(recoverableTmpFile);
+        // 入队落盘
+        this.enqueue(metaDataIndex.hash64(), recoverableTmpFile);
         log.info("StorageEngine.upload() done:" + recoverableTmpFile);
 
         return metaDataIndex;
@@ -303,18 +306,21 @@ public class StorageEngine extends BaseStorageEngine {
     }
 
     /**
-     * 临时文件恢复
-     * 服务非正常停止可能导致RecoverableTmpFile未落盘（由于写盘采用顺序写+零拷贝的方式，实际中碰到的几率几乎为0）
+     * 未落盘临时文件异常恢复
+     * <p>
+     * 服务非正常停止可能导致临时文件未落盘，由于写盘采用零拷贝顺序写，因此实际中几乎撞不到。
      */
     private void recoverTmpFile() {
         IStorageHandler storageHandler = StorageHandlerFactory.getStorageHandler(DEFAULT_STORAGE_ENGINE_VERSION);
         File[] tmpFiles = this.tmpDir.listFiles();
+        List<RecoverableTmpFile> recoverableTmpFiles = new ArrayList<>();
         for (File tmpFile : tmpFiles) {
             try {
                 String tmpFileName = tmpFile.getName();
                 String tmpFileExtName = FileUtil.getFileExt(tmpFileName);
+
+                // 删除未完成不可恢复ing文件
                 if (FILE_UPLOADING_TMP_FILE_EXT.equalsIgnoreCase(tmpFileExtName)) {
-                    // 未完成垃圾临时文件清理
                     Files.delete(tmpFile.toPath());
                     log.info("Delete ing temp file done, {}", tmpFileName);
 
@@ -322,10 +328,22 @@ public class StorageEngine extends BaseStorageEngine {
                 }
 
                 RecoverableTmpFile recoverableTmpFile = storageHandler.getRecoverableTmpFile(this.tmpDir.getAbsolutePath(), tmpFileName);
-                System.out.println("=======>" + recoverableTmpFile);
+                recoverableTmpFiles.add(recoverableTmpFile);
             } catch (Exception ex) {
                 log.error("StorageEngine.recoverTmpFile() error!", ex);
             }
+        }
+
+        if (CollectionUtils.isEmpty(recoverableTmpFiles)) {
+            log.info("StorageEngine.recoverTmpFile() done, no RecoverableTmpFile need to recover.");
+            return;
+        }
+
+        // 排序后（java无法直接向后跳写文件）入队落盘
+        Collections.sort(recoverableTmpFiles);
+        for (RecoverableTmpFile recoverableTmpFile : recoverableTmpFiles) {
+            long hash = MetaDataIndex.hash64(recoverableTmpFile.getStorageNamespace(), recoverableTmpFile.getTime(), recoverableTmpFile.getOffset());
+            this.enqueue(hash, recoverableTmpFile);
         }
 
         log.info("StorageEngine.recoverTmpFile() done.");
@@ -366,6 +384,17 @@ public class StorageEngine extends BaseStorageEngine {
         }
 
         return this.storageIndexMap.get(key);
+    }
+
+    /**
+     * enqueue
+     *
+     * @param hash
+     * @param recoverableTmpFile
+     */
+    private void enqueue(long hash, RecoverableTmpFile recoverableTmpFile) {
+        this.recoverableTmpFileHashMap.put(hash, recoverableTmpFile);
+        this.publishEvent(recoverableTmpFile);
     }
 
     /**

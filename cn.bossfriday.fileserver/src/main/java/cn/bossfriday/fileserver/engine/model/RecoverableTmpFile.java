@@ -15,7 +15,7 @@ import java.io.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecoverableTmpFile implements ICodec<RecoverableTmpFile> {
+public class RecoverableTmpFile implements ICodec<RecoverableTmpFile>, Comparable<RecoverableTmpFile> {
 
     /**
      * fileTransactionId
@@ -106,6 +106,16 @@ public class RecoverableTmpFile implements ICodec<RecoverableTmpFile> {
                     .filePath(filePath)
                     .build();
         }
+    }
+
+    @Override
+    public int compareTo(RecoverableTmpFile other) {
+        int timeComparison = Integer.compare(this.getTime(), other.getTime());
+        if (timeComparison != 0) {
+            return timeComparison;
+        }
+
+        return Long.compare(this.getOffset(), other.getOffset());
     }
 }
 
