@@ -3,6 +3,7 @@ package cn.bossfriday.fileserver.engine;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
+import cn.bossfriday.fileserver.common.conf.FileServerConfig;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
@@ -42,6 +43,7 @@ public class StorageEngine extends BaseStorageEngine {
 
     private ConcurrentHashMap<String, StorageIndex> storageIndexMap;
     private ConcurrentHashMap<Long, RecoverableTmpFile> recoverableTmpFileHashMap = new ConcurrentHashMap<>();
+    private StorageCleaner storageCleaner;
 
     @Getter
     private File baseDir;
@@ -67,14 +69,14 @@ public class StorageEngine extends BaseStorageEngine {
     @Override
     protected void startup() {
         try {
-            // 过期文件自动清理
-            this.cleanupExpiredFiles();
-
             // 未落盘临时文件异常恢复
             this.recoverTmpFile();
 
             // 加载存储指针
             this.loadStorageIndex();
+
+            // 过期文件自动清理
+            this.storageCleaner.startup();
         } catch (Exception ex) {
             log.error("StorageEngine.startup() error!", ex);
         }
@@ -84,6 +86,7 @@ public class StorageEngine extends BaseStorageEngine {
     protected void shutdown() {
         try {
             this.recoverTmpFile();
+            this.storageCleaner.shutdown();
         } catch (Exception ex) {
             log.error("StorageEngine.shutdown() error!", ex);
         }
@@ -255,9 +258,12 @@ public class StorageEngine extends BaseStorageEngine {
      */
     private void init() {
         try {
+            FileServerConfig config = FileServerConfigManager.getFileServerConfig();
+            this.storageCleaner = new StorageCleaner(config);
+
             // 存储空间
             this.namespaceMap = new HashMap<>(16);
-            FileServerConfigManager.getFileServerConfig().getNamespaces().forEach(item -> {
+            config.getNamespaces().forEach(item -> {
                 String key = item.getName().toLowerCase().trim();
                 if (!this.namespaceMap.containsKey(item.getName())) {
                     this.namespaceMap.put(key, item);
@@ -265,7 +271,7 @@ public class StorageEngine extends BaseStorageEngine {
             });
 
             // 目录初始化
-            this.baseDir = new File(FileServerConfigManager.getFileServerConfig().getStorageRootPath(), FileServerConfigManager.getCurrentClusterNodeName());
+            this.baseDir = new File(config.getStorageRootPath(), FileServerConfigManager.getCurrentClusterNodeName());
             if (!this.baseDir.exists()) {
                 this.baseDir.mkdirs();
             }
@@ -347,16 +353,6 @@ public class StorageEngine extends BaseStorageEngine {
         }
 
         log.info("StorageEngine.recoverTmpFile() done.");
-    }
-
-    /**
-     * cleanupExpiredFiles
-     */
-    private void cleanupExpiredFiles() {
-        /**
-         * TODO：
-         * 过期文件自动清理
-         */
     }
 
     /**
