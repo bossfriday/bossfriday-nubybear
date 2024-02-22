@@ -14,7 +14,6 @@
 > * **高可用暂时不考虑实现的主要原因是实现了之后其实可以直接商用（目前只是考虑供学习交流使用）。几年前实现那版以上都进行了实现，并且经历了上百家私有部署IM的项目及公司内部使用的考验；当前的完成情况可以认为是一个准商用水平，因为在多节点部署的情况下，只要不是所有的节点都挂了，功能不受影响，唯一影响的是宕机节点的文件下载（可以通过手工的方式将宕机节点的数据复制到另外的服务器上，即可恢复）。**
 > * **接口均没有鉴权（一般来说删除接口需要鉴权、上传接口酌情鉴权），需要鉴权的自行实现。**
 > * **ActorRPC放弃Disruptor改回最初使用的LinkedBlockingQueue。原因：环形缓存区内存不会释放，不利于传输文件这种大消息体的应用场景。另外形缓存区容量如果不大Disruptor性能与LinkedBlockingQueue差异不大。**
-> * **介绍：[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
 
 # 1. 整体说明
 
@@ -26,14 +25,15 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 
 **项目说明**
 
-* actor-rpc，相关说明详见：[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)
-* 其他公共组件及工具类；
+* actor-rpc，详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
+* 公共组件及工具；
 
 ## 2.2. cn.bossfriday.fileserver
 
 **项目说明**
 
 * 高性能分布式文件服务；
+* 详细介绍：**[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
 
 **设计预期**
 
