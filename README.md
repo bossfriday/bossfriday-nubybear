@@ -26,6 +26,7 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 **项目说明**
 
 * actor-rpc，详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
+* 性能测试：**[https://blog.csdn.net/camelials/article/details/123614068](https://blog.csdn.net/camelials/article/details/123614068)**
 * 公共组件及工具；
 
 **Actor-Rpc设计预期**
