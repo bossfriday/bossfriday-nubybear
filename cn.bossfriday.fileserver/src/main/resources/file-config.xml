@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+    <!--文件服务http端口-->
     <httpPort>18086</httpPort>
+
+    <!--存储文件跟文件夹路径-->
     <storageRootPath>fileData</storageRootPath>
+
+    <!--过期文件清理扫描时间间隔-->
+    <cleanerScanInterval>36000</cleanerScanInterval>
+
+    <!--存储空间：name：存储空间名称（存储空间根目录以此命名）；expireDay：存储空间文件过期时间，<=0表示永不过期-->
     <namespaces>
         <!--普通空间-->
         <namespace name="normal" expireDay="180"/>
+
         <!--永久存储空间-->
         <namespace name="forever" expireDay="-1"/>
     </namespaces>

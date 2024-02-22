@@ -84,26 +84,26 @@ public class RecoverableTmpFile implements ICodec<RecoverableTmpFile>, Comparabl
     public RecoverableTmpFile deserialize(byte[] bytes) throws IOException {
         try (ByteArrayInputStream in = new ByteArrayInputStream(bytes);
              DataInputStream dis = new DataInputStream(in)) {
-            String fileTransactionId = dis.readUTF();
-            int storeEngineVersion = dis.readInt();
-            String storageNamespace = dis.readUTF();
-            int time = dis.readInt();
-            long offset = dis.readLong();
-            long timestamp = dis.readLong();
-            String fileName = dis.readUTF();
-            long fileTotalSize = dis.readLong();
-            String filePath = dis.readUTF();
+            String fileTransactionIdValue = dis.readUTF();
+            int storeEngineVersionValue = dis.readInt();
+            String storageNamespaceValue = dis.readUTF();
+            int timeValue = dis.readInt();
+            long offsetValue = dis.readLong();
+            long timestampValue = dis.readLong();
+            String fileNameValue = dis.readUTF();
+            long fileTotalSizeValue = dis.readLong();
+            String filePathValue = dis.readUTF();
 
             return RecoverableTmpFile.builder()
-                    .fileTransactionId(fileTransactionId)
-                    .storeEngineVersion(storeEngineVersion)
-                    .storageNamespace(storageNamespace)
-                    .time(time)
-                    .offset(offset)
-                    .timestamp(timestamp)
-                    .fileName(fileName)
-                    .fileTotalSize(fileTotalSize)
-                    .filePath(filePath)
+                    .fileTransactionId(fileTransactionIdValue)
+                    .storeEngineVersion(storeEngineVersionValue)
+                    .storageNamespace(storageNamespaceValue)
+                    .time(timeValue)
+                    .offset(offsetValue)
+                    .timestamp(timestampValue)
+                    .fileName(fileNameValue)
+                    .fileTotalSize(fileTotalSizeValue)
+                    .filePath(filePathValue)
                     .build();
         }
     }

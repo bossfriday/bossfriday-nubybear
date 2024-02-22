@@ -26,6 +26,10 @@ public class FileServerConfig {
     private String storageRootPath;
 
     @Getter
+    @XmlElement(name = "cleanerScanInterval")
+    private Integer cleanerScanInterval;
+
+    @Getter
     @XmlElementWrapper(name = "namespaces")
     @XmlElement(name = "namespace")
     private List<StorageNamespace> namespaces;
