@@ -28,6 +28,13 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 * actor-rpc，详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
 * 公共组件及工具；
 
+**Actor-Rpc设计预期**
+* 使用protostuff序列化（.proto文件编写恶心，与Protocol Buffer性能几乎接近）
+* 使用Netty进行通讯（同节点RPC不走网络，直接入收件箱队列）；
+* 路由策略：随机路由、指定Key路由、资源Id路由、强制路由
+* 使用ZK进行集群状态管理
+* 使用自定义注解进行服务注册及辅助控制（线程数量、方法名称设置等）
+
 ## 2.2. cn.bossfriday.fileserver
 
 **项目说明**
