@@ -25,8 +25,8 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 
 **项目说明**
 
-* actor-rpc，详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
-* 性能测试：**[https://blog.csdn.net/camelials/article/details/123614068](https://blog.csdn.net/camelials/article/details/123614068)**
+* Actor-Rpc详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
+* Actor-Rpc性能测试：**[https://blog.csdn.net/camelials/article/details/123614068](https://blog.csdn.net/camelials/article/details/123614068)**
 * 公共组件及工具；
 
 **Actor-Rpc设计预期**
@@ -41,7 +41,7 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 **项目说明**
 
 * 高性能分布式文件服务；
-* 详细介绍：**[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
+* 详细介绍及性能测试：**[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
 
 **设计预期**
 
