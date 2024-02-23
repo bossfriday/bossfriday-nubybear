@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * FileServerBootstrap
+ * <p>
+ * 文件服务：负责文件存储相关；
  *
  * @author chenx
  */
