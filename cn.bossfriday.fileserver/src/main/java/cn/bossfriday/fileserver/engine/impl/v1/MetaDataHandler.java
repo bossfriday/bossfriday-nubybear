@@ -6,6 +6,7 @@ import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -52,12 +53,16 @@ public class MetaDataHandler implements IMetaDataHandler {
         String metaDataIndexString = Base58Util.encode(bytes);
 
         // 使用Content-Disposition头保障原文件名下载
-        return "/" + URL_RESOURCE + "/" + URL_PREFIX_STORAGE_VERSION + metaDataIndex.getStoreEngineVersion() + "/" + metaDataIndexString;
+        if (StringUtils.isEmpty(metaDataIndex.getFileExtName())) {
+            return "/" + URL_RESOURCE + "/" + URL_PREFIX_STORAGE_VERSION + metaDataIndex.getStoreEngineVersion() + "/" + metaDataIndexString;
+        }
+
+        return "/" + URL_RESOURCE + "/" + URL_PREFIX_STORAGE_VERSION + metaDataIndex.getStoreEngineVersion() + "/" + metaDataIndexString + "." + metaDataIndex.getFileExtName();
     }
 
     @Override
     public MetaDataIndex downloadUrlDecode(String input) throws IOException {
-        byte[] bytes = Base58Util.decode(input);
+        byte[] bytes = Base58Util.decode(formatInput(input));
         obfuscateMetaDataIndex(bytes);
 
         return new MetaDataIndex().deserialize(bytes);
@@ -86,5 +91,20 @@ public class MetaDataHandler implements IMetaDataHandler {
         for (int i = HASH_CODE_LENGTH; i < bytes.length; i++) {
             bytes[i] = (byte) (hashBytes[i % HASH_CODE_LENGTH] ^ leftBytes[i - HASH_CODE_LENGTH]);
         }
+    }
+
+    /**
+     * formatInput
+     *
+     * @param input
+     * @return
+     */
+    private static String formatInput(String input) {
+        int index = input.lastIndexOf(".");
+        if (index == -1) {
+            return input;
+        }
+
+        return input.substring(0, index);
     }
 }
