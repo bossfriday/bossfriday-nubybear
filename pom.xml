@@ -13,7 +13,6 @@
         <module>cn.bossfriday.jmeter</module>
         <module>cn.bossfriday.im.navigator</module>
         <module>cn.bossfriday.im.access</module>
-        <module>cn.bossfriday.protocolstack</module>
     </modules>
 
     <properties>
