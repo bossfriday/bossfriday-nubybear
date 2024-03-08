@@ -1,6 +1,7 @@
 package cn.bossfriday.common.utils;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -149,7 +150,6 @@ public class ByteUtil {
      *
      * @param str
      * @return
-     * @throws ServiceRuntimeException
      */
     public static byte[] string2Bytes(String str) {
         if (StringUtils.isEmpty(str)) {
@@ -164,7 +164,6 @@ public class ByteUtil {
      *
      * @param bytes
      * @return
-     * @throws ServiceRuntimeException
      */
     public static String bytes2String(byte[] bytes) {
         if (bytes == null) {
@@ -283,5 +282,80 @@ public class ByteUtil {
         }
 
         return num;
+    }
+
+    /**
+     * getBytesFromStart
+     *
+     * @param array
+     * @param length
+     * @return
+     */
+    public static byte[] getBytesFromStart(byte[] array, int length) {
+        if (ArrayUtils.isEmpty(array)) {
+            throw new IllegalArgumentException("the input bytes is empty!");
+        }
+
+        if (length <= 0) {
+            throw new IllegalArgumentException("The length must >0!");
+        }
+
+        if (array.length < length) {
+            throw new IllegalArgumentException("the input bytes.length must > " + length + "!");
+        }
+
+        byte[] result = new byte[length];
+        System.arraycopy(array, 0, result, 0, length);
+
+        return result;
+    }
+
+    /**
+     * mergeBytes
+     *
+     * @param arrays
+     * @return
+     */
+    public static byte[] mergeBytes(byte[]... arrays) {
+        int totalLength = 0;
+        for (byte[] array : arrays) {
+            totalLength += array.length;
+        }
+
+        byte[] result = new byte[totalLength];
+        int currentIndex = 0;
+
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, result, currentIndex, array.length);
+            currentIndex += array.length;
+        }
+
+        return result;
+    }
+
+    /**
+     * obfuscateBytes
+     *
+     * @param bytes
+     * @param hashBytesLength
+     */
+    public static void hashObfuscate(byte[] bytes, int hashBytesLength) {
+        if (hashBytesLength <= 0) {
+            throw new IllegalArgumentException("invalid hashLength!");
+        }
+
+        if (ArrayUtils.isEmpty(bytes) || bytes.length <= hashBytesLength) {
+            throw new IllegalArgumentException("bytes.length <= " + hashBytesLength);
+        }
+
+        int leftBytesSize = bytes.length - hashBytesLength;
+        byte[] hashBytes = new byte[hashBytesLength];
+        byte[] leftBytes = new byte[leftBytesSize];
+
+        System.arraycopy(bytes, 0, hashBytes, 0, hashBytesLength);
+        System.arraycopy(bytes, hashBytesLength, leftBytes, 0, leftBytesSize);
+        for (int i = hashBytesLength; i < bytes.length; i++) {
+            bytes[i] = (byte) (hashBytes[i % hashBytesLength] ^ leftBytes[i - hashBytesLength]);
+        }
     }
 }

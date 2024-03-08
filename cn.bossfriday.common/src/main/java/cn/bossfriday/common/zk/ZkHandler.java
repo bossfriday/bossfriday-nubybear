@@ -105,7 +105,7 @@ public class ZkHandler {
             if (obj instanceof String) {
                 data = (String) obj;
             } else {
-                data = GsonUtil.beanToJson(JsonNull.INSTANCE);
+                data = GsonUtil.toJson(JsonNull.INSTANCE);
             }
         }
 
@@ -252,7 +252,7 @@ public class ZkHandler {
     }
 
     public <T> T getData(String path, Class<T> cls) throws Exception {
-        return GsonUtil.gsonToBean(this.getData(path), cls);
+        return GsonUtil.fromJson(this.getData(path), cls);
     }
 
     /**
@@ -272,7 +272,7 @@ public class ZkHandler {
         if (obj instanceof String) {
             jsonStr = (String) obj;
         } else {
-            jsonStr = GsonUtil.beanToJson(obj);
+            jsonStr = GsonUtil.toJson(obj);
         }
 
         this.client.create().creatingParentsIfNeeded().withMode(mode).forPath(path, ByteUtil.string2Bytes(jsonStr));

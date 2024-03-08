@@ -27,12 +27,12 @@ public class GsonUtil {
     }
 
     /**
-     * beanToJson
+     * toJson
      *
      * @param object
      * @return
      */
-    public static String beanToJson(Object object) {
+    public static String toJson(Object object) {
         String gsonString = null;
         if (gson != null) {
             gsonString = gson.toJson(object);
@@ -49,7 +49,7 @@ public class GsonUtil {
      * @param <T>
      * @return
      */
-    public static <T> T gsonToBean(String gsonString, Class<T> cls) {
+    public static <T> T fromJson(String gsonString, Class<T> cls) {
         T t = null;
         if (gson != null) {
             t = gson.fromJson(gsonString, cls);

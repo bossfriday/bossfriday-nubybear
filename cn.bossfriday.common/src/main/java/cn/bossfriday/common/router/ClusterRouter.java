@@ -104,7 +104,7 @@ public class ClusterRouter {
                 this.zkHandler.deleteNode(zkNodePath);
             }
 
-            String value = GsonUtil.beanToJson(this.currentNode);
+            String value = GsonUtil.toJson(this.currentNode);
             this.zkHandler.addEphemeralNode(zkNodePath, value);
             log.info("registryService() done, path:" + zkNodePath + " , value:" + value);
         } finally {

@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>cn.bossfriday.im.protocol</artifactId>
+    <artifactId>cn.bossfriday.im.common</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

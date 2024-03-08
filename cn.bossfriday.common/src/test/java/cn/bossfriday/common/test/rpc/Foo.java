@@ -28,7 +28,7 @@ public class Foo {
                 byte[] data = ProtostuffCodecUtil.serialize(foo);
                 Foo result = ProtostuffCodecUtil.deserialize(data, Foo.class);
                 System.out.println(result.toString());
-                System.out.println(GsonUtil.beanToJson(foo));
+                System.out.println(GsonUtil.toJson(foo));
             });
         }
     }

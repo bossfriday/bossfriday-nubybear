@@ -76,6 +76,6 @@ public class ClusterNode extends BaseClusterNode<ClusterNode> {
 
     @Override
     public String toString() {
-        return GsonUtil.beanToJson(this);
+        return GsonUtil.toJson(this);
     }
 }

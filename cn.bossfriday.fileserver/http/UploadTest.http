@@ -5,7 +5,7 @@ Cache-Control: no-cache
 Content-Type: multipart/form-data; boundary=Boundary12345
 
 --Boundary12345
-Content-Disposition: form-data; name="type"
+Content-Disposition: form-data; name="mqttMessageType"
 
 image/png
 --Boundary12345
