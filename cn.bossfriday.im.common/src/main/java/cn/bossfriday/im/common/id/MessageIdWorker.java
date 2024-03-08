@@ -13,16 +13,16 @@ import java.io.*;
 import java.util.Base64;
 
 /**
- * MessageIdCodec
+ * MessageIdWorker
  *
  * @author chenx
  */
-public class MessageIdCodec {
+public class MessageIdWorker {
 
     public static final int MESSAGE_ID_BYTES_LENGTH = 10;
     public static final int MESSAGE_ID_STRING_LENGTH = 19;
 
-    private MessageIdCodec() {
+    private MessageIdWorker() {
 
     }
 
@@ -46,10 +46,10 @@ public class MessageIdCodec {
      */
     public static String getOpenMsgId(String msgId, int msgType) {
         long msgTime = getMessageTime(msgId);
-        byte[] msgIdBytes = MessageIdCodec.messageIdDecode(msgId);
-        byte[] openMsgIdBytes = MessageIdCodec.openMessageIdSerialize(msgIdBytes, msgTime, msgType);
+        byte[] msgIdBytes = MessageIdWorker.messageIdDecode(msgId);
+        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgTime, msgType);
 
-        return MessageIdCodec.openMessageIdEncode(openMsgIdBytes);
+        return MessageIdWorker.openMessageIdEncode(openMsgIdBytes);
     }
 
     /**
@@ -61,9 +61,9 @@ public class MessageIdCodec {
      * @return
      */
     public static String getMsgId(long time, int channelType, String targetId) {
-        byte[] msgIdBytes = MessageIdCodec.messageIdSerialize(time, channelType, targetId);
+        byte[] msgIdBytes = MessageIdWorker.messageIdSerialize(time, channelType, targetId);
 
-        return MessageIdCodec.messageIdEncode(msgIdBytes);
+        return MessageIdWorker.messageIdEncode(msgIdBytes);
     }
 
     /**
