@@ -17,7 +17,10 @@ import java.util.Base64;
  * MessageIdWorker
  * <p>
  * messageId：不对外公开的系统内部消息ID，例如：消息存储等适使用；
- * openMessageId：对外公开的消息ID，例如：调用IM开放平台HttpAPI发消息接口应答；
+ * openMessageId：对外公开的消息ID，例如：调用IM开放平台HttpAPI发消息接口应答中的对外公开的消息ID；
+ * <p>
+ * 备注：
+ * 原则上messageId也无法直接穷举，对外公开也具备一定安全性，不过相对openMessageId破解难度相对低。
  *
  * @author chenx
  */
