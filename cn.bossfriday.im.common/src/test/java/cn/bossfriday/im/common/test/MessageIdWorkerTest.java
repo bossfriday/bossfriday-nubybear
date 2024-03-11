@@ -9,6 +9,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static cn.bossfriday.im.common.id.MessageIdWorker.MESSAGE_ID_STRING_LENGTH;
 
 /**
@@ -52,5 +55,18 @@ public class MessageIdWorkerTest {
         Assert.assertEquals(MESSAGE_ID_STRING_LENGTH, result.getMsgId().length());
         Assert.assertEquals(time, result.getTime());
         Assert.assertEquals(msgType, result.getMsgType());
+    }
+
+    public static void main(String[] args) {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    String msgId = MessageIdWorker.getMsgId(System.currentTimeMillis(), 1, "user1");
+                    System.out.println(msgId);
+                }
+            });
+        }
     }
 }
