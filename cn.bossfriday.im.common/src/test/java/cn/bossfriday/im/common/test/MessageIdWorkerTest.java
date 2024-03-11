@@ -63,7 +63,7 @@ public class MessageIdWorkerTest {
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    String msgId = MessageIdWorker.getMsgId(System.currentTimeMillis(), 1, "user1");
+                    String msgId = MessageIdWorker.getMessageId(System.currentTimeMillis(), 1, "user1");
                     System.out.println(msgId);
                 }
             });

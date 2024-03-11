@@ -14,6 +14,9 @@ import java.util.Base64;
 
 /**
  * MessageIdWorker
+ * <p>
+ * messageId：不对外公开的系统内部消息ID，例如：消息存储等适使用；
+ * openMessageId：对外公开的消息ID，例如：调用IM开放平台HttpAPI发消息接口应答；
  *
  * @author chenx
  */
@@ -38,13 +41,13 @@ public class MessageIdWorker {
     private static int currentSeq = 0;
 
     /**
-     * getOpenMsgId
+     * getOpenMessageId
      *
      * @param msgId
      * @param msgType
      * @return
      */
-    public static String getOpenMsgId(String msgId, int msgType) {
+    public static String getOpenMessageId(String msgId, int msgType) {
         long msgTime = getMessageTime(msgId);
         byte[] msgIdBytes = MessageIdWorker.messageIdDecode(msgId);
         byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgTime, msgType);
@@ -53,14 +56,14 @@ public class MessageIdWorker {
     }
 
     /**
-     * getMsgId
+     * getMessageId
      *
      * @param time
      * @param channelType
      * @param targetId
      * @return
      */
-    public static String getMsgId(long time, int channelType, String targetId) {
+    public static String getMessageId(long time, int channelType, String targetId) {
         byte[] msgIdBytes = MessageIdWorker.messageIdSerialize(time, channelType, targetId);
 
         return MessageIdWorker.messageIdEncode(msgIdBytes);
