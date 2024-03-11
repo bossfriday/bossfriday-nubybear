@@ -6,6 +6,9 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * MessageType
+ * <p>
+ * 内置消息：常用消息格式，例如：文本消息，图片消息，位置消息，语音消息；
+ * 非内置消息：可以理解位自定义消息，例如：“XXX正在输入”这种用自定义消息方式实现的功能；
  *
  * @author chenx
  */
@@ -14,7 +17,9 @@ public enum MessageType {
     /**
      * 内置消息（1 - 50）：预留50种应该足够表达目前已有内置消息；
      */
-    NB_TXT_MSG((byte) 1, "RC:TxtMsg", TextAppMessage.class),
+    NB_TXT_MSG((byte) 1, "NB:TxtMsg", TextAppMessage.class),
+    NB_IMG_MSG((byte) 2, "NB:ImgMsg", null),
+    NB_IMG_TXT_MSG((byte) 3, "NB:ImgTxtMsg", null),
 
 
     /**
@@ -23,8 +28,19 @@ public enum MessageType {
 
     ;
 
+    /**
+     * 消息类型（1字节无符号Int）
+     */
     private byte type;
+
+    /**
+     * 消息类型代码
+     */
     private String code;
+
+    /**
+     * 消息实体对象类型
+     */
     private Class<? extends AppMessage> appMessageType;
 
     MessageType(byte type, String code, Class<? extends AppMessage> appMessageType) {
