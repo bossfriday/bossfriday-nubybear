@@ -19,6 +19,7 @@ import static cn.bossfriday.im.common.id.MessageIdWorker.MESSAGE_ID_STRING_LENGT
  *
  * @author chenx
  */
+@SuppressWarnings("all")
 @RunWith(MockitoJUnitRunner.class)
 public class MessageIdWorkerTest {
 
@@ -31,6 +32,7 @@ public class MessageIdWorkerTest {
     public void msgIdWorkerTest() {
         // test messageIdEncode
         long msgTime = System.currentTimeMillis();
+        System.out.println("msgTime:" + msgTime);
         int channelType = 1;
         String targetId = "user1";
         byte[] msgIdBytes1 = MessageIdWorker.messageIdSerialize(msgTime, channelType, targetId);
@@ -44,29 +46,28 @@ public class MessageIdWorkerTest {
         Assert.assertEquals(msgId1, msgId2);
 
         // test openMessageIdSerialize & openMessageIdEncode
-        long time = msgTime + 123L;
         int msgType = MessageType.NB_TXT_MSG.getType();
-        byte[] openMsgBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes2, time, msgType);
+        byte[] openMsgBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes2, msgType);
         String openMessageId = MessageIdWorker.openMessageIdEncode(openMsgBytes);
         System.out.println("openMessageId1: " + openMessageId);
         OpenMessageId result = MessageIdWorker.openMessageIdDecode(openMessageId);
         System.out.println("result: " + result);
 
         Assert.assertEquals(MESSAGE_ID_STRING_LENGTH, result.getMsgId().length());
-        Assert.assertEquals(time, result.getTime());
+        Assert.assertEquals(msgTime, result.getTime());
         Assert.assertEquals(msgType, result.getMsgType());
     }
 
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         for (int i = 0; i < 100; i++) {
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    String msgId = MessageIdWorker.getMessageId(System.currentTimeMillis(), 1, "user1");
-                    System.out.println(msgId);
-                }
+            executorService.submit(() -> {
+                String msgId = MessageIdWorker.getMessageId(System.currentTimeMillis(), 1, "user1");
+                String openMsgId = MessageIdWorker.getOpenMessageId(msgId, MessageType.NB_TXT_MSG.getType());
+                System.out.println("msgId: " + msgId + ", openMsgId:" + openMsgId);
             });
         }
+
+        executorService.shutdown();
     }
 }

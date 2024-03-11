@@ -48,9 +48,8 @@ public class MessageIdWorker {
      * @return
      */
     public static String getOpenMessageId(String msgId, int msgType) {
-        long msgTime = getMessageTime(msgId);
         byte[] msgIdBytes = MessageIdWorker.messageIdDecode(msgId);
-        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgTime, msgType);
+        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgType);
 
         return MessageIdWorker.openMessageIdEncode(openMsgIdBytes);
     }
@@ -71,6 +70,11 @@ public class MessageIdWorker {
 
     /**
      * messageIdSerialize
+     * <p>
+     * 消息时间戳（阉割版时间戳：最长可表示到2109年）：42位
+     * 消息自旋ID：12位
+     * 消息会话类型（例如：单聊，群聊，公众号消息等）：4位
+     * 消息目标用户ID哈希值：22位
      *
      * @param time
      * @param channelType
@@ -105,6 +109,10 @@ public class MessageIdWorker {
 
     /**
      * messageIdEncode
+     * <p>
+     * 将 10 字节的数据人为的分成 12 组 0 到 31 的无符号整数，
+     * 然后根据每组的值映射到 BASE_32_ENCODE_CHARS 数组中的相应字符，
+     * 同时每组用 "-" 切分，最终生成一个字符串；
      *
      * @param data
      * @return
@@ -215,42 +223,31 @@ public class MessageIdWorker {
 
     /**
      * openMessageIdSerialize
+     * <p>
+     * 2字节：short hash值
+     * 10字节：MsgId序列化值
+     * 1字节：msgType
      *
      * @param msgIdBytes
-     * @param time
      * @param msgType
      * @return
      */
-    public static byte[] openMessageIdSerialize(byte[] msgIdBytes, long time, int msgType) {
+    public static byte[] openMessageIdSerialize(byte[] msgIdBytes, int msgType) {
         checkMsgIdBytes(msgIdBytes);
         MessageType messageType = MessageType.getByType(msgType);
         if (ObjectUtils.isEmpty(messageType)) {
             throw new ServiceRuntimeException("unsupported msgType(" + msgType + ")!");
         }
 
-        int timeOffset = (int) (time - getMessageTime(msgIdBytes));
-        if (timeOffset > Integer.MAX_VALUE || timeOffset < Integer.MIN_VALUE) {
-            throw new ServiceRuntimeException("timeOffset out of range!");
-        }
-
         byte[] msgTypeBytes = new byte[]{messageType.getType()};
-        byte[] timeOffsetBytes = ByteUtil.int2Bytes(timeOffset);
-        byte[] data = ByteUtil.mergeBytes(msgIdBytes, msgTypeBytes, timeOffsetBytes);
+        byte[] data = ByteUtil.mergeBytes(msgIdBytes, msgTypeBytes);
         short dataHash = (short) MurmurHashUtil.hash32(data);
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream dos = new DataOutputStream(out)) {
-
-            /**
-             * 2字节：short hash值
-             * 10字节：MsgId序列化值
-             * 1字节：msgType
-             * 4字节：timeOffset
-             */
             dos.writeShort(dataHash);
             dos.write(msgIdBytes);
             dos.write(msgTypeBytes);
-            dos.writeInt(timeOffset);
 
             return out.toByteArray();
         } catch (IOException ex) {
@@ -288,18 +285,15 @@ public class MessageIdWorker {
              DataInputStream dis = new DataInputStream(in)
         ) {
             byte[] msgIdBytes = new byte[MESSAGE_ID_BYTES_LENGTH];
-
             dis.readShort();
             if (dis.read(msgIdBytes) != MESSAGE_ID_BYTES_LENGTH) {
                 throw new ServiceRuntimeException("openMessageIdDecode error!(read msgIdBytes error) ");
             }
 
             byte msgTypeByte = dis.readByte();
-            int timeOffset = dis.readInt();
-
             MessageType msgType = MessageType.getByType(msgTypeByte);
             String msgId = messageIdEncode(msgIdBytes);
-            long time = getMessageTime(msgIdBytes) + timeOffset;
+            long time = getMessageTime(msgIdBytes);
 
             return new OpenMessageId(msgId, msgType.getType(), time);
         } catch (Exception ex) {
