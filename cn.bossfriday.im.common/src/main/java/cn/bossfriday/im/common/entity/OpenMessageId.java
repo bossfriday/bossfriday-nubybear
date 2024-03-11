@@ -32,6 +32,11 @@ public class OpenMessageId {
      */
     private long time;
 
+    /**
+     * 消息方向
+     */
+    private int msgDirection;
+
     @Override
     public String toString() {
         return GsonUtil.toJson(this);

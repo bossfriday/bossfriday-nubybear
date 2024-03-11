@@ -4,6 +4,7 @@ import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import cn.bossfriday.im.common.entity.OpenMessageId;
+import cn.bossfriday.im.common.enums.MessageDirection;
 import cn.bossfriday.im.common.enums.MessageType;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -47,9 +48,9 @@ public class MessageIdWorker {
      * @param msgType
      * @return
      */
-    public static String getOpenMessageId(String msgId, int msgType) {
+    public static String getOpenMessageId(String msgId, int msgType, int msgDirection) {
         byte[] msgIdBytes = MessageIdWorker.messageIdDecode(msgId);
-        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgType);
+        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgType, msgDirection);
 
         return MessageIdWorker.openMessageIdEncode(openMsgIdBytes);
     }
@@ -225,22 +226,25 @@ public class MessageIdWorker {
      * openMessageIdSerialize
      * <p>
      * 2字节：short hash值
-     * 10字节：MsgId序列化值
-     * 1字节：msgType
-     *
-     * @param msgIdBytes
-     * @param msgType
-     * @return
+     * 10字节：消息ID
+     * 1字节：消息类型
+     * 1字节：消息方向
      */
-    public static byte[] openMessageIdSerialize(byte[] msgIdBytes, int msgType) {
+    public static byte[] openMessageIdSerialize(byte[] msgIdBytes, int msgType, int msgDirection) {
         checkMsgIdBytes(msgIdBytes);
         MessageType messageType = MessageType.getByType(msgType);
         if (ObjectUtils.isEmpty(messageType)) {
             throw new ServiceRuntimeException("unsupported msgType(" + msgType + ")!");
         }
 
+        MessageDirection messageDirection = MessageDirection.getByCode(msgDirection);
+        if (ObjectUtils.isEmpty(messageDirection)) {
+            throw new ServiceRuntimeException("unsupported messageDirection(" + messageDirection + ")!");
+        }
+
         byte[] msgTypeBytes = new byte[]{messageType.getType()};
-        byte[] data = ByteUtil.mergeBytes(msgIdBytes, msgTypeBytes);
+        byte[] msgDirectionBytes = new byte[]{(byte) msgDirection};
+        byte[] data = ByteUtil.mergeBytes(msgIdBytes, msgTypeBytes, msgDirectionBytes);
         short dataHash = (short) MurmurHashUtil.hash32(data);
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -248,6 +252,7 @@ public class MessageIdWorker {
             dos.writeShort(dataHash);
             dos.write(msgIdBytes);
             dos.write(msgTypeBytes);
+            dos.write(msgDirectionBytes);
 
             return out.toByteArray();
         } catch (IOException ex) {
@@ -291,11 +296,22 @@ public class MessageIdWorker {
             }
 
             byte msgTypeByte = dis.readByte();
+            byte msgDirectionByte = dis.readByte();
+
             MessageType msgType = MessageType.getByType(msgTypeByte);
+            if (ObjectUtils.isEmpty(msgType)) {
+                throw new ServiceRuntimeException("unsupported msgType(" + msgTypeByte + ")!");
+            }
+
+            MessageDirection messageDirection = MessageDirection.getByCode(msgDirectionByte);
+            if (ObjectUtils.isEmpty(messageDirection)) {
+                throw new ServiceRuntimeException("unsupported messageDirection(" + msgDirectionByte + ")!");
+            }
+
             String msgId = messageIdEncode(msgIdBytes);
             long time = getMessageTime(msgIdBytes);
 
-            return new OpenMessageId(msgId, msgType.getType(), time);
+            return new OpenMessageId(msgId, msgType.getType(), time, messageDirection.getCode());
         } catch (Exception ex) {
             throw new ServiceRuntimeException("openMessageIdDecode error!(" + ex.getMessage() + ")");
         }
