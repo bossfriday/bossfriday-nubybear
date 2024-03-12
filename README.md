@@ -48,15 +48,18 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 ## 2.4 cn.bossfriday.im.access（建设中）
 IM系统接入服务，计划使用netty实现一个基于TCP的私有协议的长连接接入服务；
 
-## 2.5 cn.bossfriday.im.navigator（建设中）
+## 2.5 cn.bossfriday.im.common（建设中）
+IM系统公共组件/类等公用代码；
+
+## 2.6 cn.bossfriday.im.navigator（建设中）
 IM系统导航服务，负责客户端接入地址及全局配置下发（根据用户ID做一致性哈希计算得到接入服务cn.bossfriday.im.access的地址）；
 
-## 2.6 cn.bossfriday.im.message（建设中）
+## 2.7 cn.bossfriday.im.protocol（建设中）
 IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
 
-# Release Note
+# 3. Release Note
 
-## cn.bossfriday.fileserver
+## 3.1 cn.bossfriday.fileserver
 
 * 【2022-05-06】**原型发布，普通全量上传**：由于使用了chunk分片机制 + actorRPC，即使大文件不做断点上传，也不至于使文件服务炸线程和内存。chunked下载（完成）、压力测试（完成）。
 * 【2022-11-10】**Base64上传**：客户端截屏等小文件上传使用（由于对不完整的部分base64字符串解码可能失败，因此需要先在httpServer层面自行进行聚合后再对完整信息进行base64解码，这是base64上传只适用于小文件上传的原因）。
