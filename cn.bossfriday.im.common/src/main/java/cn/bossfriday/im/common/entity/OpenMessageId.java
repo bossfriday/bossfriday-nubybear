@@ -23,7 +23,7 @@ public class OpenMessageId {
     private String msgId;
 
     /**
-     * 消息类型（对应MessageType枚举）
+     * 消息类型（取值范围对应MessageType枚举）
      */
     private byte msgType;
 
@@ -33,7 +33,7 @@ public class OpenMessageId {
     private long time;
 
     /**
-     * 消息方向
+     * 消息方向（取值范围对应MessageDirection枚举）
      */
     private int msgDirection;
 
