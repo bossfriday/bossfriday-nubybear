@@ -29,6 +29,17 @@ public class UUIDUtil {
     }
 
     /**
+     * getUUID
+     *
+     * @param msb
+     * @param lsb
+     * @return
+     */
+    public static UUID getUUID(long msb, long lsb) {
+        return new UUID(msb, lsb);
+    }
+
+    /**
      * getUuidBytes
      *
      * @return

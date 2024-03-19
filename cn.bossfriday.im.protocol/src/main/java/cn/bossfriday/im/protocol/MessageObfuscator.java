@@ -1,6 +1,6 @@
 package cn.bossfriday.im.protocol;
 
-import cn.bossfriday.im.protocol.enums.AccessKeyType;
+import cn.bossfriday.common.utils.ByteUtil;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,6 +13,11 @@ import static cn.bossfriday.im.protocol.core.MqttException.OBFUSCATE_KEY_NOT_EXI
  */
 public class MessageObfuscator {
 
+    public static final int ACCESS_KEY_TYPE_1 = 1;
+    public static final int ACCESS_KEY_TYPE_2 = 2;
+    public static final int ACCESS_KEY_TYPE_3 = 3;
+    public static final int ACCESS_KEY_TYPE_4 = 4;
+
     private static ConcurrentHashMap<Integer, byte[]> keyMap;
 
     private MessageObfuscator() {
@@ -20,12 +25,15 @@ public class MessageObfuscator {
     }
 
     static {
+        /**
+         * 用随机的Long作为payload数据的混淆Key，这里hardcode几个；
+         * 推荐的做法是：每个租户(AppKey)对应一个；
+         */
         keyMap = new ConcurrentHashMap<>();
-        keyMap.put(AccessKeyType.KEY_104.getCode(), new byte[]{104, 80, 29, 15, 11, 31, 27, 127});
-        keyMap.put(AccessKeyType.KEY_105.getCode(), new byte[]{105, 79, 18, 36, 14, 40, 21, 122});
-        keyMap.put(AccessKeyType.KEY_106.getCode(), new byte[]{106, 79, 19, 35, 14, 41, 20, 121});
-        keyMap.put(AccessKeyType.KEY_107.getCode(), new byte[]{107, 76, 22, 32, 17, 38, 23, 118});
-        keyMap.put(AccessKeyType.KEY_108.getCode(), new byte[]{108, 77, 21, 33, 16, 39, 22, 119});
+        keyMap.put(ACCESS_KEY_TYPE_1, ByteUtil.long2Bytes(2270231280823045204L));
+        keyMap.put(ACCESS_KEY_TYPE_2, ByteUtil.long2Bytes(3515474498928459554L));
+        keyMap.put(ACCESS_KEY_TYPE_3, ByteUtil.long2Bytes(6688311763110703555L));
+        keyMap.put(ACCESS_KEY_TYPE_4, ByteUtil.long2Bytes(7591152070512697697L));
     }
 
     /**
@@ -33,16 +41,16 @@ public class MessageObfuscator {
      *
      * @param data
      * @param start
-     * @param keyType
+     * @param accessKeyType
      * @return
      */
-    public static byte[] obfuscateData(byte[] data, int start, int keyType) {
+    public static byte[] obfuscateData(byte[] data, int start, int accessKeyType) {
         int dataLen = data.length;
-        if (!keyMap.containsKey(keyType)) {
+        if (!keyMap.containsKey(accessKeyType)) {
             throw OBFUSCATE_KEY_NOT_EXISTED_EXCEPTION;
         }
 
-        byte[] key = keyMap.get(keyType);
+        byte[] key = keyMap.get(accessKeyType);
         int keyLen = key.length;
         int b = 0;
         for (int i = start; i < dataLen; i += keyLen) {

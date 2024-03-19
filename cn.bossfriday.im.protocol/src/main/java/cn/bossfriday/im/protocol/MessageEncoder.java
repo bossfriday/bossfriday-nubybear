@@ -15,10 +15,10 @@ import java.util.Objects;
  */
 public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
 
-    private int cmpKeyType;
+    private int accessKeyType;
 
     public MessageEncoder(int keyType) {
-        this.cmpKeyType = keyType;
+        this.accessKeyType = keyType;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
         }
 
         byte[] data = msg.toBytes();
-        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLength(), this.cmpKeyType);
+        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLength(), this.accessKeyType);
         out.writeBytes(data);
     }
 }

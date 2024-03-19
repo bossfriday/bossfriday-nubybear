@@ -7,11 +7,11 @@ package cn.bossfriday.im.protocol.core;
  */
 public class MqttException extends RuntimeException {
 
-    public static final MqttException BAD_MESSAGE_EXCEPTION = new MqttException("BadMessageException!");
+    public static final MqttException BAD_MESSAGE_EXCEPTION = new MqttException("Bad Message!");
 
-    public static final MqttException READ_DATA_TIMEOUT_EXCEPTION = new MqttException("ReadDataTimeoutException!");
+    public static final MqttException READ_DATA_TIMEOUT_EXCEPTION = new MqttException("Read Data Timeout !");
 
-    public static final MqttException OBFUSCATE_KEY_NOT_EXISTED_EXCEPTION = new MqttException("ObfuscateKeyNotExisted!!");
+    public static final MqttException OBFUSCATE_KEY_NOT_EXISTED_EXCEPTION = new MqttException("ObfuscateKey Not Existed!!");
 
     public MqttException(RuntimeException e) {
         super(e);

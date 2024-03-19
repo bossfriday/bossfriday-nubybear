@@ -30,7 +30,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     private ConcurrentHashMap<String, MessageListenerItem> listenerMap = new ConcurrentHashMap<>();
     private ChannelHandlerContext ctx;
 
-    public MessageHandler(AttributeKey attrKey) {
+    public MessageHandler(AttributeKey<String> attrKey) {
         this.attrKey = attrKey;
     }
 

@@ -12,13 +12,13 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class MessageCallback {
 
-    private final long timeoutMillis;
+    protected final long timeoutMillis;
 
-    private volatile long lastReadTime;
+    protected volatile long lastReadTime;
 
-    private String userId;
+    protected String userId;
 
-    public long readTime;
+    protected long readTime;
 
     private volatile ScheduledFuture<?> timeout;
 
@@ -35,6 +35,11 @@ public abstract class MessageCallback {
         this(30000);
     }
 
+    /**
+     * resumeTimer
+     *
+     * @param ctx
+     */
     public void resumeTimer(ChannelHandlerContext ctx) {
         this.lastReadTime = System.currentTimeMillis();
         if (this.timeoutMillis > 0 && (this.timeout == null || this.timeout.isCancelled())) {
@@ -42,6 +47,9 @@ public abstract class MessageCallback {
         }
     }
 
+    /**
+     * pauseTimer
+     */
     public void pauseTimer() {
         if (this.timeout != null) {
             this.timeout.cancel(false);
@@ -56,6 +64,9 @@ public abstract class MessageCallback {
         this.pauseTimer();
     }
 
+    /**
+     * ReadTimeoutTask
+     */
     private class ReadTimeoutTask implements Runnable {
 
         private ChannelHandlerContext ctx;
@@ -79,8 +90,7 @@ public abstract class MessageCallback {
                     this.ctx.fireExceptionCaught(t);
                 }
             } else {
-                MessageCallback.this.timeout = this.ctx.executor().schedule(this, nextDelay,
-                        TimeUnit.MILLISECONDS);
+                MessageCallback.this.timeout = this.ctx.executor().schedule(this, nextDelay, TimeUnit.MILLISECONDS);
             }
         }
     }
