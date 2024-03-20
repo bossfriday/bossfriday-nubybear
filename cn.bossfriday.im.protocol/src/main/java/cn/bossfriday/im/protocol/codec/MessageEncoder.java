@@ -15,14 +15,18 @@ import java.util.Objects;
  */
 public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
 
-    private int accessKeyType;
-
-    public MessageEncoder(int keyType) {
-        this.accessKeyType = keyType;
-    }
-
     @Override
     protected void encode(ChannelHandlerContext ctx, MqttMessage msg, ByteBuf out) throws Exception {
+        this.encode(msg, out);
+    }
+
+    /**
+     * encode
+     *
+     * @param msg
+     * @param out
+     */
+    public void encode(MqttMessage msg, ByteBuf out) {
         if (Objects.isNull(msg)) {
             throw new MqttException("msg is null!");
         }
@@ -32,7 +36,8 @@ public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
         }
 
         byte[] data = msg.toBytes();
-        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLengthSize(), this.accessKeyType);
+        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLengthSize());
         out.writeBytes(data);
     }
 }
+

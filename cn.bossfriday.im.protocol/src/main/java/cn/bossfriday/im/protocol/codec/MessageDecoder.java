@@ -25,7 +25,6 @@ public class MessageDecoder extends ByteToMessageDecoder {
 
     private final long timeoutMillis;
     private final String userId;
-    private final int cmpKeyType;
     private final boolean isServer;
 
     private volatile long lastReadTime;
@@ -33,10 +32,9 @@ public class MessageDecoder extends ByteToMessageDecoder {
 
     private boolean closed;
 
-    public MessageDecoder(long timeoutMillis, String userId, int cmpKeyType, boolean isServer) {
+    public MessageDecoder(long timeoutMillis, String userId, boolean isServer) {
         this.timeoutMillis = timeoutMillis;
         this.userId = userId;
-        this.cmpKeyType = cmpKeyType;
         this.isServer = isServer;
     }
 
@@ -71,7 +69,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
      * @return
      * @throws IOException
      */
-    protected Object decode(ChannelHandlerContext ctx, ByteBuf buf) throws IOException {
+    public Object decode(ChannelHandlerContext ctx, ByteBuf buf) throws IOException {
         if (buf.readableBytes() == 0) {
             return null;
         }
@@ -124,7 +122,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
         buf.readBytes(data);
         this.pauseTimer();
 
-        data = MessageObfuscator.obfuscateData(data, FIX_HEADER_LENGTH + lengthSize, this.cmpKeyType);
+        data = MessageObfuscator.obfuscateData(data, FIX_HEADER_LENGTH + lengthSize);
         MqttMessage msg = MessageInputStream.readMessage(new ByteArrayInputStream(data), this.isServer);
         if (msg == null) {
             this.close(ctx, buf);
