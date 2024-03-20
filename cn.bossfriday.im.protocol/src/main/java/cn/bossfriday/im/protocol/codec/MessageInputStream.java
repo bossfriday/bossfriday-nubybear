@@ -1,5 +1,7 @@
-package cn.bossfriday.im.protocol.core;
+package cn.bossfriday.im.protocol.codec;
 
+import cn.bossfriday.im.protocol.core.MqttMessage;
+import cn.bossfriday.im.protocol.core.MqttMessageHeader;
 import cn.bossfriday.im.protocol.message.*;
 
 import java.io.Closeable;

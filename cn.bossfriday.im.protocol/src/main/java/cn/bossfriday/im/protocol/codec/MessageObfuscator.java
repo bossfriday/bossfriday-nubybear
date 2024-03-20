@@ -1,4 +1,4 @@
-package cn.bossfriday.im.protocol;
+package cn.bossfriday.im.protocol.codec;
 
 import cn.bossfriday.common.utils.ByteUtil;
 

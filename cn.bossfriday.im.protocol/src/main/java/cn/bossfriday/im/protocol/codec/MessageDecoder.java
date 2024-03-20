@@ -1,6 +1,5 @@
-package cn.bossfriday.im.protocol;
+package cn.bossfriday.im.protocol.codec;
 
-import cn.bossfriday.im.protocol.core.MessageInputStream;
 import cn.bossfriday.im.protocol.core.MqttMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
