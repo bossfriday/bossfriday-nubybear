@@ -34,7 +34,7 @@ public abstract class RetryableMqttMessage extends MqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         return FIX_HEADER_LENGTH;
     }
 

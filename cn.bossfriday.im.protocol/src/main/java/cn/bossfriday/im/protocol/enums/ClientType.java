@@ -10,41 +10,29 @@ import org.apache.commons.lang.StringUtils;
 public enum ClientType {
 
     /**
-     * ios终端
+     * iOS
      */
     IOS("iOS"),
 
     /**
-     * 安卓终端
+     * 安卓
      */
     ANDROID("Android"),
 
     /**
-     * pc终端
+     * PC
      */
     PC("PC"),
 
     /**
-     * 微信小程序模拟器
+     * 微信小程序
      */
     MINI("MiniProgram"),
 
     /**
-     * websocket模拟器
+     * Websocket
      */
-    WS("Websocket"),
-
-    /**
-     * 没有归属的平台类型
-     */
-    DEFAULT("error"),
-
-    /**
-     * iso另起一个进程，只做拉消息的业务平台类型
-     * 跳过多端检查，都可以登录
-     * 查询在线状态时，忽略这个平台类型
-     */
-    IPUSH("IPUSH");
+    WS("Websocket");
 
     private final String platform;
 
@@ -64,7 +52,7 @@ public enum ClientType {
      */
     public static ClientType getClientType(String platform) {
         if (StringUtils.isBlank(platform)) {
-            return DEFAULT;
+            return null;
         }
 
         for (ClientType clientType : values()) {
@@ -73,6 +61,6 @@ public enum ClientType {
             }
         }
 
-        return DEFAULT;
+        return null;
     }
 }

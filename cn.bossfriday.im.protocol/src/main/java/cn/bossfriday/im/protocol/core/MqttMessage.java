@@ -14,7 +14,7 @@ public abstract class MqttMessage {
 
     private final MqttMessageHeader header;
     private byte headerCode;
-    private int length = 0;
+    private int lengthSize = 0;
 
     protected MqttMessage(MqttMessageType mqttMessageType) {
         this.header = new MqttMessageHeader(mqttMessageType, false, QoS.AT_MOST_ONCE, false);
@@ -25,11 +25,11 @@ public abstract class MqttMessage {
     }
 
     /**
-     * determineLength
+     * getMessageLength
      *
      * @return
      */
-    protected abstract int determineLength();
+    protected abstract int getMessageLength();
 
     /**
      * writeMessage
@@ -111,8 +111,11 @@ public abstract class MqttMessage {
         }
     }
 
-    public final int getLength() {
-        return this.length;
+    /**
+     * 消息长度为变长Int（为了省那么点字节）
+     */
+    public final int getLengthSize() {
+        return this.lengthSize;
     }
 
     public void setRetained(boolean retain) {
@@ -163,10 +166,10 @@ public abstract class MqttMessage {
      * writeMsgLength
      */
     private void writeMsgLength(OutputStream out) throws IOException {
-        int val = this.determineLength();
+        int val = this.getMessageLength();
 
         do {
-            this.length++;
+            this.lengthSize++;
             byte b = (byte) (val & 0x7F);
             val >>= 7;
             if (val > 0) {
@@ -181,7 +184,7 @@ public abstract class MqttMessage {
      * writeMsgCode
      */
     private void writeMsgCode(OutputStream out) throws IOException {
-        int val = this.determineLength();
+        int val = this.getMessageLength();
         int code = this.headerCode;
 
         do {

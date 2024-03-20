@@ -41,7 +41,7 @@ public class DisconnectMessage extends MqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         return FIX_HEADER_LENGTH;
     }
 

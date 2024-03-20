@@ -136,9 +136,6 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
         }
 
         switch (msg.getType()) {
-            case CONNECT:
-                // connect
-                break;
             case CONNACK:
                 this.handleMessage((ConnAckMessage) msg, ctx);
                 break;
@@ -151,23 +148,11 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
             case QUERYACK:
                 this.handleMessage((QueryAckMessage) msg, ctx);
                 break;
-            case QUERYCON:
-                //  queryCon
-                break;
-            case SUBSCRIBE:
-                // subscribe
-                break;
-            case UNSUBSCRIBE:
-                // unsubscribe
-                break;
-            case PINGRESP:
-                // pingResp
-                break;
             case DISCONNECT:
                 this.handleMessage((DisconnectMessage) msg, ctx);
                 break;
             default:
-                throw new MqttException("invalid messageType!");
+                throw new MqttException("unsupported handleMessage() process!");
         }
     }
 

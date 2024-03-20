@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static cn.bossfriday.im.protocol.core.MqttConstant.FIX_HEADER_LENGTH;
+import static cn.bossfriday.im.protocol.core.MqttConstant.MAX_MESSAGE_LENGTH_SIZE;
 import static cn.bossfriday.im.protocol.core.MqttException.BAD_MESSAGE_EXCEPTION;
 import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_TIMEOUT_EXCEPTION;
 
@@ -22,16 +24,20 @@ import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_TIMEOUT_EXC
 public class MessageDecoder extends ByteToMessageDecoder {
 
     private final long timeoutMillis;
+    private final String userId;
+    private final int cmpKeyType;
+    private final boolean isServer;
+
     private volatile long lastReadTime;
-    private String userId;
-    private int cmpKeyType;
     private volatile ScheduledFuture<?> timeout;
+
     private boolean closed;
 
-    public MessageDecoder(long timeoutMillis, String userId, int cmpKeyType) {
+    public MessageDecoder(long timeoutMillis, String userId, int cmpKeyType, boolean isServer) {
         this.timeoutMillis = timeoutMillis;
         this.userId = userId;
         this.cmpKeyType = cmpKeyType;
+        this.isServer = isServer;
     }
 
     @Override
@@ -98,7 +104,13 @@ public class MessageDecoder extends ByteToMessageDecoder {
         } while ((digit & 0x80) > 0);
 
         if (code != second) {
-            this.close(ctx);
+            this.close(ctx, buf);
+            return null;
+        }
+
+        if (lengthSize > MAX_MESSAGE_LENGTH_SIZE) {
+            this.close(ctx, buf);
+            return null;
         }
 
         if (buf.readableBytes() < msgLength) {
@@ -107,18 +119,25 @@ public class MessageDecoder extends ByteToMessageDecoder {
             return null;
         }
 
-        byte[] data = new byte[2 + lengthSize + msgLength];
+        byte[] data = new byte[FIX_HEADER_LENGTH + lengthSize + msgLength];
         buf.resetReaderIndex();
         buf.readBytes(data);
         this.pauseTimer();
-        data = MessageObfuscator.obfuscateData(data, 2 + lengthSize, this.cmpKeyType);
-        MessageInputStream mis = new MessageInputStream(new ByteArrayInputStream(data));
-        MqttMessage msg = mis.readMessage();
-        mis.close();
+
+        data = MessageObfuscator.obfuscateData(data, FIX_HEADER_LENGTH + lengthSize, this.cmpKeyType);
+        MqttMessage msg = MessageInputStream.readMessage(new ByteArrayInputStream(data), this.isServer);
+        if (msg == null) {
+            this.close(ctx, buf);
+        }
 
         return msg;
     }
 
+    /**
+     * resumeTimer
+     *
+     * @param ctx
+     */
     private void resumeTimer(ChannelHandlerContext ctx) {
         this.lastReadTime = System.currentTimeMillis();
         if (this.timeoutMillis > 0 && (this.timeout == null || this.timeout.isCancelled()) && !this.closed) {
@@ -126,18 +145,25 @@ public class MessageDecoder extends ByteToMessageDecoder {
         }
     }
 
+    /**
+     * pauseTimer
+     */
     private void pauseTimer() {
         if (this.timeout != null) {
             this.timeout.cancel(false);
         }
     }
 
-    private void close(ChannelHandlerContext ctx) {
+    /**
+     * close
+     */
+    private void close(ChannelHandlerContext ctx, ByteBuf buf) {
         if (this.timeout != null) {
             this.timeout.cancel(false);
         }
         this.timeout = null;
         this.closed = true;
+        buf.skipBytes(buf.readableBytes());
         ctx.fireExceptionCaught(BAD_MESSAGE_EXCEPTION);
         ctx.close();
     }

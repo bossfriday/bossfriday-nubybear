@@ -12,6 +12,7 @@ public class MqttConstant {
     }
 
     public static final int MAX_MESSAGE_SEQUENCE = 65535;
+    public static final int MAX_MESSAGE_LENGTH_SIZE = 3;
 
     public static final int STATUS_OK = 0;
 

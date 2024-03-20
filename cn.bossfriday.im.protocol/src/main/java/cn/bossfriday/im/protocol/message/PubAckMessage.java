@@ -41,7 +41,7 @@ public class PubAckMessage extends RetryableMqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         return FIX_HEADER_LENGTH;
     }
 

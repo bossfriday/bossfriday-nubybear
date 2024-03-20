@@ -7,9 +7,6 @@ package cn.bossfriday.im.protocol.enums;
  */
 public enum ConnectionStatus {
 
-    /**
-     * 连接成功
-     */
     ACCEPTED(0),
 
     /**
@@ -18,28 +15,30 @@ public enum ConnectionStatus {
     UNACCEPTABLE_PROTOCOL_VERSION(1),
 
     /**
-     * appKey转化appId失败，appId在数据库没有配置
+     * IDENTIFIER_REJECTED
      */
     IDENTIFIER_REJECTED(2),
 
     /**
-     * PC or MINI 配置不允许登录
+     * SERVER_UNAVAILABLE
      */
     SERVER_UNAVAILABLE(3),
 
     /**
-     * token 没有userId, 解析失败
+     * BAD_USERNAME_OR_PASSWORD
      */
     BAD_USERNAME_OR_PASSWORD(4),
 
     /**
-     * 防黑产
+     * NOT_AUTHORIZED
      */
     NOT_AUTHORIZED(5),
 
     /**
-     * 客户端接入服务落点错误。
-     * 集群内有接入服务主机掉出集群，相邻节点节点主机会有部分请求引发这种错误；或者客户端缓存了错误的接入地址。
+     * REDIRECT
+     * 客户端接入服务落点错误
+     * 集群内有接入服务主机掉出集群，相邻节点节点主机会有部分请求引发这种错误；
+     * 或客户端缓存了错误的接入地址。
      */
     REDIRECT(6),
 

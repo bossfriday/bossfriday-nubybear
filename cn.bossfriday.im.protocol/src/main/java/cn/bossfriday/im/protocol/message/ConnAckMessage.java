@@ -26,7 +26,7 @@ public class ConnAckMessage extends MqttMessage {
         super(MqttMessageType.CONNACK);
     }
 
-    public ConnAckMessage(MqttMessageHeader header) throws IOException {
+    public ConnAckMessage(MqttMessageHeader header) {
         super(header);
     }
 
@@ -40,7 +40,7 @@ public class ConnAckMessage extends MqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         int length = FIX_HEADER_LENGTH;
         if (!StringUtils.isEmpty(this.userId)) {
             length += this.toUtfBytes(this.userId).length;

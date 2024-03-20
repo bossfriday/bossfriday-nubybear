@@ -31,7 +31,7 @@ public class QueryMessage extends RetryableMqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         int length = 8;
         length += this.toUtfBytes(this.topic).length;
         length += this.toUtfBytes(this.targetId).length;

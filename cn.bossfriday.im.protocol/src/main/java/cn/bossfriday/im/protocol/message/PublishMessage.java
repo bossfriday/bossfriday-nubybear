@@ -6,6 +6,8 @@ import cn.bossfriday.im.protocol.enums.MqttMessageType;
 
 import java.io.*;
 
+import static cn.bossfriday.im.protocol.core.MqttConstant.FIX_HEADER_LENGTH;
+
 /**
  * PublishMessage
  *
@@ -18,23 +20,29 @@ public class PublishMessage extends RetryableMqttMessage {
     private String targetId;
     private long signature;
     private int date;
+    private boolean isServer;
 
-    public PublishMessage(String topic, byte[] data, String targetId) {
+    public PublishMessage(String topic, byte[] data, String targetId, boolean isServer) {
         super(MqttMessageType.PUBLISH);
         this.topic = topic;
         this.targetId = targetId;
         this.data = data;
         this.signature = 0xffL;
-        this.date = (int) (System.currentTimeMillis() / 1000);
+        this.isServer = isServer;
     }
 
-    public PublishMessage(MqttMessageHeader header) {
+    public PublishMessage(MqttMessageHeader header, boolean isServer) {
         super(header);
+        this.isServer = isServer;
     }
 
     @Override
-    protected int determineLength() {
-        int length = 10;
+    protected int getMessageLength() {
+        int length = FIX_HEADER_LENGTH + Long.BYTES;
+        if (this.isServer) {
+            length += Integer.BYTES;
+        }
+
         length += this.toUtfBytes(this.topic).length;
         length += this.toUtfBytes(this.targetId).length;
         length += this.data.length;
@@ -46,6 +54,12 @@ public class PublishMessage extends RetryableMqttMessage {
     protected void writeMessage(OutputStream out) throws IOException {
         DataOutputStream dos = new DataOutputStream(out);
         dos.writeLong(this.signature);
+
+        if (this.isServer) {
+            this.date = (int) (System.currentTimeMillis() / 1000);
+            dos.writeInt(this.date);
+        }
+
         dos.writeUTF(this.topic);
         dos.writeUTF(this.targetId);
         dos.flush();
@@ -56,15 +70,24 @@ public class PublishMessage extends RetryableMqttMessage {
 
     @Override
     protected void readMessage(InputStream in, int msgLength) throws IOException {
-        int pos = 14;
         DataInputStream dis = new DataInputStream(in);
+        int pos = 0;
+
         this.signature = dis.readLong();
+        pos += 8;
+
         this.date = dis.readInt();
+        pos += 4;
+
         this.topic = dis.readUTF();
-        this.targetId = dis.readUTF();
         pos += this.toUtfBytes(this.topic).length;
+
+        this.targetId = dis.readUTF();
         pos += this.toUtfBytes(this.targetId).length;
+
         super.readMessage(in, msgLength);
+        pos += 2;
+
         this.data = new byte[msgLength - pos];
         dis.read(this.data);
     }
@@ -79,10 +102,6 @@ public class PublishMessage extends RetryableMqttMessage {
 
     public String getTargetId() {
         return this.targetId;
-    }
-
-    public String getDataAsString() {
-        return new String(this.data);
     }
 
     public int getDate() {

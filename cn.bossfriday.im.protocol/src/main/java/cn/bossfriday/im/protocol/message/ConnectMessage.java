@@ -56,7 +56,7 @@ public class ConnectMessage extends MqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         int payloadSize = this.toUtfBytes(this.clientId).length;
         payloadSize += this.toUtfBytes(this.willTopic).length;
         payloadSize += this.toUtfBytes(this.will).length;

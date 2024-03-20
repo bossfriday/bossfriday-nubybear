@@ -20,7 +20,7 @@ public class PingRespMessage extends MqttMessage {
     }
 
     @Override
-    protected int determineLength() {
+    protected int getMessageLength() {
         return 0;
     }
 

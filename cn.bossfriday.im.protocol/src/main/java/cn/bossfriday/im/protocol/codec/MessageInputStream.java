@@ -4,7 +4,6 @@ import cn.bossfriday.im.protocol.core.MqttMessage;
 import cn.bossfriday.im.protocol.core.MqttMessageHeader;
 import cn.bossfriday.im.protocol.message.*;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -13,67 +12,65 @@ import java.io.InputStream;
  *
  * @author chenx
  */
-public class MessageInputStream implements Closeable {
+public class MessageInputStream {
 
-    private InputStream in;
-
-    public MessageInputStream(InputStream in) {
-        this.in = in;
+    private MessageInputStream() {
+        // do nothing
     }
 
     /**
      * readMessage
      *
+     * @param in
      * @return
      * @throws IOException
      */
-    public MqttMessage readMessage() throws IOException {
-        byte flags = (byte) this.in.read();
-        MqttMessageHeader header = new MqttMessageHeader(flags);
-        MqttMessage msg;
-        switch (header.getType()) {
-            case CONNACK:
-                msg = new ConnAckMessage(header);
-                break;
-            case PUBLISH:
-                msg = new PublishMessage(header);
-                break;
-            case PUBACK:
-                msg = new PubAckMessage(header);
-                break;
-            case QUERY:
-                msg = new QueryMessage(header);
-                break;
-            case QUERYACK:
-                msg = new QueryAckMessage(header);
-                break;
-            case QUERYCON:
-                msg = new QueryConMessage(header);
-                break;
-            case PINGRESP:
-                msg = new PingRespMessage(header);
-                break;
-            case CONNECT:
-                msg = new ConnectMessage(header);
-                break;
-            case PINGREQ:
-                msg = new PingReqMessage(header);
-                break;
-            case DISCONNECT:
-                msg = new DisconnectMessage(header);
-                break;
-            default:
-                throw new UnsupportedOperationException("No support for deserializing " + header.getType() + " messages");
+    public static MqttMessage readMessage(InputStream in, boolean isServer) throws IOException {
+        MqttMessage msg = null;
+        try {
+            byte flags = (byte) in.read();
+            in.read();
+            MqttMessageHeader header = new MqttMessageHeader(flags);
+            switch (header.getType()) {
+                case CONNACK:
+                    msg = new ConnAckMessage(header);
+                    break;
+                case PUBLISH:
+                    msg = new PublishMessage(header, isServer);
+                    break;
+                case PUBACK:
+                    msg = new PubAckMessage(header);
+                    break;
+                case QUERY:
+                    msg = new QueryMessage(header);
+                    break;
+                case QUERYACK:
+                    msg = new QueryAckMessage(header);
+                    break;
+                case QUERYCON:
+                    msg = new QueryConMessage(header);
+                    break;
+                case PINGRESP:
+                    msg = new PingRespMessage(header);
+                    break;
+                case CONNECT:
+                    msg = new ConnectMessage(header);
+                    break;
+                case PINGREQ:
+                    msg = new PingReqMessage(header);
+                    break;
+                case DISCONNECT:
+                    msg = new DisconnectMessage(header);
+                    break;
+                default:
+                    return null;
+            }
+
+            msg.read(in);
+        } finally {
+            in.close();
         }
 
-        this.in.read();
-        msg.read(this.in);
-
         return msg;
-    }
-
-    @Override
-    public void close() throws IOException {
-        this.in.close();
     }
 }

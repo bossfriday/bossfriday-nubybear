@@ -12,6 +12,7 @@ public enum MqttMessageType {
      */
     CONNECT(1),
     CONNACK(2),
+    DISCONNECT(14),
 
     /**
      * publish
@@ -27,20 +28,22 @@ public enum MqttMessageType {
     QUERYCON(7),
 
     /**
-     * sub & unsub
+     * reconnect
      */
-    SUBSCRIBE(8),
-    SUBACK(9),
-    UNSUBSCRIBE(10),
-    UNSUBACK(11),
+    RECONNECT(8),
+    RECONNECTACK(9),
 
     /**
-     * others
+     * ping
      */
     PINGREQ(12),
     PINGRESP(13),
-    DISCONNECT(14),
-    ANTISPAM(15);
+
+    /**
+     * reserve
+     */
+    RESERVE1(0),
+    RESERVE2(15);
 
     private final int value;
 

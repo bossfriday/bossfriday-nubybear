@@ -32,7 +32,7 @@ public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
         }
 
         byte[] data = msg.toBytes();
-        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLength(), this.accessKeyType);
+        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLengthSize(), this.accessKeyType);
         out.writeBytes(data);
     }
 }
