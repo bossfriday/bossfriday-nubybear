@@ -22,6 +22,7 @@ public class MessageInputStream {
      * readMessage
      *
      * @param in
+     * @param isServer
      * @return
      * @throws IOException
      */

@@ -16,7 +16,7 @@ import static cn.bossfriday.im.protocol.core.MqttConstant.FIX_HEADER_LENGTH;
 public abstract class RetryableMqttMessage extends MqttMessage {
 
     /**
-     * 在MQTT协议栈中，消息序号（messageSequence）通常用于标识消息的顺序和唯一性。这里的视线中消息序号是一个2字节的字段（最大可以表达无符号整型65535），用于发布（publish）消息和发布确认（publishAck）消息的对齐。
+     * 在MQTT协议栈中，消息序号（messageSequence）通常用于标识消息的顺序和唯一性。这里的实现中消息序号是一个2字节的字段（最大可以表达无符号整型65535），用于发布（publish）消息和发布确认（publishAck）消息的对齐。
      * 具体而言，消息序号在协议栈中的用途包括：
      * 1、消息排序和唯一性：每个消息都有一个唯一的序号，用于在通信中标识消息的顺序和确保消息的唯一性。这在处理分片消息或者确保消息到达的顺序十分重要。
      * 2、重传机制：当消息需要重传时，消息序号可以用于标识需要重传的消息。例如，在发布消息（publish）时，如果没有收到确认，发送方可能会重新发送该消息，而消息序号可以确保接收方能够识别重传的消息。
