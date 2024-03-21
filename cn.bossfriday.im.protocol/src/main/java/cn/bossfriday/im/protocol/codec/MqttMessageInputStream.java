@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * MessageInputStream
+ * MqttMessageInputStream
  *
  * @author chenx
  */
-public class MessageInputStream {
+public class MqttMessageInputStream {
 
-    private MessageInputStream() {
+    private MqttMessageInputStream() {
         // do nothing
     }
 

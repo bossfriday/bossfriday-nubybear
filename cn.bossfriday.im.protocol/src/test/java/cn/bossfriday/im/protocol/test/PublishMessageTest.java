@@ -1,8 +1,8 @@
 package cn.bossfriday.im.protocol.test;
 
-import cn.bossfriday.im.protocol.codec.MessageDecoder;
-import cn.bossfriday.im.protocol.codec.MessageEncoder;
-import cn.bossfriday.im.protocol.codec.MessageInputStream;
+import cn.bossfriday.im.protocol.codec.MqttMessageDecoder;
+import cn.bossfriday.im.protocol.codec.MqttMessageEncoder;
+import cn.bossfriday.im.protocol.codec.MqttMessageInputStream;
 import cn.bossfriday.im.protocol.message.PublishMessage;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -50,7 +50,7 @@ public class PublishMessageTest {
         byte[] msgData = pubMsg1.toBytes();
 
         // bytes -> MqttMessage
-        PublishMessage pubMsg2 = (PublishMessage) MessageInputStream.readMessage(new ByteArrayInputStream(msgData), isServer);
+        PublishMessage pubMsg2 = (PublishMessage) MqttMessageInputStream.readMessage(new ByteArrayInputStream(msgData), isServer);
         System.out.println("topic: " + pubMsg2.getTopic());
         System.out.println("targetId: " + pubMsg2.getTargetId());
         System.out.println("dataString: " + new String(pubMsg2.getData(), StandardCharsets.UTF_8));
@@ -75,11 +75,11 @@ public class PublishMessageTest {
         pubMsg1.setMessageSequence(123);
 
         // 编码
-        MessageEncoder msgEncoder = new MessageEncoder();
+        MqttMessageEncoder msgEncoder = new MqttMessageEncoder();
         msgEncoder.encode(pubMsg1, buf);
 
         // 解码
-        MessageDecoder msgDecoder = new MessageDecoder(6000L, targetId, isServer);
+        MqttMessageDecoder msgDecoder = new MqttMessageDecoder(6000L, targetId, isServer);
         PublishMessage pubMsg2 = (PublishMessage) msgDecoder.decode(this.mockCtx, buf);
 
         System.out.println("topic: " + pubMsg2.getTopic());

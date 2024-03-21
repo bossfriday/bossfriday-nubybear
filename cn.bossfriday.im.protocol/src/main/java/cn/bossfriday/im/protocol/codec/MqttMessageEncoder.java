@@ -9,11 +9,11 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import java.util.Objects;
 
 /**
- * MessageEncoder
+ * MqttMessageEncoder
  *
  * @author chenx
  */
-public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
+public class MqttMessageEncoder extends MessageToByteEncoder<MqttMessage> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, MqttMessage msg, ByteBuf out) {
@@ -36,7 +36,7 @@ public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
         }
 
         byte[] data = msg.toBytes();
-        data = MessageObfuscator.obfuscateData(data, 2 + msg.getLengthSize());
+        data = MqttMessageObfuscator.obfuscateData(data, 2 + msg.getLengthSize());
         out.writeBytes(data);
     }
 }

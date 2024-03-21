@@ -17,12 +17,12 @@ import static cn.bossfriday.im.protocol.core.MqttException.BAD_MESSAGE_EXCEPTION
 import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_TIMEOUT_EXCEPTION;
 
 /**
- * MessageDecoder
+ * MqttMessageDecoder
  *
  * @author chenx
  */
 @SuppressWarnings({"squid:S3077", "squid:S1181"})
-public class MessageDecoder extends ByteToMessageDecoder {
+public class MqttMessageDecoder extends ByteToMessageDecoder {
 
     private final long timeoutMillis;
     private final String userId;
@@ -33,7 +33,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
 
     private boolean closed;
 
-    public MessageDecoder(long timeoutMillis, String userId, boolean isServer) {
+    public MqttMessageDecoder(long timeoutMillis, String userId, boolean isServer) {
         this.timeoutMillis = timeoutMillis;
         this.userId = userId;
         this.isServer = isServer;
@@ -123,8 +123,8 @@ public class MessageDecoder extends ByteToMessageDecoder {
         buf.readBytes(data);
         this.pauseTimer();
 
-        data = MessageObfuscator.obfuscateData(data, FIX_HEADER_LENGTH + lengthSize);
-        MqttMessage msg = MessageInputStream.readMessage(new ByteArrayInputStream(data), this.isServer);
+        data = MqttMessageObfuscator.obfuscateData(data, FIX_HEADER_LENGTH + lengthSize);
+        MqttMessage msg = MqttMessageInputStream.readMessage(new ByteArrayInputStream(data), this.isServer);
         if (msg == null) {
             this.close(ctx, buf);
         }
@@ -189,19 +189,19 @@ public class MessageDecoder extends ByteToMessageDecoder {
             }
 
             long currentTime = System.currentTimeMillis();
-            long nextDelay = MessageDecoder.this.timeoutMillis - (currentTime - MessageDecoder.this.lastReadTime);
+            long nextDelay = MqttMessageDecoder.this.timeoutMillis - (currentTime - MqttMessageDecoder.this.lastReadTime);
             if (nextDelay <= 0) {
                 // Read timed out - set a new timeout and notify the callback.
-                MessageDecoder.this.timeout = this.ctx.executor().schedule(this, MessageDecoder.this.timeoutMillis, TimeUnit.MILLISECONDS);
+                MqttMessageDecoder.this.timeout = this.ctx.executor().schedule(this, MqttMessageDecoder.this.timeoutMillis, TimeUnit.MILLISECONDS);
                 try {
-                    MessageDecoder.this.readTimedOut(this.ctx);
+                    MqttMessageDecoder.this.readTimedOut(this.ctx);
                 } catch (Throwable t) {
                     this.ctx.fireExceptionCaught(t);
                 }
             } else {
                 // Read occurred before the timeout - set a new timeout with
                 // shorter delay.
-                MessageDecoder.this.timeout = this.ctx.executor().schedule(this, nextDelay, TimeUnit.MILLISECONDS);
+                MqttMessageDecoder.this.timeout = this.ctx.executor().schedule(this, nextDelay, TimeUnit.MILLISECONDS);
             }
         }
     }

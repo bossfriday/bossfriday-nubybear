@@ -3,16 +3,16 @@ package cn.bossfriday.im.protocol.codec;
 import cn.bossfriday.common.utils.ByteUtil;
 
 /**
- * MessageObfuscator
+ * MqttMessageObfuscator
  *
  * @author chenx
  */
-public class MessageObfuscator {
+public class MqttMessageObfuscator {
 
     // 这里用一个随机的Long去hardCode一个key，推荐的做法是：每个租户(AppKey)对应一个混淆的Key
     private static final byte[] MQTT_KEY = ByteUtil.long2Bytes(6688311763110703555L);
 
-    private MessageObfuscator() {
+    private MqttMessageObfuscator() {
         // do nothing
     }
 
