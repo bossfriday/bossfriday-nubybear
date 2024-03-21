@@ -16,7 +16,7 @@ import java.util.Objects;
 public class MessageEncoder extends MessageToByteEncoder<MqttMessage> {
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, MqttMessage msg, ByteBuf out) throws Exception {
+    protected void encode(ChannelHandlerContext ctx, MqttMessage msg, ByteBuf out) {
         this.encode(msg, out);
     }
 

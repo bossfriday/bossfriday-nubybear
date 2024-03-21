@@ -14,7 +14,7 @@ public class MqttMessageCallback {
     /**
      * PublishCallback
      */
-    public static abstract class PublishCallback extends MessageCallback {
+    public abstract static class PublishCallback extends MessageCallback {
 
         /**
          * process
@@ -25,17 +25,12 @@ public class MqttMessageCallback {
          * @param ctx
          */
         protected abstract void process(int status, int serverTime, String msgUid, ChannelHandlerContext ctx);
-
-        @Override
-        protected void readTimedOut(ChannelHandlerContext ctx) {
-            super.readTimedOut(ctx);
-        }
     }
 
     /**
      * QueryCallback
      */
-    public static abstract class QueryCallback extends MessageCallback {
+    public abstract static class QueryCallback extends MessageCallback {
 
         /**
          * process
@@ -46,25 +41,20 @@ public class MqttMessageCallback {
          * @param ctx
          */
         protected abstract void process(int status, byte[] data, int serverTime, ChannelHandlerContext ctx);
-
-        @Override
-        protected void readTimedOut(ChannelHandlerContext ctx) {
-            super.readTimedOut(ctx);
-        }
     }
 
     /**
      * ConnectCallback
      */
-    public static abstract class ConnectCallback extends MessageCallback {
+    public abstract static class ConnectCallback extends MessageCallback {
 
-        public long beginLogin = 0L;
+        protected long beginLogin = 0L;
 
-        public ConnectCallback(String userId) {
+        protected ConnectCallback(String userId) {
             super(userId);
         }
 
-        public ConnectCallback() {
+        protected ConnectCallback() {
             super();
             this.beginLogin = System.currentTimeMillis();
         }
@@ -76,12 +66,7 @@ public class MqttMessageCallback {
          * @param userId
          * @throws Exception
          */
-        protected abstract void process(ConnectionStatus status, String userId) throws Exception;
-
-        @Override
-        protected void readTimedOut(ChannelHandlerContext ctx) {
-            super.readTimedOut(ctx);
-        }
+        protected abstract void process(ConnectionStatus status, String userId);
     }
 
     /**
@@ -94,8 +79,7 @@ public class MqttMessageCallback {
          *
          * @param msg
          * @param ctx
-         * @throws Exception
          */
-        void onMessageReceived(PublishMessage msg, ChannelHandlerContext ctx) throws Exception;
+        void onMessageReceived(PublishMessage msg, ChannelHandlerContext ctx);
     }
 }

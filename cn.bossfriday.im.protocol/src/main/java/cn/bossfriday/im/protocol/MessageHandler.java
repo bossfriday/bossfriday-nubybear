@@ -130,7 +130,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     /**
      * handleMessage
      */
-    private void handleMessage(MqttMessage msg, ChannelHandlerContext ctx) throws Exception {
+    private void handleMessage(MqttMessage msg, ChannelHandlerContext ctx) {
         if (msg == null) {
             return;
         }
@@ -162,6 +162,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
      * @param msg
      * @param ctx
      */
+    @SuppressWarnings({"squid:S1172"})
     private void handleMessage(DisconnectMessage msg, ChannelHandlerContext ctx) {
         ctx.close();
     }
@@ -173,7 +174,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
      * @param ctx
      * @throws Exception
      */
-    private void handleMessage(ConnAckMessage msg, ChannelHandlerContext ctx) throws Exception {
+    private void handleMessage(ConnAckMessage msg, ChannelHandlerContext ctx) {
         ConnectItem item = this.connectMap.get(ctx.channel().attr(this.attrKey).get());
         if (item != null) {
             item.connectCallback.readTime = System.currentTimeMillis();
@@ -188,8 +189,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
      * @param ctx
      * @throws Exception
      */
-    private void handleMessage(PublishMessage msg, ChannelHandlerContext ctx)
-            throws Exception {
+    private void handleMessage(PublishMessage msg, ChannelHandlerContext ctx) {
         MessageListenerItem item = this.listenerMap.get(ctx.channel().attr(this.attrKey).get());
 
         if (item != null) {
@@ -273,6 +273,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     /**
      * PublishItem
      */
+    @SuppressWarnings({"squid:S1068"})
     private static class PublishItem {
         private PublishMessage publishMessage;
         private PublishCallback publishCallback;

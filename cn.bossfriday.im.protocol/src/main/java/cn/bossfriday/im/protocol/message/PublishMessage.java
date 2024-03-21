@@ -7,6 +7,7 @@ import cn.bossfriday.im.protocol.enums.MqttMessageType;
 import java.io.*;
 
 import static cn.bossfriday.im.protocol.core.MqttConstant.FIX_HEADER_LENGTH;
+import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_UNEXPECTED_EXCEPTION;
 
 /**
  * PublishMessage
@@ -88,8 +89,11 @@ public class PublishMessage extends RetryableMqttMessage {
         super.readMessage(in, msgLength);
         pos += 2;
 
-        this.data = new byte[msgLength - pos];
-        dis.read(this.data);
+        int dataSize = msgLength - pos;
+        this.data = new byte[dataSize];
+        if (dis.read(this.data) != dataSize) {
+            throw READ_DATA_UNEXPECTED_EXCEPTION;
+        }
     }
 
     public String getTopic() {

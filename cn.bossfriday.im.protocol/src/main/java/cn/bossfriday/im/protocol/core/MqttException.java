@@ -11,7 +11,7 @@ public class MqttException extends RuntimeException {
 
     public static final MqttException READ_DATA_TIMEOUT_EXCEPTION = new MqttException("Read Data Timeout !");
 
-    public static final MqttException OBFUSCATE_KEY_NOT_EXISTED_EXCEPTION = new MqttException("ObfuscateKey Not Existed!!");
+    public static final MqttException READ_DATA_UNEXPECTED_EXCEPTION = new MqttException("ReadData Unexpected!");
 
     public MqttException(RuntimeException e) {
         super(e);

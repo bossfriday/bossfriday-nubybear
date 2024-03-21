@@ -6,6 +6,8 @@ import cn.bossfriday.im.protocol.enums.MqttMessageType;
 
 import java.io.*;
 
+import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_UNEXPECTED_EXCEPTION;
+
 /**
  * QueryMessage
  *
@@ -58,15 +60,22 @@ public class QueryMessage extends RetryableMqttMessage {
         int pos = 0;
         DataInputStream dis = new DataInputStream(in);
         this.signature = dis.readLong();
-        this.topic = dis.readUTF();
-        this.targetId = dis.readUTF();
         pos += 8;
+
+        this.topic = dis.readUTF();
         pos += this.toUtfBytes(this.topic).length;
+
+        this.targetId = dis.readUTF();
         pos += this.toUtfBytes(this.targetId).length;
+
         super.readMessage(in, msgLength);
         pos += 2;
-        this.data = new byte[msgLength - pos];
-        dis.read(this.data);
+
+        int dataSize = msgLength - pos;
+        this.data = new byte[dataSize];
+        if (dis.read(this.data) != dataSize) {
+            throw READ_DATA_UNEXPECTED_EXCEPTION;
+        }
     }
 
     public String getTopic() {

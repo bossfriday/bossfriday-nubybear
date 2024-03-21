@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author chenx
  */
+@SuppressWarnings({"squid:S3077", "squid:S1181"})
 public abstract class MessageCallback {
 
     protected final long timeoutMillis;
@@ -60,6 +61,7 @@ public abstract class MessageCallback {
     /**
      * Is called when a read timeout was detected.
      */
+    @SuppressWarnings({"squid:S1172"})
     protected void readTimedOut(ChannelHandlerContext ctx) {
         this.pauseTimer();
     }

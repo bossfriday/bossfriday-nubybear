@@ -6,6 +6,8 @@ import cn.bossfriday.im.protocol.core.RetryableMqttMessage;
 
 import java.io.*;
 
+import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_UNEXPECTED_EXCEPTION;
+
 /**
  * QueryAckMessage
  *
@@ -29,8 +31,11 @@ public class QueryAckMessage extends RetryableMqttMessage {
         this.status = in.read() * 0x100 + in.read();
 
         if (msgLength > 8) {
-            this.data = new byte[msgLength - 8];
-            dis.read(this.data);
+            int dataSize = msgLength - 8;
+            this.data = new byte[dataSize];
+            if (dis.read(this.data) != dataSize) {
+                throw READ_DATA_UNEXPECTED_EXCEPTION;
+            }
         }
 
         in.reset();

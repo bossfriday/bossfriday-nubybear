@@ -21,6 +21,7 @@ import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_TIMEOUT_EXC
  *
  * @author chenx
  */
+@SuppressWarnings({"squid:S3077", "squid:S1181"})
 public class MessageDecoder extends ByteToMessageDecoder {
 
     private final long timeoutMillis;
