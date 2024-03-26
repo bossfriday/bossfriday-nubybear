@@ -118,10 +118,7 @@ public abstract class MqttMessage {
             throw new MqttException("MessageObfuscator.writeString() error!");
         }
     }
-
-    /**
-     * 消息长度为变长Int（为了省那么点字节）
-     */
+    
     public final int getLengthSize() {
         return this.lengthSize;
     }
@@ -172,6 +169,9 @@ public abstract class MqttMessage {
 
     /**
      * writeMsgLength
+     * <p>
+     * 每字节的最高表达是否还有后续字节，因此每自己实际用于表达数值的只有7位；
+     * 这样，如果最大3字节的VarInt最大范围为：2的21次方减1 ≈ 2MB
      */
     private void writeMsgLength(OutputStream out) throws IOException {
         int val = this.getMessageLength();
