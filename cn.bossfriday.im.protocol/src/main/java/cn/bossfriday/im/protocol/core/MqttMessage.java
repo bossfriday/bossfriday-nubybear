@@ -61,6 +61,14 @@ public abstract class MqttMessage {
 
     /**
      * write
+     * <p>
+     * | 类型 | 位置 | 说明 |
+     * |--------|--------|--------|
+     * | 固定头 | 第1字节 | MsgType (消息类型：4 bits)；DUP (重传标记：1 bits)；QoS (质量等级：2 bits)；RETAIN (保留位：1 bits) |
+     * | 固定头 | 第2字节 |  校验和（Checksum）：固定头第1字节与剩余长度进行按位异或 |
+     * | 可变头 | 第3-J字节 | 剩余长度：最多3字节的变长Int |
+     * | 可变头 | 第K-L字节 | signature（鉴权信息） 、topic（可以理解为信令名）、targetId（目标用户ID） |
+     * | 荷载   | 第 M-N 字节 | 消息体Bytes |
      *
      * @param out
      * @throws IOException
@@ -68,7 +76,7 @@ public abstract class MqttMessage {
     public final void write(OutputStream out) throws IOException {
         this.headerCode = this.header.encode();
         out.write(this.headerCode);
-        this.writeMsgCode(out);
+        this.writeCheckSum(out);
         this.writeMsgLength(out);
         this.writeMessage(out);
     }
@@ -181,9 +189,9 @@ public abstract class MqttMessage {
     }
 
     /**
-     * writeMsgCode
+     * writeCheckSum
      */
-    private void writeMsgCode(OutputStream out) throws IOException {
+    private void writeCheckSum(OutputStream out) throws IOException {
         int val = this.getMessageLength();
         int code = this.headerCode;
 
