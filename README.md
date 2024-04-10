@@ -54,8 +54,10 @@ IM系统公共组件/类等公用代码；
 ## 2.6 cn.bossfriday.im.navigator（建设中）
 IM系统导航服务，负责客户端接入地址及全局配置下发（根据用户ID做一致性哈希计算得到接入服务cn.bossfriday.im.access的地址）；
 
-## 2.7 cn.bossfriday.im.protocol（基本完成）
-IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
+## 2.7 cn.bossfriday.im.protocol（完成）
+**项目说明**
+* IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
+* 详细介绍：**[https://blog.csdn.net/camelials/article/details/136879608](https://blog.csdn.net/camelials/article/details/136879608)**
 
 # 3. Release Note
 
