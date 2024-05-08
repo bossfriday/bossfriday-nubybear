@@ -47,8 +47,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     @Override
-    public void channelRead0(ChannelHandlerContext ctx, MqttMessage request)
-            throws Exception {
+    public void channelRead0(ChannelHandlerContext ctx, MqttMessage request) {
         this.handleMessage(request, ctx);
     }
 
@@ -64,13 +63,13 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     /**
-     * putQueryCallback
+     * setQueryCallback
      *
      * @param queryCallback
      * @param queryMessage
      * @param userId
      */
-    public void putQueryCallback(QueryCallback queryCallback, QueryMessage queryMessage, String userId) {
+    public void setQueryCallback(QueryCallback queryCallback, QueryMessage queryMessage, String userId) {
         QueryItem item = new QueryItem();
         item.queryCallback = queryCallback;
         item.queryMessage = queryMessage;
@@ -82,13 +81,13 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     }
 
     /**
-     * putPublishCallback
+     * setPublishCallback
      *
      * @param publishCallback
      * @param publishMessage
      * @param userId
      */
-    public void putPublishCallback(PublishCallback publishCallback, PublishMessage publishMessage, String userId) {
+    public void setPublishCallback(PublishCallback publishCallback, PublishMessage publishMessage, String userId) {
         PublishItem item = new PublishItem();
         item.publishCallback = publishCallback;
         item.publishMessage = publishMessage;
@@ -178,7 +177,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
         ConnectItem item = this.connectMap.get(ctx.channel().attr(this.attrKey).get());
         if (item != null) {
             item.connectCallback.readTime = System.currentTimeMillis();
-            item.connectCallback.process(msg.getStatus(), msg.getUserId());
+            item.connectCallback.process(msg, ctx);
         }
     }
 
@@ -221,8 +220,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
                     return;
                 }
 
-                item.queryCallback.process(msg.getStatus(), msg.getData(),
-                        msg.getDate(), ctx);
+                item.queryCallback.process(msg, ctx);
                 item.queryCallback.pauseTimer();
             } else {
                 if (item.queryCallback == null) {
@@ -248,7 +246,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
         if (item != null) {
             this.publishMap.remove(ctx.channel().attr(this.attrKey).get() + "_" + msg.getMessageSequence());
             if (item.publishCallback != null && ctx.channel().isWritable()) {
-                item.publishCallback.process(msg.getStatus(), msg.getDate(), msg.getMsgUid(), ctx);
+                item.publishCallback.process(msg, ctx);
                 item.publishCallback.pauseTimer();
             } else {
                 if (item.publishCallback == null) {

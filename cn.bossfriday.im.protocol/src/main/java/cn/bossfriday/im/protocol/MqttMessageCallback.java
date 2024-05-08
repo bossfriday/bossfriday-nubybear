@@ -1,7 +1,9 @@
 package cn.bossfriday.im.protocol;
 
-import cn.bossfriday.im.protocol.enums.ConnectionStatus;
+import cn.bossfriday.im.protocol.message.ConnAckMessage;
+import cn.bossfriday.im.protocol.message.PubAckMessage;
 import cn.bossfriday.im.protocol.message.PublishMessage;
+import cn.bossfriday.im.protocol.message.QueryAckMessage;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -19,12 +21,10 @@ public class MqttMessageCallback {
         /**
          * process
          *
-         * @param status
-         * @param serverTime
-         * @param msgUid
+         * @param ack
          * @param ctx
          */
-        protected abstract void process(int status, int serverTime, String msgUid, ChannelHandlerContext ctx);
+        protected abstract void process(PubAckMessage ack, ChannelHandlerContext ctx);
     }
 
     /**
@@ -35,12 +35,10 @@ public class MqttMessageCallback {
         /**
          * process
          *
-         * @param status
-         * @param data
-         * @param serverTime
+         * @param ack
          * @param ctx
          */
-        protected abstract void process(int status, byte[] data, int serverTime, ChannelHandlerContext ctx);
+        protected abstract void process(QueryAckMessage ack, ChannelHandlerContext ctx);
     }
 
     /**
@@ -62,11 +60,10 @@ public class MqttMessageCallback {
         /**
          * process
          *
-         * @param status
-         * @param userId
-         * @throws Exception
+         * @param ack
+         * @param ctx
          */
-        protected abstract void process(ConnectionStatus status, String userId);
+        protected abstract void process(ConnAckMessage ack, ChannelHandlerContext ctx);
     }
 
     /**
