@@ -10,7 +10,6 @@
     <modules>
         <module>cn.bossfriday.common</module>
         <module>cn.bossfriday.fileserver</module>
-        <module>cn.bossfriday.jmeter</module>
         <module>cn.bossfriday.im.navigator</module>
         <module>cn.bossfriday.im.access</module>
         <module>cn.bossfriday.im.protocol</module>
