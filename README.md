@@ -39,20 +39,13 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 * 【安全】文件下载地址防止暴力穷举。
 * 【安全】文件内容以一定数据结构存储与落盘文件中，服务端无法直接还远原始文件。
 
-## 2.3 cn.bossfriday.jmeter
-**项目说明**
-* 压力测试；**后续考虑废弃**  ：使用https://github.com/bossfriday/bossfriday-jmeter 进行替代。
-
-## 2.4 cn.bossfriday.im.access（建设中）
-IM系统接入服务，计划使用netty实现一个基于TCP的私有协议的长连接接入服务；
-
-## 2.5 cn.bossfriday.im.common（建设中）
+## 2.3 cn.bossfriday.im.common（建设中）
 IM系统公共组件/类等公用代码；
 
-## 2.6 cn.bossfriday.im.navigator（建设中）
-IM系统导航服务，负责客户端接入地址及全局配置下发（根据用户ID做一致性哈希计算得到接入服务cn.bossfriday.im.access的地址）；
-
-## 2.7 cn.bossfriday.im.protocol（完成）
+## 2.4 cn.bossfriday.im.protocol（完成）
 **项目说明**
 * IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
 * 详细介绍：**[https://blog.csdn.net/camelials/article/details/136879608](https://blog.csdn.net/camelials/article/details/136879608)**
+
+## 2.5 cn.bossfriday.im.access.mqtt（建设中）
+IM系统接入服务，协议使用非标MQTT；
