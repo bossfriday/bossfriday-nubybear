@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * ApplicationBootstrap
- * 文件服务：负责文件存储相关；
  *
  * @author chenx
  */
@@ -21,10 +20,13 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
         try {
             StorageHandlerFactory.init();
             StorageEngine.getInstance().start();
-            HttpFileServer.start();
-            log.info("================================");
+            HttpFileServer.getInstance().start();
+            log.info("=================================");
             log.info("cn.bossfriday.fileserver started.");
-            log.info("================================");
+            log.info("=================================");
+        } catch (InterruptedException e) {
+            log.error("ApplicationBootstrap.start() InterruptedException!", e);
+            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             log.error("ApplicationBootstrap.start() error!", ex);
         }
@@ -35,7 +37,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
     protected void stop() {
         try {
             StorageEngine.getInstance().stop();
-            HttpFileServer.stop();
+            HttpFileServer.getInstance().stop();
         } catch (Exception ex) {
             log.error("ApplicationBootstrap.stop() error!", ex);
         }
