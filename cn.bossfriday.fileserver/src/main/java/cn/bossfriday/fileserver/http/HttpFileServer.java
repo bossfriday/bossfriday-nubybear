@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author chenx
  */
 @Slf4j
+@SuppressWarnings("squid:S6548")
 public class HttpFileServer {
 
     private EventLoopGroup bossGroup;
