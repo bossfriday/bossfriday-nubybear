@@ -39,7 +39,7 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 * 【安全】文件下载地址防止暴力穷举。
 * 【安全】文件内容以一定数据结构存储与落盘文件中，服务端无法直接还远原始文件。
 
-## 2.3 cn.bossfriday.im.common（建设中）
+## 2.3 cn.bossfriday.im.common
 IM系统公共组件/类等公用代码；
 
 ## 2.4 cn.bossfriday.im.protocol（完成）
