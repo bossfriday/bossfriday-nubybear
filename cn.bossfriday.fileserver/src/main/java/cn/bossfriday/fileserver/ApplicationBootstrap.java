@@ -8,14 +8,13 @@ import cn.bossfriday.fileserver.http.HttpFileServer;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * FileServerBootstrap
- * <p>
+ * ApplicationBootstrap
  * 文件服务：负责文件存储相关；
  *
  * @author chenx
  */
 @Slf4j
-public class FileServerBootstrap extends AbstractServiceBootstrap {
+public class ApplicationBootstrap extends AbstractServiceBootstrap {
 
     @Override
     protected void start() {
@@ -23,11 +22,11 @@ public class FileServerBootstrap extends AbstractServiceBootstrap {
             StorageHandlerFactory.init();
             StorageEngine.getInstance().start();
             HttpFileServer.start();
-        } catch (InterruptedException e) {
-            log.error("FileServerBootstrap.start() InterruptedException!", e);
-            Thread.currentThread().interrupt();
+            log.info("================================");
+            log.info("cn.bossfriday.fileserver started.");
+            log.info("================================");
         } catch (Exception ex) {
-            log.error("FileServerBootstrap.start() error!", ex);
+            log.error("ApplicationBootstrap.start() error!", ex);
         }
 
     }
@@ -36,13 +35,14 @@ public class FileServerBootstrap extends AbstractServiceBootstrap {
     protected void stop() {
         try {
             StorageEngine.getInstance().stop();
+            HttpFileServer.stop();
         } catch (Exception ex) {
-            log.error("FileServerBootstrap.stop() error!", ex);
+            log.error("ApplicationBootstrap.stop() error!", ex);
         }
     }
 
     public static void main(String[] args) {
-        AbstractServiceBootstrap plugin = new FileServerBootstrap();
+        AbstractServiceBootstrap plugin = new ApplicationBootstrap();
         plugin.startup(FileServerConfigManager.getServiceConfig());
     }
 }
