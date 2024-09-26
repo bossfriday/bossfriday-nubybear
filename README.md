@@ -47,5 +47,5 @@ IM系统公共组件/类等公用代码；
 * IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
 * 详细介绍：**[https://blog.csdn.net/camelials/article/details/136879608](https://blog.csdn.net/camelials/article/details/136879608)**
 
-## 2.5 cn.bossfriday.im.access.mqtt（建设中）
+## 2.5 cn.bossfriday.im.access（建设中）
 IM系统接入服务，协议使用非标MQTT；
