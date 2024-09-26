@@ -13,7 +13,6 @@
         <module>cn.bossfriday.im.navigator</module>
         <module>cn.bossfriday.im.protocol</module>
         <module>cn.bossfriday.im.common</module>
-        <module>cn.bossfriday.im.access.mqtt</module>
     </modules>
 
     <properties>
