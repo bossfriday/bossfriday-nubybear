@@ -1,6 +1,6 @@
 package cn.bossfriday.common.plugin;
 
-import cn.bossfriday.common.conf.ServiceConfig;
+import cn.bossfriday.common.conf.SystemConfig;
 
 /**
  * IPlugin
@@ -14,7 +14,7 @@ public interface IPlugin {
      *
      * @param config
      */
-    void startup(ServiceConfig<?> config);
+    void startup(SystemConfig<?> config);
 
     /**
      * shutdown

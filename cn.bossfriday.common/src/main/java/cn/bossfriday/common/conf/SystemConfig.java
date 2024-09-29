@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author chenx
  */
-public class ServiceConfig<T> {
+public class SystemConfig<T> {
 
     /**
      * 集群名称（取一个合适的名称即可，ZK根节点以此命名）
@@ -44,21 +44,14 @@ public class ServiceConfig<T> {
     private List<PluginElement> plugins;
 
     /**
-     * 服务业务配置
+     * 服务配置
      */
     @Getter
     @Setter
-    private T config;
+    private T service;
 
-    public ServiceConfig() {
-
-    }
-
-    public ServiceConfig(String systemName, String zkAddress, ClusterNode clusterNode, List<PluginElement> plugins) {
-        this.systemName = systemName;
-        this.zkAddress = zkAddress;
-        this.clusterNode = clusterNode;
-        this.plugins = plugins;
+    public SystemConfig() {
+        
     }
 
     @Override

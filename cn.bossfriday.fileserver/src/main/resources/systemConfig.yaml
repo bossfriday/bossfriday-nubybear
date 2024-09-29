@@ -1,0 +1,30 @@
+# 系统配置
+system:
+  # 集群名称（取一个合适的名称即可，ZK根节点以此命名）
+  systemName: nubybear
+  # ZK地址（多个地址逗号分割）
+  zkAddress: localhost:2181
+  clusterNode:
+    # 节点名称（不重）
+    name: cn.bossfriday.fileserver-node-1
+    # 节点IP
+    host: 127.0.0.1
+    # 节点RPC端口
+    port: 9999
+    # 虚拟节点数（路由权重控制使用）
+    virtualNodesNum: 100
+
+# 服务配置
+service:
+  # 文件服务http端口
+  httpPort: 18086
+  # 存储文件跟文件夹路径
+  storageRootPath: fileData
+  # 过期文件清理扫描时间间隔
+  cleanerScanInterval: 36000
+  # 存储空间（expireDay<=0表示文件永不过期）
+  namespaces:
+    - name: normal
+      expireDay: 180
+    - name: forever
+      expireDay: -1

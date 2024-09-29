@@ -1,6 +1,6 @@
 package cn.bossfriday.common.router;
 
-import cn.bossfriday.common.conf.ServiceConfig;
+import cn.bossfriday.common.conf.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,19 +22,19 @@ public class ClusterRouterFactory {
     /**
      * build
      *
-     * @param serviceConfig
+     * @param systemConfig
      * @throws InterruptedException
      */
-    public static void build(ServiceConfig serviceConfig) throws Exception {
+    public static void build(SystemConfig systemConfig) throws Exception {
         if (clusterRouter == null) {
             synchronized (ClusterRouterFactory.class) {
                 if (clusterRouter == null) {
-                    clusterRouter = new ClusterRouter(serviceConfig.getSystemName(),
-                            serviceConfig.getZkAddress(),
-                            serviceConfig.getClusterNode().getName(),
-                            serviceConfig.getClusterNode().getHost(),
-                            serviceConfig.getClusterNode().getPort(),
-                            serviceConfig.getClusterNode().getVirtualNodesNum());
+                    clusterRouter = new ClusterRouter(systemConfig.getSystemName(),
+                            systemConfig.getZkAddress(),
+                            systemConfig.getClusterNode().getName(),
+                            systemConfig.getClusterNode().getHost(),
+                            systemConfig.getClusterNode().getPort(),
+                            systemConfig.getClusterNode().getVirtualNodesNum());
                 }
             }
         }

@@ -1,25 +1,25 @@
 package cn.bossfriday.fileserver.common.conf;
 
-import cn.bossfriday.common.conf.ServiceConfig;
-import cn.bossfriday.common.conf.ServiceConfigLoader;
-import lombok.extern.slf4j.Slf4j;
+import cn.bossfriday.common.conf.SystemConfig;
+import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.common.exception.ServiceRuntimeException;
+
+import java.util.Objects;
 
 /**
  * FileServerConfigManager
  *
  * @author chenx
  */
-@Slf4j
 public class FileServerConfigManager {
 
-    private static FileServerConfig fileServerConfig;
+    private static SystemConfig<FileServerConfig> systemConfig;
 
     static {
         try {
-            ServiceConfig<FileServerConfig> config = ServiceConfigLoader.getInstance(FileServerConfig.class).getServiceConfig();
-            fileServerConfig = config.getConfig();
+            systemConfig = SystemConfigLoader.getInstance(FileServerConfig.class).getConfig();
         } catch (Exception ex) {
-            log.error("load FileServerConfig error!", ex);
+            throw new ServiceRuntimeException("FileServerConfigManager load config error! message: " + ex.getMessage());
         }
     }
 
@@ -28,9 +28,37 @@ public class FileServerConfigManager {
     }
 
     /**
+     * getSystemConfig
+     *
+     * @return
+     */
+    public static SystemConfig<FileServerConfig> getSystemConfig() {
+        return systemConfig;
+    }
+
+    /**
      * getFileServerConfig
      */
     public static FileServerConfig getFileServerConfig() {
-        return fileServerConfig;
+        if (Objects.isNull(systemConfig.getService())) {
+            throw new ServiceRuntimeException("systemConfig.service is null!");
+        }
+
+        return systemConfig.getService();
+    }
+
+    /**
+     * getClusterNodeName
+     */
+    public static String getClusterNodeName() {
+        if (Objects.isNull(systemConfig)) {
+            throw new ServiceRuntimeException("systemConfig is null!");
+        }
+
+        if (Objects.isNull(systemConfig.getClusterNode())) {
+            throw new ServiceRuntimeException("systemConfig.clusterNode is null!");
+        }
+
+        return systemConfig.getClusterNode().getName();
     }
 }

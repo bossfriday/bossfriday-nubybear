@@ -1,9 +1,7 @@
 package cn.bossfriday.fileserver;
 
 import cn.bossfriday.common.AbstractServiceBootstrap;
-import cn.bossfriday.common.conf.ServiceConfig;
-import cn.bossfriday.common.conf.ServiceConfigLoader;
-import cn.bossfriday.fileserver.common.conf.FileServerConfig;
+import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.http.HttpFileServer;
@@ -49,8 +47,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
      * 本地启动入口
      */
     public static void main(String[] args) {
-        ServiceConfig<FileServerConfig> config = ServiceConfigLoader.getInstance(FileServerConfig.class).getServiceConfig();
         AbstractServiceBootstrap plugin = new ApplicationBootstrap();
-        plugin.startup(config);
+        plugin.startup(FileServerConfigManager.getSystemConfig());
     }
 }

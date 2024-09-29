@@ -1,6 +1,5 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.conf.ServiceConfigLoader;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
@@ -272,7 +271,7 @@ public class StorageEngine extends BaseStorageEngine {
             });
 
             // 目录初始化
-            this.baseDir = new File(config.getStorageRootPath(), ServiceConfigLoader.getInstance(FileServerConfig.class).getClusterNodeName());
+            this.baseDir = new File(config.getStorageRootPath(), FileServerConfigManager.getClusterNodeName());
             if (!this.baseDir.exists()) {
                 this.baseDir.mkdirs();
             }

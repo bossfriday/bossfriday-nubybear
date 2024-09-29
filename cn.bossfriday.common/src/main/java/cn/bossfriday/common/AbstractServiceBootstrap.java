@@ -1,14 +1,12 @@
 package cn.bossfriday.common;
 
-import cn.bossfriday.common.conf.ServiceConfig;
+import cn.bossfriday.common.conf.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
-import cn.bossfriday.common.plugin.PluginElement;
 import cn.bossfriday.common.register.ActorRegister;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
-import cn.bossfriday.common.utils.ClassLoaderUtil;
 import cn.bossfriday.common.utils.CommonUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -16,8 +14,6 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,23 +38,25 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
     protected abstract void stop();
 
     @Override
-    public void startup(ServiceConfig<?> config) {
+    public void startup(SystemConfig<?> config) {
         try {
             long begin = System.currentTimeMillis();
             if (config == null) {
                 throw new ServiceRuntimeException("ServiceConfig is null");
             }
 
+            // 服务启动
             ClusterRouterFactory.build(config);
-            this.registerActor(config);
+            this.registerActor();
             ClusterRouterFactory.getClusterRouter().registryService();
             ClusterRouterFactory.getClusterRouter().startActorSystem();
             this.start();
-            long time = System.currentTimeMillis() - begin;
 
-            LOGGER.info("ServiceConfig: {}", config.toString());
+            // 启动日志
+            long time = System.currentTimeMillis() - begin;
             String logInfo = "[" + config.getClusterNode().getName() + "] Start Done, Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
+            LOGGER.info("config: {}", config);
         } catch (InterruptedException interEx) {
             LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
             Thread.currentThread().interrupt();
@@ -78,50 +76,23 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
 
     /**
      * registerActor
-     *
-     * @param config
-     * @throws IOException
-     * @throws ClassNotFoundException
      */
-    private void registerActor(ServiceConfig config) throws IOException, ClassNotFoundException {
-        List<Class<? extends BaseUntypedActor>> classList = new ArrayList<>();
-        this.loadActor(classList, config);
-        if (CollectionUtils.isEmpty(classList)) {
+    private void registerActor() {
+        List<Class<? extends BaseUntypedActor>> actorClassList = new ArrayList<>();
+        Set<Class<? extends BaseUntypedActor>> set = new Reflections().getSubTypesOf(BaseUntypedActor.class);
+        actorClassList.addAll(set);
+
+        if (CollectionUtils.isEmpty(actorClassList)) {
             LOGGER.warn("no actor need to register!");
             return;
         }
 
-        classList.forEach(cls -> {
+        actorClassList.forEach(cls -> {
             if (cls.isAnnotationPresent(ActorRoute.class)) {
                 ActorRoute route = cls.getAnnotation(ActorRoute.class);
                 this.registerActorRoute(cls, route);
             }
         });
-    }
-
-    /**
-     * loadActor(有配置走配置，无配置反射获取当前jar包内所有UntypedActor类)
-     *
-     * @param classList
-     * @param config
-     */
-    private void loadActor(List<Class<? extends BaseUntypedActor>> classList, ServiceConfig config) throws IOException, ClassNotFoundException {
-        List<PluginElement> pluginElements = config.getPlugins();
-        if (!CollectionUtils.isEmpty(pluginElements)) {
-            for (PluginElement pluginConfig : pluginElements) {
-                File file = new File(pluginConfig.getPath());
-                if (!file.exists()) {
-                    LOGGER.warn("service build not existed!(" + pluginConfig.getPath() + ")");
-                    continue;
-                }
-
-                List<Class<? extends BaseUntypedActor>> list = ClassLoaderUtil.getAllClass(pluginConfig.getPath(), BaseUntypedActor.class);
-                classList.addAll(list);
-            }
-        } else {
-            Set<Class<? extends BaseUntypedActor>> set = new Reflections().getSubTypesOf(BaseUntypedActor.class);
-            classList.addAll(set);
-        }
     }
 
     /**
@@ -144,7 +115,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
                     ActorRegister.registerActor(method, cls, getActorExecutorMin(route), getActorExecutorMax(route));
                 }
 
-                LOGGER.info("registerActor done: " + cls.getSimpleName());
+                LOGGER.info("registerActor done: {}", cls.getSimpleName());
             } catch (Exception ex) {
                 LOGGER.error("registerActor error!", ex);
             }
@@ -185,9 +156,5 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
         }
 
         return DEFAULT_MAX;
-    }
-
-    private static void printStartedLog() {
-
     }
 }
