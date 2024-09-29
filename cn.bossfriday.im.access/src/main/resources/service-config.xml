@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <systemName>nubybear</systemName>
+    <zkAddress>localhost:2181</zkAddress>
+    <clusterNode>
+        <name>cn.bossfriday.im.access-node-1</name>
+        <host>127.0.0.1</host>
+        <port>9000</port>
+        <virtualNodesNum>100</virtualNodesNum>
+    </clusterNode>
+</config>

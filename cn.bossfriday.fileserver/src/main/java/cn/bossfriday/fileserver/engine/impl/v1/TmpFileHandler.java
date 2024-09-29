@@ -1,12 +1,12 @@
 package cn.bossfriday.fileserver.engine.impl.v1;
 
 import cn.bossfriday.common.combo.Combo2;
+import cn.bossfriday.common.conf.ServiceConfigManager;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
@@ -214,7 +214,7 @@ public class TmpFileHandler implements ITmpFileHandler {
         result.setResult(OperationResult.OK);
         result.setStorageEngineVersion(msg.getStorageEngineVersion());
         result.setStorageNamespace(msg.getStorageNamespace());
-        result.setClusterNodeName(FileServerConfigManager.getCurrentClusterNodeName());
+        result.setClusterNodeName(ServiceConfigManager.getClusterNodeName());
         result.setKeepAlive(msg.isKeepAlive());
         result.setTimestamp(System.currentTimeMillis());
         result.setFileTotalSize(msg.getFileTotalSize());

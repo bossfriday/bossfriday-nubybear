@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver;
 
 import cn.bossfriday.common.AbstractServiceBootstrap;
-import cn.bossfriday.fileserver.common.conf.FileServerConfigManager;
+import cn.bossfriday.common.conf.ServiceConfigManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.http.HttpFileServer;
@@ -21,9 +21,6 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
             StorageHandlerFactory.init();
             StorageEngine.getInstance().start();
             HttpFileServer.getInstance().start();
-            log.info("=================================");
-            log.info("cn.bossfriday.fileserver started.");
-            log.info("=================================");
         } catch (InterruptedException e) {
             log.error("ApplicationBootstrap.start() InterruptedException!", e);
             Thread.currentThread().interrupt();
@@ -51,6 +48,6 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
      */
     public static void main(String[] args) {
         AbstractServiceBootstrap plugin = new ApplicationBootstrap();
-        plugin.startup(FileServerConfigManager.getServiceConfig());
+        plugin.startup(ServiceConfigManager.getServiceConfig());
     }
 }

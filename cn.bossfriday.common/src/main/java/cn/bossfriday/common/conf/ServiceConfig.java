@@ -17,15 +17,27 @@ import java.util.List;
 @XmlRootElement(name = "config")
 public class ServiceConfig {
 
+    /**
+     * 集群名称（取一个合适的名称即可，ZK根节点以此命名）
+     */
     @XmlElement(name = "systemName")
     private String systemName;
 
+    /**
+     * ZK地址（多个地址逗号分割）
+     */
     @XmlElement(name = "zkAddress")
     private String zkAddress;
 
+    /**
+     * 集群节点
+     */
     @XmlElement(name = "clusterNode", type = ClusterNode.class)
     private ClusterNode clusterNode;
 
+    /**
+     * 集群插件服务
+     */
     @XmlElementWrapper(name = "plugins")
     @XmlElement(name = "plugin")
     private List<PluginElement> plugins;

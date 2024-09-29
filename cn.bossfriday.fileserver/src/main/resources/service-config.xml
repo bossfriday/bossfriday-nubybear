@@ -9,7 +9,7 @@
     <clusterNode>
 
         <!--节点名称-->
-        <name>fs-node1</name>
+        <name>cn.bossfriday.fileserver-node-1</name>
 
         <!--节点IP-->
         <host>127.0.0.1</host>

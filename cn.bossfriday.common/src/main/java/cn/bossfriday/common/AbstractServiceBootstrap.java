@@ -9,10 +9,12 @@ import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.common.utils.ClassLoaderUtil;
-import lombok.extern.slf4j.Slf4j;
+import cn.bossfriday.common.utils.CommonUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,8 +27,9 @@ import java.util.Set;
  *
  * @author chenx
  */
-@Slf4j
 public abstract class AbstractServiceBootstrap implements IPlugin {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractServiceBootstrap.class);
 
     /**
      * start
@@ -50,11 +53,14 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
             ClusterRouterFactory.getClusterRouter().registryService();
             ClusterRouterFactory.getClusterRouter().startActorSystem();
             this.start();
+
+            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done";
+            CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
-            log.error("Bootstrap.startup() InterruptedException!", interEx);
+            LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
-            log.error("Bootstrap.startup() error!", ex);
+            LOGGER.error("Bootstrap.startup() error!", ex);
         }
     }
 
@@ -63,7 +69,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
         try {
             this.stop();
         } catch (Exception e) {
-            log.error("service shutdown error!", e);
+            LOGGER.error("service shutdown error!", e);
         }
     }
 
@@ -78,7 +84,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
         List<Class<? extends BaseUntypedActor>> classList = new ArrayList<>();
         this.loadActor(classList, config);
         if (CollectionUtils.isEmpty(classList)) {
-            log.warn("no actor need to register!");
+            LOGGER.warn("no actor need to register!");
             return;
         }
 
@@ -102,7 +108,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
             for (PluginElement pluginConfig : pluginElements) {
                 File file = new File(pluginConfig.getPath());
                 if (!file.exists()) {
-                    log.warn("service build not existed!(" + pluginConfig.getPath() + ")");
+                    LOGGER.warn("service build not existed!(" + pluginConfig.getPath() + ")");
                     continue;
                 }
 
@@ -135,9 +141,9 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
                     ActorRegister.registerActor(method, cls, getActorExecutorMin(route), getActorExecutorMax(route));
                 }
 
-                log.info("registerActor done: " + cls.getSimpleName());
+                LOGGER.info("registerActor done: " + cls.getSimpleName());
             } catch (Exception ex) {
-                log.error("registerActor error!", ex);
+                LOGGER.error("registerActor error!", ex);
             }
         }
     }
@@ -176,5 +182,9 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
         }
 
         return DEFAULT_MAX;
+    }
+
+    private static void printStartedLog() {
+
     }
 }

@@ -8,7 +8,6 @@
         <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>cn.bossfriday.fileserver</artifactId>
 
     <properties>
@@ -21,8 +20,13 @@
             <groupId>cn.bossfriday</groupId>
             <artifactId>cn.bossfriday.common</artifactId>
             <version>1.0</version>
-            <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!--test scope-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient-cache</artifactId>
@@ -34,11 +38,6 @@
             <artifactId>httpmime</artifactId>
             <version>${httpclient.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1.1</version>
         </dependency>
     </dependencies>
 </project>
