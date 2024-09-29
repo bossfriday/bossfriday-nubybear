@@ -1,29 +1,26 @@
 package cn.bossfriday.fileserver.common.conf;
 
-import lombok.AllArgsConstructor;
+import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import lombok.Setter;
 
 /**
  * StorageNamespace
  *
  * @author chenx
  */
-@ToString
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@XmlAccessorType(XmlAccessType.FIELD)
 public class StorageNamespace {
 
-    @XmlAttribute(name = "name")
+    @Getter
+    @Setter
     private String name;
 
-    @XmlAttribute(name = "expireDay")
+    @Getter
+    @Setter
     private int expireDay;
+
+    @Override
+    public String toString() {
+        return GsonUtil.toJson(this);
+    }
 }

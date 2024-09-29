@@ -42,7 +42,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
     protected abstract void stop();
 
     @Override
-    public void startup(ServiceConfig config) {
+    public void startup(ServiceConfig<?> config) {
         try {
             long begin = System.currentTimeMillis();
             if (config == null) {

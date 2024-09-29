@@ -1,6 +1,7 @@
 package cn.bossfriday.fileserver.common.conf;
 
-import cn.bossfriday.common.utils.XmlParserUtil;
+import cn.bossfriday.common.conf.ServiceConfig;
+import cn.bossfriday.common.conf.ServiceConfigLoader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -15,8 +16,8 @@ public class FileServerConfigManager {
 
     static {
         try {
-            fileServerConfig = XmlParserUtil.parse("file-config.xml", FileServerConfig.class);
-            log.info("load fileServerConfig done: " + fileServerConfig.toString());
+            ServiceConfig<FileServerConfig> config = ServiceConfigLoader.getInstance(FileServerConfig.class).getServiceConfig();
+            fileServerConfig = config.getConfig();
         } catch (Exception ex) {
             log.error("load FileServerConfig error!", ex);
         }

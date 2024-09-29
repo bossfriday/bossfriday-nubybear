@@ -2,9 +2,8 @@ package cn.bossfriday.fileserver.common.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.xml.bind.annotation.*;
 import java.util.List;
 
 /**
@@ -12,26 +11,22 @@ import java.util.List;
  *
  * @author chenx
  */
-@NoArgsConstructor
-@XmlRootElement(name = "config")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class FileServerConfig {
 
     @Getter
-    @XmlElement(name = "httpPort")
+    @Setter
     private Integer httpPort;
 
     @Getter
-    @XmlElement(name = "storageRootPath")
+    @Setter
     private String storageRootPath;
 
     @Getter
-    @XmlElement(name = "cleanerScanInterval")
+    @Setter
     private Integer cleanerScanInterval;
 
     @Getter
-    @XmlElementWrapper(name = "namespaces")
-    @XmlElement(name = "namespace")
+    @Setter
     private List<StorageNamespace> namespaces;
 
     @Override
