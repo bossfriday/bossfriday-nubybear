@@ -44,6 +44,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
     @Override
     public void startup(ServiceConfig config) {
         try {
+            long begin = System.currentTimeMillis();
             if (config == null) {
                 throw new ServiceRuntimeException("ServiceConfig is null");
             }
@@ -53,8 +54,10 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
             ClusterRouterFactory.getClusterRouter().registryService();
             ClusterRouterFactory.getClusterRouter().startActorSystem();
             this.start();
+            long time = System.currentTimeMillis() - begin;
 
-            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done";
+            LOGGER.info("ServiceConfig: {}", config.toString());
+            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done, Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
             LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
@@ -103,7 +106,7 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
      * @param config
      */
     private void loadActor(List<Class<? extends BaseUntypedActor>> classList, ServiceConfig config) throws IOException, ClassNotFoundException {
-        List<PluginElement> pluginElements = config.getPluginElements();
+        List<PluginElement> pluginElements = config.getPlugins();
         if (!CollectionUtils.isEmpty(pluginElements)) {
             for (PluginElement pluginConfig : pluginElements) {
                 File file = new File(pluginConfig.getPath());

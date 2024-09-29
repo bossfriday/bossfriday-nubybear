@@ -1,9 +1,10 @@
 package cn.bossfriday.common.conf;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
-import cn.bossfriday.common.utils.XmlParserUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -14,16 +15,19 @@ import java.util.Objects;
 @Slf4j
 public class ServiceConfigManager {
 
-    private static final String SERVICE_CONFIG_PATH = "service-config.xml";
+    private static final String CONFIG_FILE_SERVICE = "serviceConfig.yaml";
     private static ServiceConfig serviceConfig;
 
     static {
-        try {
-            serviceConfig = XmlParserUtil.parse(SERVICE_CONFIG_PATH, ServiceConfig.class);
-            log.info("load serviceConfig done: " + serviceConfig.toString());
-        } catch (Exception ex) {
-            log.error("load serviceConfig error!", ex);
-            throw new ServiceRuntimeException("load serviceConfig error!");
+        Yaml yaml = new Yaml();
+        try (InputStream inputStream = ServiceConfigManager.class.getClassLoader().getResourceAsStream(CONFIG_FILE_SERVICE)) {
+            if (inputStream == null) {
+                throw new IllegalArgumentException("service config file not existed! file: " + CONFIG_FILE_SERVICE);
+            }
+
+            serviceConfig = yaml.loadAs(inputStream, ServiceConfig.class);
+        } catch (Exception e) {
+            throw new ServiceRuntimeException("load serviceConfig error! message: " + e.getMessage());
         }
     }
 

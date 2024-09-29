@@ -1,0 +1,8 @@
+systemName: nubybear
+zkAddress: localhost:2181
+
+clusterNode:
+  name: cn.bossfriday.fileserver-node-1
+  host: 127.0.0.1
+  port: 18080
+  virtualNodesNum: 100
