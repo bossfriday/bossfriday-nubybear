@@ -42,7 +42,7 @@ public abstract class BaseUntypedActor {
             return;
         }
 
-        this.self = new ActorRef(actorSystem.getSelfAddress().getHostName(), actorSystem.getSelfAddress().getPort(), UUIDUtil.getUuidBytes(), message.getTargetMethod(), actorSystem);
+        this.self = new ActorRef(actorSystem.getSelfAddress().getHostName(), actorSystem.getSelfAddress().getPort(), UUIDUtil.getUUIDBytes(), message.getTargetMethod(), actorSystem);
         if (message.hasSource()) {
             if (message.getSourceMethod() == null) {
                 // source is callback actor

@@ -67,6 +67,7 @@ public class HttpFileServer {
         );
 
         this.serverChannel = b.bind(port).sync().channel();
+        log.info("HttpFileServer start done, port: {}", port);
     }
 
     /**

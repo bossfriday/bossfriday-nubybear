@@ -22,14 +22,6 @@ public class UUIDUtil {
 
     /**
      * getUUID
-     */
-    public static UUID getUuid() {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        return new UUID(random.nextLong(), random.nextLong());
-    }
-
-    /**
-     * getUUID
      *
      * @param msb
      * @param lsb
@@ -40,12 +32,20 @@ public class UUIDUtil {
     }
 
     /**
-     * getUuidBytes
+     * getUUID
+     */
+    public static UUID getRandomUUID() {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        return new UUID(random.nextLong(), random.nextLong());
+    }
+
+    /**
+     * getUUIDBytes
      *
      * @return
      */
-    public static byte[] getUuidBytes() {
-        return toBytes(getUuid());
+    public static byte[] getUUIDBytes() {
+        return toBytes(getRandomUUID());
     }
 
     /**
@@ -63,6 +63,7 @@ public class UUIDUtil {
             buffer[i] = (byte) ((msb >>> 8 * (7 - i)) & 0xFF);
             buffer[i + 8] = (byte) ((lsb >>> 8 * (7 - i)) & 0xFF);
         }
+
         return buffer;
     }
 
@@ -72,7 +73,7 @@ public class UUIDUtil {
      * @return
      */
     public static String getShortString() {
-        return getShortString((getUuid()));
+        return getShortString((getRandomUUID()));
     }
 
     /**
@@ -83,7 +84,7 @@ public class UUIDUtil {
      */
     public static String getShortString(UUID u) {
         if (u == null) {
-            u = getUuid();
+            u = getRandomUUID();
         }
 
         return toIdString(u.getMostSignificantBits()) + toIdString(u.getLeastSignificantBits());

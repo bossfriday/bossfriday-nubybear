@@ -27,7 +27,6 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
         } catch (Exception ex) {
             log.error("ApplicationBootstrap.start() error!", ex);
         }
-
     }
 
     @Override

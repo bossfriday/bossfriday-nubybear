@@ -8,6 +8,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * SystemConfigLoader
@@ -80,8 +81,10 @@ public class SystemConfigLoader<T> {
             this.systemConfig.setClusterNode(clusterNode);
 
             // 加载服务配置
-            T serviceConfig = JSONUtil.toBean(JSONUtil.toJsonStr(configMap.get("service")), this.serviceConfigClass);
-            this.systemConfig.setService(serviceConfig);
+            if (Objects.nonNull(configMap.get("service"))) {
+                T serviceConfig = JSONUtil.toBean(JSONUtil.toJsonStr(configMap.get("service")), this.serviceConfigClass);
+                this.systemConfig.setService(serviceConfig);
+            }
         } catch (Exception ex) {
             throw new ServiceRuntimeException("load systemConfig error! message: " + ex.getMessage());
         }

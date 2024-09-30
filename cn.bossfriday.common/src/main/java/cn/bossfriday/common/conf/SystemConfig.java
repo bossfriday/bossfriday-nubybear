@@ -50,10 +50,6 @@ public class SystemConfig<T> {
     @Setter
     private T service;
 
-    public SystemConfig() {
-        
-    }
-
     @Override
     public String toString() {
         return GsonUtil.toJson(this);

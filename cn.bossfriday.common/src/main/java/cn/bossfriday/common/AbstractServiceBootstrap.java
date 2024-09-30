@@ -53,10 +53,10 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
             this.start();
 
             // 启动日志
+            LOGGER.info("[SystemConfig] {}", config);
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done, Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
-            LOGGER.info("config: {}", config);
         } catch (InterruptedException interEx) {
             LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
             Thread.currentThread().interrupt();

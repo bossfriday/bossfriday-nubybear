@@ -163,7 +163,7 @@ public class ActorSystem {
      * @return
      */
     public ActorRef actorOf(final long ttl, final BaseUntypedActor actor) {
-        return new ActorRef(this.selfAddress.getHostName(), this.selfAddress.getPort(), UUIDUtil.getUuidBytes(), this, actor, ttl);
+        return new ActorRef(this.selfAddress.getHostName(), this.selfAddress.getPort(), UUIDUtil.getUUIDBytes(), this, actor, ttl);
     }
 
     /**
@@ -196,7 +196,7 @@ public class ActorSystem {
      * @return
      */
     public ActorRef actorOf(String ip, int port, String targetMethod) {
-        byte[] session = UUIDUtil.toBytes(UUIDUtil.getUuid());
+        byte[] session = UUIDUtil.toBytes(UUIDUtil.getRandomUUID());
         return new ActorRef(ip, port, session, targetMethod, this);
     }
 

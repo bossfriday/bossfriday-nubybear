@@ -13,7 +13,7 @@ public class DeadLetterActorRef extends ActorRef {
     public static final ActorRef DEAD_LETTER_ACTOR_REF_INSTANCE = new DeadLetterActorRef();
 
     public DeadLetterActorRef() {
-        super(Const.DEAD_LETTER_ACTOR_HOST, Const.DEAD_LETTER_ACTOR_PORT, UUIDUtil.getUuidBytes(), (String) null, null);
+        super(Const.DEAD_LETTER_ACTOR_HOST, Const.DEAD_LETTER_ACTOR_PORT, UUIDUtil.getUUIDBytes(), (String) null, null);
     }
 
     @Override
