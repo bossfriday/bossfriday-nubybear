@@ -3,6 +3,7 @@ package cn.bossfriday.im.access;
 import cn.bossfriday.common.AbstractServiceBootstrap;
 import cn.bossfriday.im.access.common.conf.ImAccessConfigLoader;
 import cn.bossfriday.im.access.server.MqttAccessServer;
+import cn.bossfriday.im.access.server.MqttAccessServerListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -21,7 +22,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
     protected void start() {
         try {
             int port = ImAccessConfigLoader.getConfig().getTcpPort();
-            this.mqttAccessServer = new MqttAccessServer(port, null);
+            this.mqttAccessServer = new MqttAccessServer(port, new MqttAccessServerListener());
             this.mqttAccessServer.start();
         } catch (InterruptedException ex) {
             log.error("ApplicationBootstrap.start() Interrupted!", ex);
@@ -38,6 +39,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
                 this.mqttAccessServer.stop();
             }
         } catch (InterruptedException ex) {
+            log.error("ApplicationBootstrap.stop() Interrupted!", ex);
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
             log.error("ApplicationBootstrap.stop() error!", ex);

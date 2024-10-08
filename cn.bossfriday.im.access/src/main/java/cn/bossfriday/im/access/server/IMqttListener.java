@@ -47,6 +47,11 @@ public interface IMqttListener {
     void onQueryConMessage(QueryConMessage msg, ChannelHandlerContext ctx) throws ServiceException;
 
     /**
+     * onPingReqMessage
+     */
+    void onPingReqMessage(PingReqMessage msg, ChannelHandlerContext ctx) throws ServiceException;
+
+    /**
      * closed
      */
     void closed(ChannelHandlerContext ctx) throws ServiceException;
