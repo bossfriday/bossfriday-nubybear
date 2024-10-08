@@ -24,17 +24,23 @@ import static cn.bossfriday.im.protocol.core.MqttException.READ_DATA_TIMEOUT_EXC
 @SuppressWarnings({"squid:S3077", "squid:S1181"})
 public class MqttMessageDecoder extends ByteToMessageDecoder {
 
-    private final long timeoutMillis;
+    public static final long MQTT_CODEC_TIMEOUT = 30000;
+
+    private final long timeout;
     private final String userId;
     private final boolean isServer;
 
     private volatile long lastReadTime;
-    private volatile ScheduledFuture<?> timeout;
+    private volatile ScheduledFuture<?> timeoutFuture;
 
     private boolean closed;
 
-    public MqttMessageDecoder(long timeoutMillis, String userId, boolean isServer) {
-        this.timeoutMillis = timeoutMillis;
+    public MqttMessageDecoder(long timeout) {
+        this(timeout, null, false);
+    }
+
+    public MqttMessageDecoder(long timeout, String userId, boolean isServer) {
+        this.timeout = timeout;
         this.userId = userId;
         this.isServer = isServer;
     }
@@ -54,8 +60,8 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
      */
     protected void readTimedOut(ChannelHandlerContext ctx) {
         if (!this.closed) {
-            this.timeout.cancel(false);
-            this.timeout = null;
+            this.timeoutFuture.cancel(false);
+            this.timeoutFuture = null;
             this.closed = true;
             ctx.fireExceptionCaught(READ_DATA_TIMEOUT_EXCEPTION);
             ctx.close();
@@ -139,8 +145,8 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
      */
     private void resumeTimer(ChannelHandlerContext ctx) {
         this.lastReadTime = System.currentTimeMillis();
-        if (this.timeoutMillis > 0 && (this.timeout == null || this.timeout.isCancelled()) && !this.closed) {
-            this.timeout = ctx.executor().schedule(new ReadTimeoutTask(ctx), this.timeoutMillis, TimeUnit.MILLISECONDS);
+        if (this.timeout > 0 && (this.timeoutFuture == null || this.timeoutFuture.isCancelled()) && !this.closed) {
+            this.timeoutFuture = ctx.executor().schedule(new ReadTimeoutTask(ctx), this.timeout, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -148,8 +154,8 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
      * pauseTimer
      */
     private void pauseTimer() {
-        if (this.timeout != null) {
-            this.timeout.cancel(false);
+        if (this.timeoutFuture != null) {
+            this.timeoutFuture.cancel(false);
         }
     }
 
@@ -157,10 +163,10 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
      * close
      */
     private void close(ChannelHandlerContext ctx, ByteBuf buf) {
-        if (this.timeout != null) {
-            this.timeout.cancel(false);
+        if (this.timeoutFuture != null) {
+            this.timeoutFuture.cancel(false);
         }
-        this.timeout = null;
+        this.timeoutFuture = null;
         this.closed = true;
         buf.skipBytes(buf.readableBytes());
         ctx.fireExceptionCaught(BAD_MESSAGE_EXCEPTION);
@@ -189,10 +195,10 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
             }
 
             long currentTime = System.currentTimeMillis();
-            long nextDelay = MqttMessageDecoder.this.timeoutMillis - (currentTime - MqttMessageDecoder.this.lastReadTime);
+            long nextDelay = MqttMessageDecoder.this.timeout - (currentTime - MqttMessageDecoder.this.lastReadTime);
             if (nextDelay <= 0) {
                 // Read timed out - set a new timeout and notify the callback.
-                MqttMessageDecoder.this.timeout = this.ctx.executor().schedule(this, MqttMessageDecoder.this.timeoutMillis, TimeUnit.MILLISECONDS);
+                MqttMessageDecoder.this.timeoutFuture = this.ctx.executor().schedule(this, MqttMessageDecoder.this.timeout, TimeUnit.MILLISECONDS);
                 try {
                     MqttMessageDecoder.this.readTimedOut(this.ctx);
                 } catch (Throwable t) {
@@ -201,7 +207,7 @@ public class MqttMessageDecoder extends ByteToMessageDecoder {
             } else {
                 // Read occurred before the timeout - set a new timeout with
                 // shorter delay.
-                MqttMessageDecoder.this.timeout = this.ctx.executor().schedule(this, nextDelay, TimeUnit.MILLISECONDS);
+                MqttMessageDecoder.this.timeoutFuture = this.ctx.executor().schedule(this, nextDelay, TimeUnit.MILLISECONDS);
             }
         }
     }

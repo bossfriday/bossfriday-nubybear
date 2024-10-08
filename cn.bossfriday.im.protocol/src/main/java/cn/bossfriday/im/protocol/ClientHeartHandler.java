@@ -6,13 +6,13 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 
 /**
- * HeartCheckHandler
+ * ClientHeartHandler
  *
  * @author chenx
  */
-public class HeartCheckHandler extends IdleStateHandler {
+public class ClientHeartHandler extends IdleStateHandler {
 
-    public HeartCheckHandler(int readerIdleTimeSeconds, int writerIdleTimeSeconds, int allIdleTimeSeconds) {
+    public ClientHeartHandler(int readerIdleTimeSeconds, int writerIdleTimeSeconds, int allIdleTimeSeconds) {
         super(readerIdleTimeSeconds, writerIdleTimeSeconds, allIdleTimeSeconds);
     }
 

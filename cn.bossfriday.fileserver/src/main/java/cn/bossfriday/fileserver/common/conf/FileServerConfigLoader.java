@@ -11,7 +11,7 @@ import java.util.Objects;
  *
  * @author chenx
  */
-public class FileServerConfigManager {
+public class FileServerConfigLoader {
 
     private static SystemConfig<FileServerConfig> systemConfig;
 
@@ -23,7 +23,7 @@ public class FileServerConfigManager {
         }
     }
 
-    private FileServerConfigManager() {
+    private FileServerConfigLoader() {
         // do nothing
     }
 
@@ -37,9 +37,9 @@ public class FileServerConfigManager {
     }
 
     /**
-     * getFileServerConfig
+     * getConfig
      */
-    public static FileServerConfig getFileServerConfig() {
+    public static FileServerConfig getConfig() {
         if (Objects.isNull(systemConfig.getService())) {
             throw new ServiceRuntimeException("systemConfig.service is null!");
         }
