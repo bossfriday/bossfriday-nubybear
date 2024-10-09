@@ -7,16 +7,16 @@ import io.netty.channel.ChannelHandlerContext;
 import java.util.Objects;
 
 /**
- * MqttMessageListener
+ * BaseMqttMessageListener
  *
  * @author chenx
  */
-public abstract class MqttMessageListener<T extends MqttMessage> {
+public abstract class BaseMqttMessageListener<T extends MqttMessage> {
 
     private T msg;
     private ChannelHandlerContext ctx;
 
-    protected MqttMessageListener(T msg, ChannelHandlerContext ctx) {
+    protected BaseMqttMessageListener(T msg, ChannelHandlerContext ctx) {
         this.msg = msg;
         this.ctx = ctx;
     }

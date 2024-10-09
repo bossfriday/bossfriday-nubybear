@@ -7,7 +7,7 @@ import cn.bossfriday.im.protocol.enums.MqttMessageType;
 import cn.bossfriday.im.protocol.enums.QoS;
 
 /**
- * QueryConMessage
+ * Query confirm Message：客户端拉完消息之后要给服务端一个confirm；
  *
  * @author chenx
  */

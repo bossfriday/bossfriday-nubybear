@@ -1,7 +1,7 @@
 package cn.bossfriday.im.access.server.listener;
 
 import cn.bossfriday.im.access.common.enums.DisconnectReason;
-import cn.bossfriday.im.access.server.core.MqttMessageListener;
+import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
 import cn.bossfriday.im.protocol.message.DisconnectMessage;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import static cn.bossfriday.im.access.server.AccessContextAttributeKey.IS_CONNEC
  * @author chenx
  */
 @Slf4j
-public class DisconnectMessageListener extends MqttMessageListener<DisconnectMessage> {
+public class DisconnectMessageListener extends BaseMqttMessageListener<DisconnectMessage> {
 
     public DisconnectMessageListener(DisconnectMessage msg, ChannelHandlerContext ctx) {
         super(msg, ctx);
@@ -28,7 +28,7 @@ public class DisconnectMessageListener extends MqttMessageListener<DisconnectMes
             ctx.close();
             return;
         }
-        
+
         ctx.channel().attr(DISCONNECT_REASON).set(DisconnectReason.CLIENT_DISCONNECT_MESSAGE.getValue());
         // TODO
     }

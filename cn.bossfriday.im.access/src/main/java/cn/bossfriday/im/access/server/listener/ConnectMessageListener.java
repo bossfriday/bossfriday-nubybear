@@ -2,7 +2,7 @@ package cn.bossfriday.im.access.server.listener;
 
 import cn.bossfriday.im.access.common.entities.ClientInfo;
 import cn.bossfriday.im.access.server.MqttAccessCommon;
-import cn.bossfriday.im.access.server.core.MqttMessageListener;
+import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
 import cn.bossfriday.im.protocol.message.ConnectMessage;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,7 +17,7 @@ import static cn.bossfriday.im.access.server.AccessContextAttributeKey.IS_CONNEC
  *
  * @author chenx
  */
-public class ConnectMessageListener extends MqttMessageListener<ConnectMessage> {
+public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessage> {
 
     public ConnectMessageListener(ConnectMessage msg, ChannelHandlerContext ctx) {
         super(msg, ctx);

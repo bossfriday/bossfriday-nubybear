@@ -1,6 +1,6 @@
 package cn.bossfriday.im.access.server;
 
-import cn.bossfriday.im.access.server.core.AccessServer;
+import cn.bossfriday.im.access.server.core.BaseAccessServer;
 import cn.bossfriday.im.protocol.codec.MqttMessageDecoder;
 import cn.bossfriday.im.protocol.codec.MqttMessageEncoder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -21,7 +21,7 @@ import static cn.bossfriday.im.protocol.codec.MqttMessageDecoder.MQTT_CODEC_TIME
  * @author chenx
  */
 @Slf4j
-public class MqttAccessServer extends AccessServer {
+public class MqttAccessServer extends BaseAccessServer {
 
     public MqttAccessServer(int port) {
         super(port);

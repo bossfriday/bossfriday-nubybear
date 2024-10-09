@@ -3,7 +3,7 @@ package cn.bossfriday.im.access.server;
 import cn.bossfriday.common.exception.ServiceException;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.UUIDUtil;
-import cn.bossfriday.im.access.server.core.MqttMessageListener;
+import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
 import cn.bossfriday.im.protocol.core.MqttMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -65,8 +65,8 @@ public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMes
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("MqttAccessServerServerListener exceptionCaught!", cause);
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        log.error("MqttAccessServerHandler exceptionCaught!", cause);
         ctx.channel().close();
     }
 
@@ -75,8 +75,8 @@ public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMes
      */
     private void onMessageReceived(MqttMessage msg, ChannelHandlerContext ctx) throws ServiceException {
         try {
-            MqttMessageListener messageListener = MqttMessageListenerFactory.getMqttMessageListener(msg, ctx);
-            messageListener.onMessageReceived();
+            BaseMqttMessageListener<?> listener = MqttMessageListenerFactory.getMqttMessageListener(msg, ctx);
+            listener.onMessageReceived();
         } catch (Exception ex) {
             throw new ServiceException(ex);
         }

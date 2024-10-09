@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author chenx
  */
 @Slf4j
-public abstract class AccessServer {
+public abstract class BaseAccessServer {
 
     protected EventLoopGroup bossGroup = new NioEventLoopGroup();
     protected EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -21,7 +21,7 @@ public abstract class AccessServer {
     protected final int port;
     protected Channel channel;
 
-    protected AccessServer(int port) {
+    protected BaseAccessServer(int port) {
         this.port = port;
     }
 

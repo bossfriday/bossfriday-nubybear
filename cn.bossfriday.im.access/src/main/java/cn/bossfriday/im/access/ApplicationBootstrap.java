@@ -44,8 +44,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
             log.error("ApplicationBootstrap.stop() error!", ex);
         }
     }
-
-
+    
     /**
      * 本地测试启动入口
      */
