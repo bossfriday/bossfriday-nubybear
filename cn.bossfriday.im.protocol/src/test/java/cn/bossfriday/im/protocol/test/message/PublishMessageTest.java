@@ -1,4 +1,4 @@
-package cn.bossfriday.im.protocol.test;
+package cn.bossfriday.im.protocol.test.message;
 
 import cn.bossfriday.im.protocol.codec.MqttMessageDecoder;
 import cn.bossfriday.im.protocol.codec.MqttMessageEncoder;

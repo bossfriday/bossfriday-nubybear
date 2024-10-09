@@ -1,9 +1,9 @@
-package cn.bossfriday.im.protocol;
+package cn.bossfriday.im.protocol.client;
 
-import cn.bossfriday.im.protocol.MqttMessageCallback.ConnectCallback;
-import cn.bossfriday.im.protocol.MqttMessageCallback.PublishCallback;
-import cn.bossfriday.im.protocol.MqttMessageCallback.QueryCallback;
-import cn.bossfriday.im.protocol.MqttMessageCallback.ReceivePublishMessageListener;
+import cn.bossfriday.im.protocol.client.MqttMessageCallback.ConnectCallback;
+import cn.bossfriday.im.protocol.client.MqttMessageCallback.PublishCallback;
+import cn.bossfriday.im.protocol.client.MqttMessageCallback.QueryCallback;
+import cn.bossfriday.im.protocol.client.MqttMessageCallback.ReceivePublishMessageListener;
 import cn.bossfriday.im.protocol.core.MqttException;
 import cn.bossfriday.im.protocol.core.MqttMessage;
 import cn.bossfriday.im.protocol.enums.QoS;
@@ -16,12 +16,12 @@ import io.netty.util.AttributeKey;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * MessageHandler
+ * ClientMessageHandler
  *
  * @author chenx
  */
 @ChannelHandler.Sharable
-public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
+public class ClientMessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
     private AttributeKey<String> attrKey;
     private ConcurrentHashMap<String, ConnectItem> connectMap = new ConcurrentHashMap<>();
@@ -30,7 +30,7 @@ public class MessageHandler extends SimpleChannelInboundHandler<MqttMessage> {
     private ConcurrentHashMap<String, MessageListenerItem> listenerMap = new ConcurrentHashMap<>();
     private ChannelHandlerContext ctx;
 
-    public MessageHandler(AttributeKey<String> attrKey) {
+    public ClientMessageHandler(AttributeKey<String> attrKey) {
         this.attrKey = attrKey;
     }
 

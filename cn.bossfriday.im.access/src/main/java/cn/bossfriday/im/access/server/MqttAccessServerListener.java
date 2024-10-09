@@ -1,9 +1,14 @@
 package cn.bossfriday.im.access.server;
 
 import cn.bossfriday.common.exception.ServiceException;
+import cn.bossfriday.common.utils.UUIDUtil;
 import cn.bossfriday.im.protocol.message.*;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.UUID;
+
+import static cn.bossfriday.im.access.server.AccessContextAttributeKey.SESSION_ID;
 
 /**
  * MqttAccessServerListener
@@ -15,12 +20,12 @@ public class MqttAccessServerListener implements IMqttListener {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws ServiceException {
-
+        ctx.channel().attr(SESSION_ID).set(UUIDUtil.getShortString(UUID.randomUUID()));
     }
 
     @Override
     public void onConnectMessage(ConnectMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-
+        //String clientIp = msg.getClientIp();
     }
 
     @Override

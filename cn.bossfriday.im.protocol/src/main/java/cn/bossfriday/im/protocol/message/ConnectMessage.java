@@ -17,13 +17,14 @@ import java.nio.charset.StandardCharsets;
 public class ConnectMessage extends MqttMessage {
 
     private static final int CONNECT_HEADER_SIZE = 12;
-    private static final byte[] DEFAULT_PROTOCOL_ID = {82, 67, 108, 111, 117, 100};
-    private static final byte DEFAULT_PROTOCOL_VERSION = (byte) 3;
+    private static final byte[] DEFAULT_PROTOCOL_ID = {66, 111, 115, 115, 70, 114, 105, 100, 97, 121};
+    private static final byte DEFAULT_PROTOCOL_VERSION = (byte) 1;
 
     private String protocolId = new String(DEFAULT_PROTOCOL_ID, StandardCharsets.UTF_8);
     private byte protocolVersion = DEFAULT_PROTOCOL_VERSION;
 
     private String clientId;
+    private String clientIp;
     private int keepAlive;
     private String appId;
     private String token;
@@ -44,13 +45,15 @@ public class ConnectMessage extends MqttMessage {
         super(header);
     }
 
-    public ConnectMessage(String clientId, boolean cleanSession, int keepAlive) {
+    public ConnectMessage(String clientId, String clientIp, boolean cleanSession, int keepAlive) {
         super(MqttMessageType.CONNECT);
+
         if (clientId == null || clientId.length() > 64) {
             throw new MqttException("Client id cannot be null and must be at most 64 characters long: " + clientId);
         }
 
         this.clientId = clientId;
+        this.clientIp = clientIp;
         this.cleanSession = cleanSession;
         this.keepAlive = keepAlive;
     }
@@ -58,6 +61,7 @@ public class ConnectMessage extends MqttMessage {
     @Override
     protected int getMessageLength() {
         int payloadSize = this.toUtfBytes(this.clientId).length;
+        payloadSize += this.toUtfBytes(this.clientIp).length;
         payloadSize += this.toUtfBytes(this.willTopic).length;
         payloadSize += this.toUtfBytes(this.will).length;
         payloadSize += this.toUtfBytes(this.appId).length;
@@ -80,6 +84,8 @@ public class ConnectMessage extends MqttMessage {
         this.cleanSession = (cFlags & 0x20) > 0;
         this.keepAlive = dis.read() * 256 + dis.read();
         this.clientId = dis.readUTF();
+        this.clientIp = dis.readUTF();
+
         if (this.hasWill) {
             this.willTopic = dis.readUTF();
             this.will = dis.readUTF();
@@ -116,6 +122,7 @@ public class ConnectMessage extends MqttMessage {
         dos.write((byte) flags);
         dos.writeChar(this.keepAlive);
         dos.writeUTF(this.clientId);
+        dos.writeUTF(this.clientIp);
 
         if (this.hasWill) {
             dos.writeUTF(this.willTopic);

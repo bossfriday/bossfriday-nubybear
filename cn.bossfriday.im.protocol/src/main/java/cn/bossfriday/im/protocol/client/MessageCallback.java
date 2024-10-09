@@ -1,4 +1,4 @@
-package cn.bossfriday.im.protocol;
+package cn.bossfriday.im.protocol.client;
 
 import io.netty.channel.ChannelHandlerContext;
 

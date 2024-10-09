@@ -3,53 +3,45 @@ package cn.bossfriday.im.access.common.enums;
 public enum DisconnectReason {
 
     /**
-     * 链接断开(例如：Token error、Redirect、block等)
+     * 连接错误断开，例如：Token error、Redirect、block等)
      */
-    CONNECT_CLOSE("1"),
+    CONNECT_ERROR("1"),
 
     /**
-     * SDK发送 DisconnectMessage
+     * 客户端发送DisconnectMessage断开
      */
-    SDK_DISCONNECT_MESSAGE("2"),
+    CLIENT_DISCONNECT_MESSAGE("2"),
 
     /**
-     * SDK发送 DisconnectMessage logoff
+     * 客户端发送DisconnectMessage断开(logoff)
      */
-    SDK_DISCONNECT_MESSAGE_LOGOFF("3"),
+    CLIENT_DISCONNECT_MESSAGE_LOGOFF("3"),
 
     /**
-     * SDK ping超时
+     * 客户端Ping超时断开
      */
-    SDK_PING_TIMEOUT_DISCONNECT("4"),
+    CLIENT_PING_TIMEOUT_DISCONNECT("4"),
 
     /**
-     * 服务端解析读包超时
+     * 服务端解析读包超时断开
      */
     READ_DATA_TIMEOUT_DISCONNECT("5"),
 
     /**
-     * 非法协议包 断链接
+     * 非法协议包断开
      */
     BAD_MESSAGE("6"),
 
     /**
-     * 其他异常断链接
+     * 异常断开
      */
     EXCEPTION_DISCONNECT("7"),
 
-    /**
-     * 其他设备登录
-     */
-    OTHER_DEVICE_LOGIN("8"),
-
-    /**
-     * 当非强制踢相同类型端时，关闭本端
-     */
-    CLOSE_SELF("9");
+    ;
 
     private String value;
 
-    private DisconnectReason(String value) {
+    DisconnectReason(String value) {
         this.value = value;
     }
 

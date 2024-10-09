@@ -1,4 +1,4 @@
-package cn.bossfriday.im.protocol;
+package cn.bossfriday.im.protocol.client;
 
 import cn.bossfriday.im.protocol.message.PingReqMessage;
 import io.netty.channel.ChannelHandlerContext;
