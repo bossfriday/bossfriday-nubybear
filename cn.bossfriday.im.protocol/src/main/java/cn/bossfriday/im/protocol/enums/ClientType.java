@@ -1,6 +1,7 @@
 package cn.bossfriday.im.protocol.enums;
 
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * ClientType
@@ -15,7 +16,7 @@ public enum ClientType {
     IOS("iOS"),
 
     /**
-     * 安卓
+     * Android
      */
     ANDROID("Android"),
 
@@ -25,7 +26,7 @@ public enum ClientType {
     PC("PC"),
 
     /**
-     * 微信小程序
+     * MiniProgram
      */
     MINI("MiniProgram"),
 
@@ -51,7 +52,7 @@ public enum ClientType {
      * @return
      */
     public static ClientType getClientType(String platform) {
-        if (StringUtils.isBlank(platform)) {
+        if (StringUtils.isEmpty(platform)) {
             return null;
         }
 

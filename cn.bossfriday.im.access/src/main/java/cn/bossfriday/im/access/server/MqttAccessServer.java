@@ -1,5 +1,6 @@
 package cn.bossfriday.im.access.server;
 
+import cn.bossfriday.im.access.server.core.AccessServer;
 import cn.bossfriday.im.protocol.codec.MqttMessageDecoder;
 import cn.bossfriday.im.protocol.codec.MqttMessageEncoder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -20,10 +21,10 @@ import static cn.bossfriday.im.protocol.codec.MqttMessageDecoder.MQTT_CODEC_TIME
  * @author chenx
  */
 @Slf4j
-public class MqttAccessServer extends BaseAccessServer {
+public class MqttAccessServer extends AccessServer {
 
-    public MqttAccessServer(int port, IMqttListener listener) {
-        super(port, listener);
+    public MqttAccessServer(int port) {
+        super(port);
     }
 
     /**
@@ -52,7 +53,7 @@ public class MqttAccessServer extends BaseAccessServer {
                         ChannelPipeline pipeline = ch.pipeline();
                         pipeline.addLast(new MqttMessageDecoder(MQTT_CODEC_TIMEOUT));
                         pipeline.addLast(new MqttMessageEncoder());
-                        pipeline.addLast(new MqttAccessServerHandler(MqttAccessServer.this.listener));
+                        pipeline.addLast(new MqttAccessServerHandler());
                     }
                 });
 

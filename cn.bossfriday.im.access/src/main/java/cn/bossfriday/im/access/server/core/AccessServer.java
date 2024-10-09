@@ -1,4 +1,4 @@
-package cn.bossfriday.im.access.server;
+package cn.bossfriday.im.access.server.core;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -8,23 +8,21 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * AccessServer
  * <p>
- * 考虑将来可能要支持WebSocket，因此定义一个抽象类；
+ * 考虑将来可能要支持例如WebSocket等其他协议，因此定义一个抽象类；
  *
  * @author chenx
  */
 @Slf4j
-public abstract class BaseAccessServer {
+public abstract class AccessServer {
 
     protected EventLoopGroup bossGroup = new NioEventLoopGroup();
     protected EventLoopGroup workerGroup = new NioEventLoopGroup();
 
     protected final int port;
     protected Channel channel;
-    protected IMqttListener listener;
 
-    protected BaseAccessServer(int port, IMqttListener listener) {
+    protected AccessServer(int port) {
         this.port = port;
-        this.listener = listener;
     }
 
     /**

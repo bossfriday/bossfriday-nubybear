@@ -100,7 +100,12 @@ public enum ConnectionStatus {
     /**
      * 用户已注销
      */
-    USER_CLOSED_ACCOUNT(19);
+    USER_CLOSED_ACCOUNT(19),
+
+    /**
+     * 系统处理错误
+     */
+    SERVICE_ERROR(20);
 
     private int value;
 

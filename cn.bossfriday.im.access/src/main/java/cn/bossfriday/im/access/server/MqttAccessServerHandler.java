@@ -2,31 +2,46 @@ package cn.bossfriday.im.access.server;
 
 import cn.bossfriday.common.exception.ServiceException;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
-import cn.bossfriday.im.access.common.enums.DisconnectReason;
+import cn.bossfriday.common.utils.UUIDUtil;
+import cn.bossfriday.im.access.server.core.MqttMessageListener;
 import cn.bossfriday.im.protocol.core.MqttMessage;
-import cn.bossfriday.im.protocol.message.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
+import java.util.UUID;
 
-import static cn.bossfriday.im.access.server.AccessContextAttributeKey.*;
+import static cn.bossfriday.im.access.server.AccessContextAttributeKey.IS_CHANNEL_ACTIVE;
+import static cn.bossfriday.im.access.server.AccessContextAttributeKey.SESSION_ID;
 
 /**
  * MqttAccessServerHandler
  *
  * @author chenx
  */
+@Slf4j
 public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMessage> {
 
-    private IMqttListener listener;
-
-    public MqttAccessServerHandler(IMqttListener listener) {
-        if (Objects.isNull(listener)) {
-            throw new ServiceRuntimeException("MqttListener is null!");
+    @Override
+    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
+        if (Objects.isNull(msg)) {
+            throw new ServiceRuntimeException("MqttMessage Is Null!");
         }
 
-        this.listener = listener;
+        switch (msg.getType()) {
+            case CONNECT:
+            case PUBLISH:
+            case PUBACK:
+            case QUERY:
+            case QUERYCON:
+            case PINGREQ:
+            case DISCONNECT:
+                this.onMessageReceived(msg, ctx);
+                break;
+            default:
+                throw new ServiceRuntimeException("Unsupported Message Type: " + msg.getType());
+        }
     }
 
     @Override
@@ -34,14 +49,13 @@ public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMes
         super.channelActive(ctx);
 
         ctx.channel().attr(IS_CHANNEL_ACTIVE).set(true);
-        this.listener.channelActive(ctx);
+        ctx.channel().attr(SESSION_ID).set(UUIDUtil.getShortString(UUID.randomUUID()));
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
 
-        this.listener.closed(ctx);
         ctx.channel().close();
     }
 
@@ -52,128 +66,19 @@ public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMes
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        this.listener.exceptionCaught(ctx, cause);
+        log.error("MqttAccessServerServerListener exceptionCaught!", cause);
         ctx.channel().close();
     }
 
-    @Override
-    protected void channelRead0(ChannelHandlerContext ctx, MqttMessage msg) throws Exception {
-        if (Objects.isNull(msg)) {
-            throw new ServiceRuntimeException("MqttMessage Is Null!");
-        }
-
-        switch (msg.getType()) {
-            case CONNECT:
-                this.handleConnectMessage((ConnectMessage) msg, ctx);
-                break;
-            case PUBLISH:
-                this.handlePublishMessage((PublishMessage) msg, ctx);
-                break;
-            case PUBACK:
-                this.handlePubAckMessage((PubAckMessage) msg, ctx);
-                break;
-            case QUERY:
-                this.handleQueryMessage((QueryMessage) msg, ctx);
-                break;
-            case QUERYCON:
-                this.handleQueryConMessage((QueryConMessage) msg, ctx);
-                break;
-            case PINGREQ:
-                this.handlePingReqMessage((PingReqMessage) msg, ctx);
-                break;
-            case DISCONNECT:
-                this.handleDisconnectMessage((DisconnectMessage) msg, ctx);
-                break;
-            default:
-                throw new ServiceRuntimeException("Unsupported Message Type: " + msg.getType());
-        }
-    }
-
     /**
-     * handleConnectMessage
+     * onMessageReceived
      */
-    private void handleConnectMessage(ConnectMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isChannelActive = ctx.channel().attr(IS_CHANNEL_ACTIVE).get();
-        if (!isChannelActive) {
-            ctx.close();
-            return;
+    private void onMessageReceived(MqttMessage msg, ChannelHandlerContext ctx) throws ServiceException {
+        try {
+            MqttMessageListener messageListener = MqttMessageListenerFactory.getMqttMessageListener(msg, ctx);
+            messageListener.onMessageReceived();
+        } catch (Exception ex) {
+            throw new ServiceException(ex);
         }
-
-        this.listener.onConnectMessage(msg, ctx);
-        ctx.channel().attr(IS_CONNECTED).set(true);
-    }
-
-
-    /**
-     * handlePublishMessage
-     */
-    private void handlePublishMessage(PublishMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
-        if (!isConnected) {
-            ctx.close();
-            return;
-        }
-
-        this.listener.onPublishMessage(msg, ctx);
-    }
-
-    /**
-     * handlePubAckMessage
-     */
-    private void handlePubAckMessage(PubAckMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
-        if (!isConnected) {
-            ctx.close();
-            return;
-        }
-
-        this.listener.onPubAckMessage(msg, ctx);
-    }
-
-    /**
-     * handleQueryMessage
-     */
-    private void handleQueryMessage(QueryMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
-        if (!isConnected) {
-            ctx.close();
-            return;
-        }
-
-        this.listener.onQueryMessage(msg, ctx);
-    }
-
-    /**
-     * handleQueryConMessage
-     */
-    private void handleQueryConMessage(QueryConMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
-        if (!isConnected) {
-            ctx.close();
-            return;
-        }
-
-        this.listener.onQueryConMessage(msg, ctx);
-    }
-
-    /**
-     * handlePingReqMessage
-     */
-    private void handlePingReqMessage(PingReqMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        this.listener.onPingReqMessage(msg, ctx);
-    }
-
-    /**
-     * handleDisconnectMessage
-     */
-    private void handleDisconnectMessage(DisconnectMessage msg, ChannelHandlerContext ctx) throws ServiceException {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
-        if (!isConnected) {
-            ctx.close();
-            return;
-        }
-
-        ctx.channel().attr(DISCONNECT_REASON).set(DisconnectReason.CLIENT_DISCONNECT_MESSAGE.getValue());
-        this.listener.onDisconnectMessage(msg, ctx);
     }
 }

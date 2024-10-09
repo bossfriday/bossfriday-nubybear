@@ -200,6 +200,10 @@ public class ConnectMessage extends MqttMessage {
         return this.clientId;
     }
 
+    public String getClientIp() {
+        return this.clientIp;
+    }
+
     public int getKeepAlive() {
         return this.keepAlive;
     }
