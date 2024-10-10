@@ -30,6 +30,5 @@ public class DisconnectMessageListener extends BaseMqttMessageListener<Disconnec
         }
 
         ctx.channel().attr(DISCONNECT_REASON).set(DisconnectReason.CLIENT_DISCONNECT_MESSAGE.getValue());
-        // TODO
     }
 }

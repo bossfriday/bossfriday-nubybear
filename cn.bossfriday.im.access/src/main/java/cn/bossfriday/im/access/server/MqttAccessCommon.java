@@ -1,8 +1,12 @@
 package cn.bossfriday.im.access.server;
 
-import cn.bossfriday.im.access.common.entities.ClientInfo;
+import cn.bossfriday.im.access.common.enums.ConnectState;
+import cn.bossfriday.im.protocol.core.MqttMessage;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
+import cn.bossfriday.im.protocol.message.ConnAckMessage;
 import cn.bossfriday.im.protocol.message.ConnectMessage;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.commons.lang.StringUtils;
 
@@ -41,22 +45,39 @@ public class MqttAccessCommon {
     }
 
     /**
-     * getClientInfo
-     *
-     * @param input
-     * @return
-     */
-    public static ClientInfo getClientInfo(String input) {
-        return null;
-    }
-
-    /**
      * sendConnAck
      *
      * @param ctx
      * @param status
      */
-    public static void sendConnAck(ChannelHandlerContext ctx, ConnectionStatus status) {
+    public static void sendConnAck(ChannelHandlerContext ctx, ConnectionStatus status, ConnectState conState) {
+        if (ctx.channel().attr(AccessContextAttributeKey.CONN_STATE).get() != ConnectState.CONN) {
+            return;
+        }
 
+        ctx.channel().attr(AccessContextAttributeKey.CONN_STATE).set(conState);
+
+        ConnAckMessage msg = new ConnAckMessage(status);
+        MqttAccessCommon.writeAndFlush(msg, ctx)
+                .addListener(
+                        (ChannelFutureListener) future -> future.channel().close()
+                );
+    }
+
+    /**
+     * writeAndFlush
+     *
+     * @param msg
+     * @param ctx
+     * @return
+     */
+    public static ChannelFuture writeAndFlush(MqttMessage msg, ChannelHandlerContext ctx) {
+        return ctx.channel()
+                .writeAndFlush(msg)
+                .addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                        future.channel().close();
+                    }
+                });
     }
 }

@@ -17,6 +17,6 @@ public class QueryMessageListener extends BaseMqttMessageListener<QueryMessage> 
 
     @Override
     protected void onMqttMessageReceived(QueryMessage msg, ChannelHandlerContext ctx) {
-
+        // ..
     }
 }

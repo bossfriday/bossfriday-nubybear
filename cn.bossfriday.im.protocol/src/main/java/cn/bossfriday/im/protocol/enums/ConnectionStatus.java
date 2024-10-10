@@ -25,9 +25,9 @@ public enum ConnectionStatus {
     SERVER_UNAVAILABLE(3),
 
     /**
-     * BAD_USERNAME_OR_PASSWORD
+     * INVALID_TOKEN
      */
-    BAD_USERNAME_OR_PASSWORD(4),
+    INVALID_TOKEN(4),
 
     /**
      * NOT_AUTHORIZED

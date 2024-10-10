@@ -10,13 +10,13 @@ import io.netty.channel.ChannelHandlerContext;
  * @author chenx
  */
 public class QueryConMessageListener extends BaseMqttMessageListener<QueryConMessage> {
-    
+
     public QueryConMessageListener(QueryConMessage msg, ChannelHandlerContext ctx) {
         super(msg, ctx);
     }
 
     @Override
     protected void onMqttMessageReceived(QueryConMessage msg, ChannelHandlerContext ctx) {
-
+        // ..
     }
 }

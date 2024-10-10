@@ -68,7 +68,7 @@ public class ConnAckMessage extends MqttMessage {
                 this.status = ConnectionStatus.SERVER_UNAVAILABLE;
                 break;
             case 4:
-                this.status = ConnectionStatus.BAD_USERNAME_OR_PASSWORD;
+                this.status = ConnectionStatus.INVALID_TOKEN;
                 break;
             case 5:
                 this.status = ConnectionStatus.NOT_AUTHORIZED;
@@ -121,7 +121,7 @@ public class ConnAckMessage extends MqttMessage {
             case SERVER_UNAVAILABLE:
                 out.write(0x03);
                 break;
-            case BAD_USERNAME_OR_PASSWORD:
+            case INVALID_TOKEN:
                 out.write(0x04);
                 break;
             case NOT_AUTHORIZED:

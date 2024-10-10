@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.id;
+package cn.bossfriday.im.common.codec;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
@@ -14,7 +14,7 @@ import java.io.*;
 import java.util.Base64;
 
 /**
- * MessageIdWorker
+ * MessageIdCodec
  * <p>
  * messageId：不对外公开的系统内部消息ID，例如：消息存储等使用；
  * openMessageId：对外公开的消息ID，例如：调用IM开放平台HttpAPI发消息接口应答中的对外公开的消息ID；
@@ -24,12 +24,12 @@ import java.util.Base64;
  *
  * @author chenx
  */
-public class MessageIdWorker {
+public class MessageIdCodec {
 
     public static final int MESSAGE_ID_BYTES_LENGTH = 10;
     public static final int MESSAGE_ID_STRING_LENGTH = 19;
 
-    private MessageIdWorker() {
+    private MessageIdCodec() {
 
     }
 
@@ -52,10 +52,10 @@ public class MessageIdWorker {
      * @return
      */
     public static String getOpenMessageId(String msgId, int msgType, int msgDirection) {
-        byte[] msgIdBytes = MessageIdWorker.messageIdDecode(msgId);
-        byte[] openMsgIdBytes = MessageIdWorker.openMessageIdSerialize(msgIdBytes, msgType, msgDirection);
+        byte[] msgIdBytes = MessageIdCodec.messageIdDecode(msgId);
+        byte[] openMsgIdBytes = MessageIdCodec.openMessageIdSerialize(msgIdBytes, msgType, msgDirection);
 
-        return MessageIdWorker.openMessageIdEncode(openMsgIdBytes);
+        return MessageIdCodec.openMessageIdEncode(openMsgIdBytes);
     }
 
     /**
@@ -67,9 +67,9 @@ public class MessageIdWorker {
      * @return
      */
     public static String getMessageId(long time, int channelType, String targetId) {
-        byte[] msgIdBytes = MessageIdWorker.messageIdSerialize(time, channelType, targetId);
+        byte[] msgIdBytes = MessageIdCodec.messageIdSerialize(time, channelType, targetId);
 
-        return MessageIdWorker.messageIdEncode(msgIdBytes);
+        return MessageIdCodec.messageIdEncode(msgIdBytes);
     }
 
     /**

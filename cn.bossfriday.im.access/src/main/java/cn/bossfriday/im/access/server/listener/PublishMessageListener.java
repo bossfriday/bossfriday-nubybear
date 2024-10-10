@@ -10,13 +10,13 @@ import io.netty.channel.ChannelHandlerContext;
  * @author chenx
  */
 public class PublishMessageListener extends BaseMqttMessageListener<PublishMessage> {
-    
+
     public PublishMessageListener(PublishMessage msg, ChannelHandlerContext ctx) {
         super(msg, ctx);
     }
 
     @Override
     protected void onMqttMessageReceived(PublishMessage msg, ChannelHandlerContext ctx) {
-
+        // ..
     }
 }

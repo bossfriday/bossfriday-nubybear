@@ -27,7 +27,8 @@ public class MqttMessageListenerFactory {
      * @param ctx
      * @return
      */
-    public static BaseMqttMessageListener getMqttMessageListener(MqttMessage msg, ChannelHandlerContext ctx) {
+    @SuppressWarnings("squid:S1452")
+    public static BaseMqttMessageListener<?> getMqttMessageListener(MqttMessage msg, ChannelHandlerContext ctx) {
         if (Objects.isNull(msg)) {
             throw new ServiceRuntimeException("MqttMessage is Null!");
         }
