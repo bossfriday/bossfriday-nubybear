@@ -119,10 +119,17 @@ public class ImTokenCodec {
             int coreKeyLength = is.readInt();
             is.readUTF();
             byte[] coreKey = new byte[coreKeyLength];
-            is.read(coreKey);
+            int readCoreKeyBytes = is.read(coreKey);
+            if (readCoreKeyBytes != coreKeyLength) {
+                throw new ServiceRuntimeException("Failed to read the full coreKey!");
+            }
 
             byte[] payload = new byte[is.available()];
-            is.read(payload);
+            int readPayloadBytes = is.read(payload);
+            if (readPayloadBytes != payload.length) {
+                throw new ServiceRuntimeException("Failed to read the full payload!");
+            }
+            
             ImToken imToken = ProtostuffCodecUtil.deserialize(EncryptUtil.desDecrypt(payload, coreKey), ImToken.class);
             if (appId != imToken.getAppId()) {
                 throw new ServiceRuntimeException("Invalid ImToken appId!");
