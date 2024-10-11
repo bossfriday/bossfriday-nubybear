@@ -18,7 +18,7 @@ import java.util.Objects;
 @Slf4j
 public class SystemConfigLoader<T> {
 
-    private static final String CONFIG_FILE_SERVICE = "systemConfig.yaml";
+    private static final String CONFIG_FILE = "systemConfig.yaml";
 
     private static SystemConfigLoader<?> instance;
     private final Class<T> serviceConfigClass;
@@ -63,7 +63,7 @@ public class SystemConfigLoader<T> {
      */
     private void loadConfig() {
         Yaml yaml = new Yaml();
-        try (InputStream inputStream = SystemConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE_SERVICE)) {
+        try (InputStream inputStream = SystemConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             Map<String, Object> configMap = yaml.load(inputStream);
             this.systemConfig = new SystemConfig<>();
 
