@@ -26,49 +26,49 @@ import static cn.bossfriday.im.access.server.AccessContextAttributeKey.*;
  */
 @Slf4j
 public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessage> {
-    
+
     public ConnectMessageListener(ConnectMessage msg, ChannelHandlerContext ctx) {
         super(msg, ctx);
     }
 
     @Override
-    protected void onMqttMessageReceived(ConnectMessage msg, ChannelHandlerContext ctx) {
+    public void onMqttMessageReceived() {
         try {
-            boolean isChannelActive = ctx.channel().attr(IS_CHANNEL_ACTIVE).get();
+            boolean isChannelActive = this.ctx.channel().attr(IS_CHANNEL_ACTIVE).get();
             if (!isChannelActive) {
-                ctx.close();
+                this.ctx.close();
                 return;
             }
 
-            ctx.channel().attr(CONN_STATE).set(ConnectState.CONN);
+            this.ctx.channel().attr(CONN_STATE).set(ConnectState.CONN);
 
             // 解析will
-            ClientInfo clientInfo = ClientInfo.fromWill(msg.getWill());
+            ClientInfo clientInfo = ClientInfo.fromWill(this.msg.getWill());
             if (Objects.isNull(clientInfo) || Objects.isNull(clientInfo.getClientType())) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.IDENTIFIER_REJECTED, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.IDENTIFIER_REJECTED, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
-            ctx.channel().attr(CLIENT_INFO).set(clientInfo);
+            this.ctx.channel().attr(CLIENT_INFO).set(clientInfo);
             GlobalConfigAll globalConfigAll = GlobalConfigAllLoader.getInstance().getGlobalConfigAll();
 
             // Token校验
-            ImToken token = ImTokenCodec.decode(msg.getToken());
+            ImToken token = ImTokenCodec.decode(this.msg.getToken());
             if (Objects.isNull(token)) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
             // token与deviceId绑定检查
             if (!token.getDeviceId().equalsIgnoreCase(clientInfo.getDeviceId())) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.DEVICE_ERROR, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.DEVICE_ERROR, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
             // token过期检查
             long tokenExpireTime = globalConfigAll.getGlobal().getTokenExpireTime();
             if ((System.currentTimeMillis() - token.getTime()) >= tokenExpireTime) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.TOKEN_EXPIRE, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.TOKEN_EXPIRE, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
@@ -76,25 +76,25 @@ public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessa
             long appId = token.getAppId();
             boolean isAppOk = AppRegistrationManager.isAppOk(appId);
             if (!isAppOk) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.APP_BLOCK_OR_DELETE, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.APP_BLOCK_OR_DELETE, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
             // appSecret刷新所有老token失效；
             AppInfo appInfo = AppRegistrationManager.getAppInfo(appId);
             if (token.getAppSecretHash() != AppRegistrationManager.getAppSecretHashCode(appInfo.getAppSecret())) {
-                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
+                MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
             String uid = token.getUserId();
-            String clientIp = MqttAccessCommon.getClientIp(msg, ctx);
+            String clientIp = MqttAccessCommon.getClientIp(this.msg, this.ctx);
             String deviceId = clientInfo.getDeviceId();
             log.info("[%User Connected Done%], appId: {}, uid: {}, ip: {}, deviceId: {}", appId, uid, clientIp, deviceId);
-            ctx.channel().attr(IS_CONNECTED).set(true);
+            this.ctx.channel().attr(IS_CONNECTED).set(true);
         } catch (Exception ex) {
             log.error("ConnectMessageListener.onMqttMessageReceived() error!", ex);
-            MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.SERVICE_ERROR, ConnectState.CONN_ACK_FAILURE);
+            MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.SERVICE_ERROR, ConnectState.CONN_ACK_FAILURE);
         }
     }
 }

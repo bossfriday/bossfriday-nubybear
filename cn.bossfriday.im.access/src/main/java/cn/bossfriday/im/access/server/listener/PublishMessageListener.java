@@ -16,7 +16,7 @@ public class PublishMessageListener extends BaseMqttMessageListener<PublishMessa
     }
 
     @Override
-    protected void onMqttMessageReceived(PublishMessage msg, ChannelHandlerContext ctx) {
+    public void onMqttMessageReceived() {
         // ..
     }
 }

@@ -76,7 +76,7 @@ public class MqttAccessServerHandler extends SimpleChannelInboundHandler<MqttMes
     private void onMessageReceived(MqttMessage msg, ChannelHandlerContext ctx) throws ServiceException {
         try {
             BaseMqttMessageListener<?> listener = MqttMessageListenerFactory.getMqttMessageListener(msg, ctx);
-            listener.onMessageReceived();
+            listener.onMqttMessageReceived();
         } catch (Exception ex) {
             throw new ServiceException(ex);
         }

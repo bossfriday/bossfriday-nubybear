@@ -13,31 +13,24 @@ import java.util.Objects;
  */
 public abstract class BaseMqttMessageListener<T extends MqttMessage> {
 
-    private T msg;
-    private ChannelHandlerContext ctx;
+    protected T msg;
+    protected ChannelHandlerContext ctx;
 
     protected BaseMqttMessageListener(T msg, ChannelHandlerContext ctx) {
+        if (Objects.isNull(msg)) {
+            throw new ServiceRuntimeException("MqttMessage is null!");
+        }
+
+        if (Objects.isNull(ctx)) {
+            throw new ServiceRuntimeException("ChannelHandlerContext is null!");
+        }
+
         this.msg = msg;
         this.ctx = ctx;
     }
 
     /**
-     * onMessageReceived
-     */
-    public void onMessageReceived() {
-        if (Objects.isNull(this.msg)) {
-            throw new ServiceRuntimeException("MqttMessage is null!");
-        }
-
-        if (Objects.isNull(this.ctx)) {
-            throw new ServiceRuntimeException("ChannelHandlerContext is null!");
-        }
-
-        this.onMqttMessageReceived(this.msg, this.ctx);
-    }
-
-    /**
      * onMqttMessageReceived
      */
-    protected abstract void onMqttMessageReceived(T msg, ChannelHandlerContext ctx);
+    public abstract void onMqttMessageReceived();
 }

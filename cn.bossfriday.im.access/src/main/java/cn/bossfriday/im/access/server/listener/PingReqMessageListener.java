@@ -16,7 +16,7 @@ public class PingReqMessageListener extends BaseMqttMessageListener<PingReqMessa
     }
 
     @Override
-    protected void onMqttMessageReceived(PingReqMessage msg, ChannelHandlerContext ctx) {
+    public void onMqttMessageReceived() {
         // ..
     }
 }

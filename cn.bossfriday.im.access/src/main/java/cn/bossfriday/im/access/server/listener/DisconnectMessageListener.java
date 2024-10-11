@@ -22,13 +22,13 @@ public class DisconnectMessageListener extends BaseMqttMessageListener<Disconnec
     }
 
     @Override
-    protected void onMqttMessageReceived(DisconnectMessage msg, ChannelHandlerContext ctx) {
-        boolean isConnected = ctx.channel().attr(IS_CONNECTED).get();
+    public void onMqttMessageReceived() {
+        boolean isConnected = this.ctx.channel().attr(IS_CONNECTED).get();
         if (!isConnected) {
-            ctx.close();
+            this.ctx.close();
             return;
         }
 
-        ctx.channel().attr(DISCONNECT_REASON).set(DisconnectReason.CLIENT_DISCONNECT_MESSAGE.getValue());
+        this.ctx.channel().attr(DISCONNECT_REASON).set(DisconnectReason.CLIENT_DISCONNECT_MESSAGE.getValue());
     }
 }

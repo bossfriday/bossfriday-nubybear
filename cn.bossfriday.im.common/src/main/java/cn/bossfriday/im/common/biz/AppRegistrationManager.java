@@ -7,7 +7,7 @@ import cn.bossfriday.im.common.conf.entity.AppInfo;
 import cn.bossfriday.im.common.enums.AppStatus;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * AppRegistrationManager
@@ -37,8 +37,8 @@ public class AppRegistrationManager {
      * @return
      */
     public static boolean isAppOk(long appId) {
-        HashMap<Long, AppInfo> appMap = GlobalConfigAllLoader.getInstance().getAppMap();
-        if (!appMap.containsKey(appMap)) {
+        Map<Long, AppInfo> appMap = GlobalConfigAllLoader.getInstance().getAppMap();
+        if (!appMap.containsKey(appId)) {
             return false;
         }
 

@@ -8,19 +8,21 @@ import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * GlobalConfigAllLoader
  * <p>
- * 本项目只是一个脚手架项目，因此不依赖DB和配置中心。
+ * 本项目只是一个 IM 脚手架项目，因此不想依赖DB和配置中心。
  * 正式项目的建议是：全局配置放到配置中心里，其他配置酌情配合缓存机制放到DB中，例如：appRegistration等；
  *
  * @author chenx
  */
+@SuppressWarnings("squid:S6548")
 public class GlobalConfigAllLoader {
 
     private static final String CONFIG_FILE = "GlobalConfigAll.yaml";
-    private static GlobalConfigAllLoader instance;
+
     private GlobalConfigAll globalConfigAll;
     private HashMap<Long, AppInfo> appMap;
 
@@ -30,25 +32,13 @@ public class GlobalConfigAllLoader {
 
     /**
      * getInstance
-     *
-     * @return
      */
     public static GlobalConfigAllLoader getInstance() {
-        if (instance == null) {
-            synchronized (GlobalConfigAllLoader.class) {
-                if (instance == null) {
-                    instance = new GlobalConfigAllLoader();
-                }
-            }
-        }
-
-        return instance;
+        return SingletonHelper.INSTANCE;
     }
 
     /**
      * getGlobalConfigAll
-     *
-     * @return
      */
     public GlobalConfigAll getGlobalConfigAll() {
         return this.globalConfigAll;
@@ -56,18 +46,15 @@ public class GlobalConfigAllLoader {
 
     /**
      * getAppMap
-     *
-     * @return
      */
-    public HashMap<Long, AppInfo> getAppMap() {
+    public Map<Long, AppInfo> getAppMap() {
         return this.appMap;
     }
-
 
     /**
      * load
      */
-    public void load(String fileName) {
+    private void load(String fileName) {
         Yaml yaml = new Yaml(new Constructor(GlobalConfigAll.class));
         InputStream inputStream = GlobalConfigAllLoader.class.getClassLoader().getResourceAsStream(fileName);
         if (inputStream == null) {
@@ -82,5 +69,12 @@ public class GlobalConfigAllLoader {
                 this.appMap.putIfAbsent(entry.getAppId(), entry);
             }
         }
+    }
+
+    /**
+     * SingletonHelper
+     */
+    private static class SingletonHelper {
+        private static final GlobalConfigAllLoader INSTANCE = new GlobalConfigAllLoader();
     }
 }

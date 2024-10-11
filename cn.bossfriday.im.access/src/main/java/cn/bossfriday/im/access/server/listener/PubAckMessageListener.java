@@ -16,7 +16,7 @@ public class PubAckMessageListener extends BaseMqttMessageListener<PubAckMessage
     }
 
     @Override
-    protected void onMqttMessageReceived(PubAckMessage msg, ChannelHandlerContext ctx) {
+    public void onMqttMessageReceived() {
         // ..
     }
 }
