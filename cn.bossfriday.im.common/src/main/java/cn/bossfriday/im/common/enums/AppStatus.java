@@ -20,19 +20,19 @@ public enum AppStatus {
     OK(1, true);
 
     private int code;
-    private boolean isValid;
+    private boolean isOk;
 
-    AppStatus(int code, boolean isValid) {
+    AppStatus(int code, boolean isOk) {
         this.code = code;
-        this.isValid = isValid;
+        this.isOk = isOk;
     }
 
     public int getCode() {
         return this.code;
     }
 
-    public boolean isValid() {
-        return this.isValid;
+    public boolean isOk() {
+        return this.isOk;
     }
 
     /**
@@ -52,17 +52,17 @@ public enum AppStatus {
     }
 
     /**
-     * isAppStatusValid
+     * isOkApp
      *
      * @param code
      * @return
      */
-    public static boolean isAppStatusValid(int code) {
+    public static boolean isAppOk(int code) {
         AppStatus appStatus = getByCode(code);
         if (Objects.isNull(appStatus)) {
             return false;
         }
 
-        return appStatus.isValid;
+        return appStatus.isOk;
     }
 }

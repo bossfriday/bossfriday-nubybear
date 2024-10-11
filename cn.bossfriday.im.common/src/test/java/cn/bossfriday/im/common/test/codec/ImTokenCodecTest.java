@@ -10,8 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
-
 /**
  * ImTokenCodecTest
  *
@@ -26,13 +24,14 @@ public class ImTokenCodecTest {
     }
 
     @Test
-    public void codecTest() throws IOException {
+    public void codecTest() {
         long appId = 100000L;
         String uid = UserIdCodec.getUserId();
         String deviceId = UUIDUtil.getRandomUUID().toString();
         long time = System.currentTimeMillis();
+        String appSecret = "appSecret";
 
-        ImToken imToken1 = new ImToken(appId, uid, deviceId, time);
+        ImToken imToken1 = new ImToken(appId, appSecret, uid, deviceId, time);
         String token = ImTokenCodec.encode(imToken1);
         System.out.println("token: " + token);
 

@@ -35,10 +35,7 @@ public enum ConnectionStatus {
     NOT_AUTHORIZED(5),
 
     /**
-     * REDIRECT
-     * 客户端接入服务落点错误
-     * 集群内有接入服务主机掉出集群，相邻节点节点主机会有部分请求引发这种错误；
-     * 或客户端缓存了错误的接入地址。
+     * REDIRECT: 客户端接入服务落点错误需要重定向；
      */
     REDIRECT(6),
 

@@ -1,6 +1,7 @@
 package cn.bossfriday.im.common.entity;
 
 import cn.bossfriday.common.utils.GsonUtil;
+import cn.bossfriday.im.common.biz.AppRegistrationManager;
 
 /**
  * ImToken
@@ -10,6 +11,8 @@ import cn.bossfriday.common.utils.GsonUtil;
 public class ImToken {
 
     private long appId;
+
+    private long appSecretHash;
 
     private String userId;
 
@@ -21,8 +24,17 @@ public class ImToken {
 
     }
 
-    public ImToken(long appId, String userId, String deviceId, long time) {
+    public ImToken(long appId, long appSecretHash, String userId, String deviceId, long time) {
         this.appId = appId;
+        this.appSecretHash = appSecretHash;
+        this.userId = userId;
+        this.deviceId = deviceId;
+        this.time = time;
+    }
+
+    public ImToken(long appId, String appSecret, String userId, String deviceId, long time) {
+        this.appId = appId;
+        this.appSecretHash = AppRegistrationManager.getAppSecretHashCode(appSecret);
         this.userId = userId;
         this.deviceId = deviceId;
         this.time = time;
@@ -34,6 +46,14 @@ public class ImToken {
 
     public void setAppId(long appId) {
         this.appId = appId;
+    }
+
+    public long getAppSecretHash() {
+        return this.appSecretHash;
+    }
+
+    public void setAppSecretHash(long appSecretHash) {
+        this.appSecretHash = appSecretHash;
     }
 
     public String getUserId() {

@@ -1,10 +1,13 @@
 package cn.bossfriday.im.common.conf;
 
+import cn.bossfriday.im.common.conf.entity.AppInfo;
 import cn.bossfriday.im.common.conf.entity.GlobalConfigAll;
+import org.apache.commons.collections4.CollectionUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.InputStream;
+import java.util.HashMap;
 
 /**
  * GlobalConfigAllLoader
@@ -19,6 +22,7 @@ public class GlobalConfigAllLoader {
     private static final String CONFIG_FILE = "GlobalConfigAll.yaml";
     private static GlobalConfigAllLoader instance;
     private GlobalConfigAll globalConfigAll;
+    private HashMap<Long, AppInfo> appMap;
 
     private GlobalConfigAllLoader() {
         this.load(CONFIG_FILE);
@@ -50,6 +54,15 @@ public class GlobalConfigAllLoader {
         return this.globalConfigAll;
     }
 
+    /**
+     * getAppMap
+     *
+     * @return
+     */
+    public HashMap<Long, AppInfo> getAppMap() {
+        return this.appMap;
+    }
+
 
     /**
      * load
@@ -62,5 +75,12 @@ public class GlobalConfigAllLoader {
         }
 
         this.globalConfigAll = yaml.load(inputStream);
+
+        this.appMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(this.globalConfigAll.getAppRegistration())) {
+            for (AppInfo entry : this.globalConfigAll.getAppRegistration()) {
+                this.appMap.putIfAbsent(entry.getAppId(), entry);
+            }
+        }
     }
 }

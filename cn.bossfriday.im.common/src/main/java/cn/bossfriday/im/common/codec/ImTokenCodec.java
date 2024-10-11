@@ -2,6 +2,7 @@ package cn.bossfriday.im.common.codec;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.Base58Util;
+import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.EncryptUtil;
 import cn.bossfriday.common.utils.ProtostuffCodecUtil;
 import cn.bossfriday.im.common.entity.ImToken;
@@ -9,7 +10,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
@@ -21,7 +21,6 @@ public class ImTokenCodec {
 
     private static final byte OBFUSCATE_BYTE = 0x64;
     private static final String OBFUSCATION_STRING = "BossFriday";
-    private static final byte[] CORE_KEY = "chenx_NB".getBytes(StandardCharsets.UTF_8);
 
     private ImTokenCodec() {
         // do nothing
@@ -88,13 +87,15 @@ public class ImTokenCodec {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
              DataOutputStream os = new DataOutputStream(out)
         ) {
+            long appSecretHash = imToken.getAppSecretHash();
+            byte[] desKey = ByteUtil.long2Bytes(appSecretHash);
+
             os.writeLong(imToken.getAppId());
-            os.writeInt(CORE_KEY.length);
             os.writeUTF(OBFUSCATION_STRING);
-            os.write(CORE_KEY);
+            os.writeLong(appSecretHash);
 
             byte[] payload = ProtostuffCodecUtil.serialize(imToken);
-            os.write(EncryptUtil.desEncrypt(payload, CORE_KEY));
+            os.write(EncryptUtil.desEncrypt(payload, desKey));
 
             return out.toByteArray();
         }
@@ -116,21 +117,17 @@ public class ImTokenCodec {
              DataInputStream is = new DataInputStream(in)
         ) {
             long appId = is.readLong();
-            int coreKeyLength = is.readInt();
             is.readUTF();
-            byte[] coreKey = new byte[coreKeyLength];
-            int readCoreKeyBytes = is.read(coreKey);
-            if (readCoreKeyBytes != coreKeyLength) {
-                throw new ServiceRuntimeException("Failed to read the full coreKey!");
-            }
+            long appSecretHash = is.readLong();
+            byte[] desKey = ByteUtil.long2Bytes(appSecretHash);
 
             byte[] payload = new byte[is.available()];
             int readPayloadBytes = is.read(payload);
             if (readPayloadBytes != payload.length) {
                 throw new ServiceRuntimeException("Failed to read the full payload!");
             }
-            
-            ImToken imToken = ProtostuffCodecUtil.deserialize(EncryptUtil.desDecrypt(payload, coreKey), ImToken.class);
+
+            ImToken imToken = ProtostuffCodecUtil.deserialize(EncryptUtil.desDecrypt(payload, desKey), ImToken.class);
             if (appId != imToken.getAppId()) {
                 throw new ServiceRuntimeException("Invalid ImToken appId!");
             }

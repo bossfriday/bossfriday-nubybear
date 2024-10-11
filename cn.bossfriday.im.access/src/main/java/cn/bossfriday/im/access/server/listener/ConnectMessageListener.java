@@ -3,7 +3,9 @@ package cn.bossfriday.im.access.server.listener;
 import cn.bossfriday.im.access.common.enums.ConnectState;
 import cn.bossfriday.im.access.server.MqttAccessCommon;
 import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
+import cn.bossfriday.im.common.biz.AppRegistrationManager;
 import cn.bossfriday.im.common.codec.ImTokenCodec;
+import cn.bossfriday.im.common.conf.entity.AppInfo;
 import cn.bossfriday.im.common.entity.ImToken;
 import cn.bossfriday.im.protocol.client.ClientInfo;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
@@ -50,27 +52,43 @@ public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessa
             ctx.channel().attr(CLIENT_INFO).set(clientInfo);
 
             // Token校验
-            ImToken imToken = ImTokenCodec.decode(msg.getToken());
-            if (Objects.isNull(imToken)) {
+            ImToken token = ImTokenCodec.decode(msg.getToken());
+            if (Objects.isNull(token)) {
                 MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
-            if (!imToken.getDeviceId().equalsIgnoreCase(clientInfo.getDeviceId())) {
+            // token与deviceId绑定检查
+            if (!token.getDeviceId().equalsIgnoreCase(clientInfo.getDeviceId())) {
                 MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.DEVICE_ERROR, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
-            if ((System.currentTimeMillis() - imToken.getTime()) >= TTL_TOKEN) {
+            // token过期检查
+            if ((System.currentTimeMillis() - token.getTime()) >= TTL_TOKEN) {
                 MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.TOKEN_EXPIRE, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
+            // app状态检查
+            long appId = token.getAppId();
+            boolean isAppOk = AppRegistrationManager.isAppOk(appId);
+            if (!isAppOk) {
+                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.APP_BLOCK_OR_DELETE, ConnectState.CONN_ACK_FAILURE);
+                return;
+            }
 
-            String uid = imToken.getUserId();
+            // appSecret刷新所有老token失效；
+            AppInfo appInfo = AppRegistrationManager.getAppInfo(appId);
+            if (token.getAppSecretHash() != AppRegistrationManager.getAppSecretHashCode(appInfo.getAppSecret())) {
+                MqttAccessCommon.sendConnAck(ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
+                return;
+            }
+
+            String uid = token.getUserId();
             String clientIp = MqttAccessCommon.getClientIp(msg, ctx);
             String deviceId = clientInfo.getDeviceId();
-            log.info("[%User Connected done%], uid: {}, ip: {}, deviceId: {}", uid, clientIp, deviceId);
+            log.info("[%User Connected Done%], appId: {}, uid: {}, ip: {}, deviceId: {}", appId, uid, clientIp, deviceId);
             ctx.channel().attr(IS_CONNECTED).set(true);
         } catch (Exception ex) {
             log.error("ConnectMessageListener.onMqttMessageReceived() error!", ex);
