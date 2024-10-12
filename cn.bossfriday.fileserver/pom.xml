@@ -5,10 +5,11 @@
     <parent>
         <artifactId>bossfriday-nubybear</artifactId>
         <groupId>cn.bossfriday</groupId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cn.bossfriday.fileserver</artifactId>
+    <version>${bossfriday.version}</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -19,7 +20,7 @@
         <dependency>
             <groupId>cn.bossfriday</groupId>
             <artifactId>cn.bossfriday.common</artifactId>
-            <version>1.0</version>
+            <version>${bossfriday.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.activation</groupId>

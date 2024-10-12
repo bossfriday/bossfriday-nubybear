@@ -5,10 +5,11 @@
     <parent>
         <artifactId>bossfriday-nubybear</artifactId>
         <groupId>cn.bossfriday</groupId>
-        <version>1.0</version>
+        <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cn.bossfriday.common</artifactId>
+    <version>${bossfriday.version}</version>
     <packaging>jar</packaging>
 
     <properties>
