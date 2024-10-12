@@ -1,6 +1,6 @@
 package cn.bossfriday.common.router;
 
-import cn.bossfriday.common.Const;
+import cn.bossfriday.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.hashing.ConsistentHashRouter;
 import cn.bossfriday.common.rpc.ActorSystem;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static cn.bossfriday.common.Const.PATH_DELIMITER;
+import static cn.bossfriday.common.SystemConstant.PATH_DELIMITER;
 
 /**
  * ClusterRouter
@@ -60,7 +60,7 @@ public class ClusterRouter {
         this.zkHandler = new ZkHandler(zkAddress);
         this.currentNode = new ClusterNode(nodeName, virtualNodesNum, host, port);
         this.basePath = PATH_DELIMITER + systemName;
-        this.clusterNodeHomePath = this.basePath + PATH_DELIMITER + Const.ZK_PATH_CLUSTER_NODE;
+        this.clusterNodeHomePath = this.basePath + PATH_DELIMITER + SystemConstant.ZK_PATH_CLUSTER_NODE;
 
         // 自动创建根节点
         if (!this.zkHandler.checkExist(this.clusterNodeHomePath)) {

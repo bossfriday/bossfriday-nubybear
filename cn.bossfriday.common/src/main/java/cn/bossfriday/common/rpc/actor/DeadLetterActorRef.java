@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.actor;
 
-import cn.bossfriday.common.Const;
+import cn.bossfriday.common.SystemConstant;
 import cn.bossfriday.common.utils.UUIDUtil;
 
 /**
@@ -13,7 +13,7 @@ public class DeadLetterActorRef extends ActorRef {
     public static final ActorRef DEAD_LETTER_ACTOR_REF_INSTANCE = new DeadLetterActorRef();
 
     public DeadLetterActorRef() {
-        super(Const.DEAD_LETTER_ACTOR_HOST, Const.DEAD_LETTER_ACTOR_PORT, UUIDUtil.getUUIDBytes(), (String) null, null);
+        super(SystemConstant.DEAD_LETTER_ACTOR_HOST, SystemConstant.DEAD_LETTER_ACTOR_PORT, UUIDUtil.getUUIDBytes(), (String) null, null);
     }
 
     @Override

@@ -23,9 +23,9 @@ import java.util.Set;
  *
  * @author chenx
  */
-public abstract class AbstractServiceBootstrap implements IPlugin {
+public abstract class PluginBootstrap implements IPlugin {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractServiceBootstrap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PluginBootstrap.class);
 
     /**
      * start
@@ -126,8 +126,8 @@ public abstract class AbstractServiceBootstrap implements IPlugin {
     private static final int DEFAULT_MAX;
 
     static {
-        DEFAULT_MIN = (Const.CPU_PROCESSORS / 2) <= 0 ? 1 : (Const.CPU_PROCESSORS / 2);
-        DEFAULT_MAX = Const.CPU_PROCESSORS;
+        DEFAULT_MIN = (SystemConstant.CPU_PROCESSORS / 2) <= 0 ? 1 : (SystemConstant.CPU_PROCESSORS / 2);
+        DEFAULT_MAX = SystemConstant.CPU_PROCESSORS;
     }
 
     /**

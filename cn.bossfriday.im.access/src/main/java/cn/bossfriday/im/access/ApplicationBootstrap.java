@@ -1,6 +1,6 @@
 package cn.bossfriday.im.access;
 
-import cn.bossfriday.common.AbstractServiceBootstrap;
+import cn.bossfriday.common.PluginBootstrap;
 import cn.bossfriday.im.access.common.conf.ImAccessConfigLoader;
 import cn.bossfriday.im.access.server.MqttAccessServer;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,7 @@ import java.util.Objects;
  * @author chenx
  */
 @Slf4j
-public class ApplicationBootstrap extends AbstractServiceBootstrap {
+public class ApplicationBootstrap extends PluginBootstrap {
 
     private MqttAccessServer mqttAccessServer = null;
 
@@ -44,12 +44,12 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
             log.error("ApplicationBootstrap.stop() error!", ex);
         }
     }
-    
+
     /**
      * 本地测试启动入口
      */
     public static void main(String[] args) {
-        AbstractServiceBootstrap plugin = new ApplicationBootstrap();
+        PluginBootstrap plugin = new ApplicationBootstrap();
         plugin.startup(ImAccessConfigLoader.getSystemConfig());
     }
 }

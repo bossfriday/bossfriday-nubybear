@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static cn.bossfriday.common.Const.EACH_SEND_QUEUE_SIZE;
+import static cn.bossfriday.common.SystemConstant.EACH_SEND_QUEUE_SIZE;
 
 /**
  * MessageSendBox

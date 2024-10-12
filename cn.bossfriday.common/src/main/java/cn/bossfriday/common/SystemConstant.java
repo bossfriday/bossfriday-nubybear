@@ -1,11 +1,11 @@
 package cn.bossfriday.common;
 
 /**
- * Const
+ * SystemConstant
  *
  * @author chenx
  */
-public class Const {
+public class SystemConstant {
 
     private static final int CPUS;
 
@@ -13,8 +13,8 @@ public class Const {
         CPUS = Runtime.getRuntime().availableProcessors();
     }
 
-    private Const() {
-
+    private SystemConstant() {
+        // do nothing
     }
 
     /**

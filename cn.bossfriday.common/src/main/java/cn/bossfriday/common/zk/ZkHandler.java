@@ -1,6 +1,6 @@
 package cn.bossfriday.common.zk;
 
-import cn.bossfriday.common.Const;
+import cn.bossfriday.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.GsonUtil;
@@ -164,7 +164,7 @@ public class ZkHandler {
         nodeCache.getListenable().addListener(() -> {
             byte[] bytes = nodeCache.getCurrentData().getData();
             listener.changed(bytes);
-        }, ThreadPoolUtil.getThreadPool(Const.ZK_CLIENT_THREAD_POOL));
+        }, ThreadPoolUtil.getThreadPool(SystemConstant.ZK_CLIENT_THREAD_POOL));
     }
 
     /**
@@ -203,7 +203,7 @@ public class ZkHandler {
                 default:
                     break;
             }
-        }, ThreadPoolUtil.getThreadPool(Const.ZK_CLIENT_THREAD_POOL));
+        }, ThreadPoolUtil.getThreadPool(SystemConstant.ZK_CLIENT_THREAD_POOL));
     }
 
     /**

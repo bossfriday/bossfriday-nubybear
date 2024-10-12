@@ -1,6 +1,6 @@
 package cn.bossfriday.im.navigator;
 
-import cn.bossfriday.common.AbstractServiceBootstrap;
+import cn.bossfriday.common.PluginBootstrap;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author chenx
  */
 @Slf4j
-public class NavigatorBootstrap extends AbstractServiceBootstrap {
+public class NavigatorBootstrap extends PluginBootstrap {
 
     @Override
     protected void start() {

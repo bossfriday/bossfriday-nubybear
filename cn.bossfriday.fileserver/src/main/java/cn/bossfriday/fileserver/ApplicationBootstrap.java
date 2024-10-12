@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver;
 
-import cn.bossfriday.common.AbstractServiceBootstrap;
+import cn.bossfriday.common.PluginBootstrap;
 import cn.bossfriday.fileserver.common.conf.FileServerConfigLoader;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author chenx
  */
 @Slf4j
-public class ApplicationBootstrap extends AbstractServiceBootstrap {
+public class ApplicationBootstrap extends PluginBootstrap {
 
     @Override
     protected void start() {
@@ -46,7 +46,7 @@ public class ApplicationBootstrap extends AbstractServiceBootstrap {
      * 本地启动入口
      */
     public static void main(String[] args) {
-        AbstractServiceBootstrap plugin = new ApplicationBootstrap();
+        PluginBootstrap plugin = new ApplicationBootstrap();
         plugin.startup(FileServerConfigLoader.getSystemConfig());
     }
 }

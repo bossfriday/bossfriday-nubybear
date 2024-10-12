@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.dispatch;
 
-import cn.bossfriday.common.Const;
+import cn.bossfriday.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
@@ -25,10 +25,10 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ActorDispatcher {
 
-    public static final ExecutorService DEFAULT_THREAD_POOL = ThreadPoolUtil.getThreadPool(Const.THREAD_POOL_NAME_ACTORS_POOLS, ThreadPoolUtil.AVAILABLE_PROCESSORS * 2);
+    public static final ExecutorService DEFAULT_THREAD_POOL = ThreadPoolUtil.getThreadPool(SystemConstant.THREAD_POOL_NAME_ACTORS_POOLS, ThreadPoolUtil.AVAILABLE_PROCESSORS * 2);
 
-    private static final ExecutorService DISPATCH_THREAD_POOL = ThreadPoolUtil.getThreadPool(Const.THREAD_POOL_NAME_ACTORS_DISPATCH, 2);
-    private static final ExecutorService CALL_BACK_THREAD_POOL = ThreadPoolUtil.getThreadPool(Const.THREAD_POOL_NAME_ACTORS_CALLBACK, ThreadPoolUtil.AVAILABLE_PROCESSORS);
+    private static final ExecutorService DISPATCH_THREAD_POOL = ThreadPoolUtil.getThreadPool(SystemConstant.THREAD_POOL_NAME_ACTORS_DISPATCH, 2);
+    private static final ExecutorService CALL_BACK_THREAD_POOL = ThreadPoolUtil.getThreadPool(SystemConstant.THREAD_POOL_NAME_ACTORS_CALLBACK, ThreadPoolUtil.AVAILABLE_PROCESSORS);
 
     private ConcurrentHashMap<String, IExecutor> actorMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<String, IExecutor> callbackActorMap = new ConcurrentHashMap<>();

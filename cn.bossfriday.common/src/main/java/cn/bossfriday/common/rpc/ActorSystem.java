@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc;
 
-import cn.bossfriday.common.Const;
+import cn.bossfriday.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
@@ -57,7 +57,7 @@ public class ActorSystem {
         this.workerNodeName = workerNodeName;
         this.selfAddress = selfAddress;
         this.dispatcher = new ActorDispatcher(this);
-        this.inBox = new MessageInBox(Const.EACH_RECEIVE_QUEUE_SIZE, selfAddress.getPort(), this.dispatcher);
+        this.inBox = new MessageInBox(SystemConstant.EACH_RECEIVE_QUEUE_SIZE, selfAddress.getPort(), this.dispatcher);
         this.sendBox = new MessageSendBox(this.inBox, selfAddress);
     }
 
@@ -174,7 +174,7 @@ public class ActorSystem {
      * @return
      */
     public ActorRef actorOf(Class<? extends BaseUntypedActor> cls, Object... args) {
-        return this.actorOf(Const.DEFAULT_CALLBACK_ACTOR_TTL, cls, args);
+        return this.actorOf(SystemConstant.DEFAULT_CALLBACK_ACTOR_TTL, cls, args);
     }
 
     /**
@@ -184,7 +184,7 @@ public class ActorSystem {
      * @return
      */
     public ActorRef actorOf(BaseUntypedActor actor) {
-        return this.actorOf(Const.DEFAULT_CALLBACK_ACTOR_TTL, actor);
+        return this.actorOf(SystemConstant.DEFAULT_CALLBACK_ACTOR_TTL, actor);
     }
 
     /**
