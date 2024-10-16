@@ -9,7 +9,6 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 ## 2.1 cn.bossfriday.common
 
 **项目说明**
-
 * Actor-Rpc详细介绍：**[https://blog.csdn.net/camelials/article/details/123327236](https://blog.csdn.net/camelials/article/details/123327236)**
 * Actor-Rpc性能测试：**[https://blog.csdn.net/camelials/article/details/123614068](https://blog.csdn.net/camelials/article/details/123614068)**
 * 公共组件及工具；
@@ -21,15 +20,21 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 * 使用ZK进行集群状态管理
 * 使用自定义注解进行服务注册及辅助控制（线程数量、方法名称设置等）
 
-## 2.2. cn.bossfriday.fileserver
+## 2.2 cn.bossfriday.im.common
+IM系统公共组件/类等公用代码；
+
+## 2.3 cn.bossfriday.im.protocol
+**项目说明**
+* IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
+* 详细介绍：**[https://blog.csdn.net/camelials/article/details/136879608](https://blog.csdn.net/camelials/article/details/136879608)**
+
+## 2.4. cn.bossfriday.fileserver
 
 **项目说明**
-
 * 高性能分布式文件服务；
 * 详细介绍及性能测试：**[https://blog.csdn.net/camelials/article/details/124613041](https://blog.csdn.net/camelials/article/details/124613041)**
 
 **设计预期**
-
 * 【效率】使用netty实现http file server（不聚合httpRequest为FullHttpRequest）。--这些天又回顾了Netty的官方示例，在一些问题的解决中一度也是很苦恼（之前写的文件服务使用了HttpObjectAggregator聚合）
 * 【效率】使用ActorRpc做为RPC组件。
 * 【效率】文件存储落盘采用：零拷贝+顺序写盘，以最大化提升落盘速度。临时文件写入使用零拷贝、存储文件读取采用带环形缓存区RandomAccessFile操作（存储文件读取暂时排除使用MappedByteBuffer，因为MappedByteBuffer使用不当会导致JVM Crash，完成后看压测结果再决定）。--存储文件读取最没有使用带Buffer的RandomAccessFile，而是同样使用零拷贝。当前读写均使用零拷贝，写均保障顺序写盘。
@@ -39,13 +44,8 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 * 【安全】文件下载地址防止暴力穷举。
 * 【安全】文件内容以一定数据结构存储与落盘文件中，服务端无法直接还远原始文件。
 
-## 2.3 cn.bossfriday.im.common
-IM系统公共组件/类等公用代码；
-
-## 2.4 cn.bossfriday.im.protocol（完成）
-**项目说明**
-* IM系统接入协议栈及payload实体定义，协议为基于TCP的私有协议，该协议可以认为是一个非标的MQTT协议，例如：变更消息类型（4位16种消息类型的含义）、扩展剩余长度（标准的MQTT协议固定头只有两字节，消息最大长度较小）。消息体payload使用PB序列化方式；
-* 详细介绍：**[https://blog.csdn.net/camelials/article/details/136879608](https://blog.csdn.net/camelials/article/details/136879608)**
-
 ## 2.5 cn.bossfriday.im.access（建设中）
 IM系统接入服务，协议使用非标MQTT；
+
+## 2.6 cn.bossfriday.im.api（建设中）
+IM系统接口服务，负责IM系统对外API提供，同时提供导航接口（不单独搞一个IM导航服务了）；
