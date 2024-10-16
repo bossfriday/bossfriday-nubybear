@@ -1,7 +1,7 @@
 package cn.bossfriday.im.common.entity;
 
 import cn.bossfriday.common.utils.GsonUtil;
-import cn.bossfriday.im.common.biz.AppRegistrationManager;
+import cn.bossfriday.im.common.helper.AppRegistrationHelper;
 
 /**
  * ImToken
@@ -34,7 +34,7 @@ public class ImToken {
 
     public ImToken(long appId, String appSecret, String userId, String deviceId, long time) {
         this.appId = appId;
-        this.appSecretHash = AppRegistrationManager.getAppSecretHashCode(appSecret);
+        this.appSecretHash = AppRegistrationHelper.getAppSecretHashCode(appSecret);
         this.userId = userId;
         this.deviceId = deviceId;
         this.time = time;

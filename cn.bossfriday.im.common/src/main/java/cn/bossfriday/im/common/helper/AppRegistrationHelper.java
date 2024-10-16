@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.biz;
+package cn.bossfriday.im.common.helper;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.MurmurHashUtil;
@@ -10,13 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 
 /**
- * AppRegistrationManager
+ * AppRegistrationHelper
  *
  * @author chenx
  */
-public class AppRegistrationManager {
+public class AppRegistrationHelper {
 
-    private AppRegistrationManager() {
+    private AppRegistrationHelper() {
         // do nothing
     }
 
