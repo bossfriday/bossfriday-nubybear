@@ -5,6 +5,8 @@ nubybear为孩子给她一个毛绒棕熊取的名字，它当前只是一个用
 最后申明：建设进度随缘（主要看业余时间），因为本来就是交流学习项目，最多成为一个IM及文件服务的“脚手架”参考或者二开项目。
 
 # 2 项目说明
+1、由于只是想做一个IM及文件服务的“脚手架”参考或者二开项目，因此希望系统尽肯能少的去依赖中间件，初步的想法是系统的启动和运行只依赖一个ZK即可，那么只能尽量的将一些原本应该持久到DB或者配置中心的信息放到本地配置文件中。目前服务启动配置文件为：cn.bossriday.common中的SystemConfig.yaml；其他全局配置或者业务数据放在：cn.bossfirday.im.common项目中的GlobalConfigAll.yaml。
+2、启动方式：cn.bossfriday.boot.Bootstrap中的main为启动所有服务入口（当前配置为连接本机ZK）。
 
 ## 2.1 cn.bossfriday.common
 
@@ -49,3 +51,5 @@ IM系统接入服务，协议使用非标MQTT；
 
 ## 2.6 cn.bossfriday.im.api（建设中）
 IM系统接口服务，负责IM系统对外API提供，同时提供导航接口（不单独搞一个IM导航服务了）；
+
+
