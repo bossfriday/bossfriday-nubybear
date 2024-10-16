@@ -25,6 +25,10 @@ public class AppInfo {
 
     private int status;
 
+    private String fileServerAddress;
+
+    private String apiServerAddress;
+
     @Override
     public String toString() {
         return GsonUtil.toJson(this);

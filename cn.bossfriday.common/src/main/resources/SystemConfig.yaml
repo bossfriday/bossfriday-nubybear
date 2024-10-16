@@ -23,4 +23,3 @@ imAccess:
 
 imApi:
   httpPort: 18081
-  fileServerAddress: "http://localhost:18086/"

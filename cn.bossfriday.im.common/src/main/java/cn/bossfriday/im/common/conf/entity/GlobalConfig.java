@@ -18,8 +18,6 @@ import lombok.NoArgsConstructor;
 public class GlobalConfig {
 
     private long tokenExpireTime;
-    
-    private String fileServer;
 
     @Override
     public String toString() {

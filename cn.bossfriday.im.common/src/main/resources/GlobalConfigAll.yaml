@@ -1,9 +1,10 @@
 global:
   tokenExpireTime: 2592000000
-  fileServer: "http://127.0.0.1:18086/"
 
 appRegistration:
   - appId: 100000
     appSecret: "WLYIRU6gHwhUv2"
     secureKey: "gu2VUG0n"
     status: 1
+    fileServerAddress: "http://localhost:18086/"
+    apiServerAddress: "http://localhost:18081/"

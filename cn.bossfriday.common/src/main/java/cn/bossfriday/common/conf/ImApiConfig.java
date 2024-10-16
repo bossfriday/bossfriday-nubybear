@@ -15,10 +15,6 @@ public class ImApiConfig {
     @Setter
     private int httpPort;
 
-    @Getter
-    @Setter
-    private String fileServerAddress;
-
     @Override
     public String toString() {
         return GsonUtil.toJson(this);
