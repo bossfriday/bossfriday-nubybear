@@ -1,7 +1,5 @@
 package cn.bossfriday.common.conf;
 
-import cn.bossfriday.common.conf.fileserver.FileServerConfig;
-import cn.bossfriday.common.conf.imaccess.ImAccessConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.hutool.json.JSONUtil;
 import lombok.Getter;
@@ -26,6 +24,7 @@ public class SystemConfigLoader {
     private static final String CONFIG_NODE_NAME_SYSTEM_CONFIG = "system";
     private static final String CONFIG_NODE_NAME_FILE_SERVER_CONFIG = "fileServer";
     private static final String CONFIG_NODE_NAME_IM_ACCESS_CONFIG = "imAccess";
+    private static final String CONFIG_NODE_NAME_IM_API_CONFIG = "imApi";
 
     @Getter
     private SystemConfig systemConfig;
@@ -35,6 +34,9 @@ public class SystemConfigLoader {
 
     @Getter
     private ImAccessConfig imAccessConfig;
+
+    @Getter
+    private ImApiConfig imApiConfig;
 
     private SystemConfigLoader() {
         this.loadConfig();
@@ -66,6 +68,7 @@ public class SystemConfigLoader {
             Object sysConfigObj = configMap.get(CONFIG_NODE_NAME_SYSTEM_CONFIG);
             Object fileServerConfigObj = configMap.get(CONFIG_NODE_NAME_FILE_SERVER_CONFIG);
             Object imAccessConfigObj = configMap.get(CONFIG_NODE_NAME_IM_ACCESS_CONFIG);
+            Object imApiConfigObj = configMap.get(CONFIG_NODE_NAME_IM_API_CONFIG);
 
             if (Objects.nonNull(sysConfigObj)) {
                 this.systemConfig = JSONUtil.toBean(JSONUtil.toJsonStr(sysConfigObj), SystemConfig.class);
@@ -78,8 +81,16 @@ public class SystemConfigLoader {
             if (Objects.nonNull(imAccessConfigObj)) {
                 this.imAccessConfig = JSONUtil.toBean(JSONUtil.toJsonStr(imAccessConfigObj), ImAccessConfig.class);
             }
+
+            if (Objects.nonNull(imApiConfigObj)) {
+                this.imApiConfig = JSONUtil.toBean(JSONUtil.toJsonStr(imApiConfigObj), ImApiConfig.class);
+            }
         } catch (Exception ex) {
             throw new ServiceRuntimeException("load systemConfig error! message: " + ex.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(SystemConfigLoader.getInstance().getImApiConfig());
     }
 }

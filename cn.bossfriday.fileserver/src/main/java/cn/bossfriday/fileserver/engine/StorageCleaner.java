@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.conf.fileserver.FileServerConfig;
+import cn.bossfriday.common.conf.FileServerConfig;
 import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;

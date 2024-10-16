@@ -1,19 +1,23 @@
-package cn.bossfriday.common.conf.imaccess;
+package cn.bossfriday.common.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * ImAccessConfig
+ * ImApiConfig
  *
  * @author chenx
  */
-public class ImAccessConfig {
+public class ImApiConfig {
 
     @Getter
     @Setter
-    private int mqttPort;
+    private int httpPort;
+
+    @Getter
+    @Setter
+    private String fileServerAddress;
 
     @Override
     public String toString() {

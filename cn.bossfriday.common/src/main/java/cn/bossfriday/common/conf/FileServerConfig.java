@@ -1,5 +1,6 @@
-package cn.bossfriday.common.conf.fileserver;
+package cn.bossfriday.common.conf;
 
+import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
 import lombok.Setter;

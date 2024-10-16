@@ -23,11 +23,6 @@
             <artifactId>cn.bossfriday.im.common</artifactId>
             <version>${bossfriday.version}</version>
         </dependency>
-        <dependency>
-            <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.im.protocol</artifactId>
-            <version>${bossfriday.version}</version>
-        </dependency>
     </dependencies>
 
 </project>

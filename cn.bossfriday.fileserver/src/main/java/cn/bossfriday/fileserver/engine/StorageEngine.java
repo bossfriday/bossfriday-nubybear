@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.engine;
 
+import cn.bossfriday.common.conf.FileServerConfig;
 import cn.bossfriday.common.conf.SystemConfigLoader;
-import cn.bossfriday.common.conf.fileserver.FileServerConfig;
 import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
