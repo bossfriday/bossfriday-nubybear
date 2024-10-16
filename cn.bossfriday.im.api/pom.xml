@@ -8,7 +8,8 @@
         <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>cn.bossfriday.boot</artifactId>
+
+    <artifactId>cn.bossfriday.im.api</artifactId>
     <version>${bossfriday.version}</version>
 
     <properties>
@@ -19,23 +20,14 @@
     <dependencies>
         <dependency>
             <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.common</artifactId>
+            <artifactId>cn.bossfriday.im.common</artifactId>
             <version>${bossfriday.version}</version>
         </dependency>
         <dependency>
             <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.fileserver</artifactId>
-            <version>${bossfriday.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.im.access</artifactId>
-            <version>${bossfriday.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.im.api</artifactId>
+            <artifactId>cn.bossfriday.im.protocol</artifactId>
             <version>${bossfriday.version}</version>
         </dependency>
     </dependencies>
+
 </project>

@@ -13,7 +13,7 @@ public class ImAccessConfig {
 
     @Getter
     @Setter
-    private int tcpPort;
+    private int mqttPort;
 
     @Override
     public String toString() {

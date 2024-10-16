@@ -8,7 +8,6 @@ system:
     port: 9090
     virtualNodesNum: 100
 
-# 文件服务配置
 fileServer:
   httpPort: 18086
   storageRootPath: fileData
@@ -19,10 +18,9 @@ fileServer:
     - name: forever
       expireDay: -1
 
-# IM接入服务配置
 imAccess:
-  tcpPort: 18080
+  mqttPort: 18080
 
-# IM导航服务
-imNavigator:
+imApi:
+  httpPort: 18081
   fileServer: "http://localhost:18086/"

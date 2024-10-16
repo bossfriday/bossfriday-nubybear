@@ -28,7 +28,7 @@ public class ApplicationBootstrap extends PluginBootstrap {
     @Override
     protected void start() {
         try {
-            int port = SystemConfigLoader.getInstance().getImAccessConfig().getTcpPort();
+            int port = SystemConfigLoader.getInstance().getImAccessConfig().getMqttPort();
             this.mqttAccessServer = new MqttAccessServer(port);
             this.mqttAccessServer.start();
         } catch (InterruptedException ex) {
