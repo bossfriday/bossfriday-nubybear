@@ -2,6 +2,7 @@ package cn.bossfriday.fileserver;
 
 import cn.bossfriday.common.PluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.http.HttpFileServer;
@@ -14,6 +15,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ApplicationBootstrap extends PluginBootstrap {
+
+    @Override
+    protected PluginType getPluginType() {
+        return PluginType.FILE_SERVER;
+    }
 
     @Override
     protected void start() {

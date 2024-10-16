@@ -1,6 +1,5 @@
 package cn.bossfriday.common.conf;
 
-import cn.bossfriday.common.plugin.PluginElement;
 import cn.bossfriday.common.router.ClusterNode;
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
@@ -37,11 +36,11 @@ public class SystemConfig {
     private ClusterNode clusterNode;
 
     /**
-     * 集群服务
+     * pluginJarFilePath
      */
     @Getter
     @Setter
-    private List<PluginElement> plugins;
+    private List<String> pluginJarFilePath;
 
     @Override
     public String toString() {

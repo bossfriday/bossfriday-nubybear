@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc;
 
-import cn.bossfriday.common.SystemConstant;
+import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;

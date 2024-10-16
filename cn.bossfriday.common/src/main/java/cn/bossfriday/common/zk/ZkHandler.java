@@ -1,6 +1,6 @@
 package cn.bossfriday.common.zk;
 
-import cn.bossfriday.common.SystemConstant;
+import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.GsonUtil;

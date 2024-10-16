@@ -1,9 +1,10 @@
 package cn.bossfriday.common;
 
+import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.conf.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
-import cn.bossfriday.common.plugin.PluginElement;
+import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.common.register.ActorRegister;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.router.ClusterRouterFactory;
@@ -33,6 +34,11 @@ public abstract class PluginBootstrap implements IPlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginBootstrap.class);
 
     /**
+     * 服务包名（服务启动只获取该包下的所有actor进行注册）
+     */
+    protected abstract PluginType getPluginType();
+
+    /**
      * start
      */
     protected abstract void start();
@@ -58,9 +64,8 @@ public abstract class PluginBootstrap implements IPlugin {
             this.start();
 
             // 启动日志
-            LOGGER.info("[SystemConfig] {}", config);
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "].[" + this.getPluginType().getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
             LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
@@ -86,22 +91,21 @@ public abstract class PluginBootstrap implements IPlugin {
         List<Class<? extends BaseUntypedActor>> actorClassList = new ArrayList<>();
 
         // 有配置走配置，无配置反射获取当前jar包内所有UntypedActor类(将来打包部署时使用)
-        List<PluginElement> pluginElements = config.getPlugins();
-        if (!CollectionUtils.isEmpty(pluginElements)) {
-            for (PluginElement pluginConfig : pluginElements) {
-                if (StringUtils.isNotEmpty(pluginConfig.getPath())) {
-                    File file = new File(pluginConfig.getPath());
+        if (!CollectionUtils.isEmpty(config.getPluginJarFilePath())) {
+            for (String jarFilePath : config.getPluginJarFilePath()) {
+                if (StringUtils.isNotEmpty(jarFilePath)) {
+                    File file = new File(jarFilePath);
                     if (!file.exists()) {
-                        LOGGER.warn("service build not existed! path={}", pluginConfig.getPath());
+                        LOGGER.warn("PluginJarFile not existed! path={}", jarFilePath);
                         continue;
                     }
 
-                    List<Class<? extends BaseUntypedActor>> list = ClassLoaderUtil.getAllClass(pluginConfig.getPath(), BaseUntypedActor.class);
+                    List<Class<? extends BaseUntypedActor>> list = ClassLoaderUtil.getAllClass(jarFilePath, BaseUntypedActor.class);
                     actorClassList.addAll(list);
                 }
             }
         } else {
-            Set<Class<? extends BaseUntypedActor>> set = new Reflections().getSubTypesOf(BaseUntypedActor.class);
+            Set<Class<? extends BaseUntypedActor>> set = new Reflections(this.getPluginType().getPackageName()).getSubTypesOf(BaseUntypedActor.class);
             actorClassList.addAll(set);
         }
 

@@ -2,6 +2,7 @@ package cn.bossfriday.im.access;
 
 import cn.bossfriday.common.PluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.im.access.server.MqttAccessServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,6 +17,11 @@ import java.util.Objects;
 public class ApplicationBootstrap extends PluginBootstrap {
 
     private MqttAccessServer mqttAccessServer = null;
+
+    @Override
+    protected PluginType getPluginType() {
+        return PluginType.IM_ACCESS;
+    }
 
     @Override
     protected void start() {

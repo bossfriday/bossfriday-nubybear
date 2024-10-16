@@ -1,6 +1,6 @@
 package cn.bossfriday.common.router;
 
-import cn.bossfriday.common.SystemConstant;
+import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.hashing.ConsistentHashRouter;
 import cn.bossfriday.common.rpc.ActorSystem;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static cn.bossfriday.common.SystemConstant.PATH_DELIMITER;
+import static cn.bossfriday.common.common.SystemConstant.PATH_DELIMITER;
 
 /**
  * ClusterRouter

@@ -1,4 +1,4 @@
-package cn.bossfriday.common;
+package cn.bossfriday.common.common;
 
 /**
  * SystemConstant

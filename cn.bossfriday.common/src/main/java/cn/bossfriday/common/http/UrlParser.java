@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static cn.bossfriday.common.SystemConstant.PATH_DELIMITER;
+import static cn.bossfriday.common.common.SystemConstant.PATH_DELIMITER;
 
 /**
  * UrlParser

@@ -1,6 +1,6 @@
 package cn.bossfriday.common.rpc.actor;
 
-import cn.bossfriday.common.SystemConstant;
+import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.utils.UUIDUtil;
 
 /**
