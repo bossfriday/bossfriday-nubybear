@@ -15,12 +15,14 @@
         <module>cn.bossfriday.im.access</module>
         <module>cn.bossfriday.boot</module>
         <module>cn.bossfriday.im.api</module>
+        <module>cn.bossfriday.im.sdk</module>
     </modules>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <bossfriday.version>1.0.1.0</bossfriday.version>
+        <bossfriday.skd.version>1.0.0.0</bossfriday.skd.version>
         <junit.version>3.8.1</junit.version>
         <log4j2.version>2.17.1</log4j2.version>
         <slf4j-api.version>1.7.32</slf4j-api.version>
