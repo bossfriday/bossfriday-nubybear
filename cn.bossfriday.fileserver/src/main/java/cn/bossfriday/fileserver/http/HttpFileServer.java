@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
-import cn.bossfriday.fileserver.common.conf.FileServerConfigLoader;
+import cn.bossfriday.common.conf.SystemConfigLoader;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -44,7 +44,7 @@ public class HttpFileServer {
      * start
      */
     public void start() throws InterruptedException {
-        int port = FileServerConfigLoader.getConfig().getHttpPort();
+        int port = SystemConfigLoader.getInstance().getFileServerConfig().getHttpPort();
         this.bossGroup = new NioEventLoopGroup();
         this.workerGroup = new NioEventLoopGroup();
 

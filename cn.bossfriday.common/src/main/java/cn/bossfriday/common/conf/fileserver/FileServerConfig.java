@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.common.conf;
+package cn.bossfriday.common.conf.fileserver;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;

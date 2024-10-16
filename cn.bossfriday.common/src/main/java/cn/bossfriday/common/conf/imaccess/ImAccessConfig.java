@@ -1,23 +1,19 @@
-package cn.bossfriday.fileserver.common.conf;
+package cn.bossfriday.common.conf.imaccess;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * StorageNamespace
+ * ImAccessConfig
  *
  * @author chenx
  */
-public class StorageNamespace {
+public class ImAccessConfig {
 
     @Getter
     @Setter
-    private String name;
-
-    @Getter
-    @Setter
-    private int expireDay;
+    private int tcpPort;
 
     @Override
     public String toString() {

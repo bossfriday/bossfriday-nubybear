@@ -2,7 +2,6 @@ package cn.bossfriday.fileserver.engine.core;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ThreadFactoryBuilder;
-import cn.bossfriday.fileserver.common.conf.FileServerConfigLoader;
 import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
@@ -36,7 +35,7 @@ public abstract class BaseStorageEngine {
         }
 
         this.startup();
-        log.info("StorageEngine startup() done - " + FileServerConfigLoader.getClusterNodeName());
+        log.info("StorageEngine startup() done");
     }
 
     /**
@@ -45,7 +44,7 @@ public abstract class BaseStorageEngine {
     public void stop() {
         this.queue.shutdown();
         this.shutdown();
-        log.info("StorageEngine stop() done - " + FileServerConfigLoader.getClusterNodeName());
+        log.info("StorageEngine stop() done");
     }
 
     /**

@@ -14,7 +14,7 @@ public interface IPlugin {
      *
      * @param config
      */
-    void startup(SystemConfig<?> config);
+    void startup(SystemConfig config);
 
     /**
      * shutdown

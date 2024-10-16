@@ -1,8 +1,10 @@
 package cn.bossfriday.common.conf;
 
+import cn.bossfriday.common.conf.fileserver.FileServerConfig;
+import cn.bossfriday.common.conf.imaccess.ImAccessConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
-import cn.bossfriday.common.router.ClusterNode;
 import cn.hutool.json.JSONUtil;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
@@ -12,50 +14,46 @@ import java.util.Objects;
 
 /**
  * SystemConfigLoader
+ * <p>
+ * 由于只是一个脚手架示例项目，为使得项目更加轻量，因此不想依赖Apollo或者其他配置中心，故全部走本地配置文件；
  *
  * @author chenx
  */
 @Slf4j
-public class SystemConfigLoader<T> {
+public class SystemConfigLoader {
 
-    private static final String CONFIG_FILE = "systemConfig.yaml";
+    private static final String CONFIG_FILE = "SystemConfig.yaml";
+    private static final String CONFIG_NODE_NAME_SYSTEM_CONFIG = "system";
+    private static final String CONFIG_NODE_NAME_FILE_SERVER_CONFIG = "fileServer";
+    private static final String CONFIG_NODE_NAME_IM_ACCESS_CONFIG = "imAccess";
 
-    private static SystemConfigLoader<?> instance;
-    private final Class<T> serviceConfigClass;
-    private SystemConfig<T> systemConfig;
+    @Getter
+    private SystemConfig systemConfig;
 
-    private SystemConfigLoader(Class<T> serviceConfigClass) {
-        this.serviceConfigClass = serviceConfigClass;
+    @Getter
+    private FileServerConfig fileServerConfig;
+
+    @Getter
+    private ImAccessConfig imAccessConfig;
+
+    private SystemConfigLoader() {
         this.loadConfig();
+    }
+
+    /**
+     * SingletonHelper
+     */
+    private static class SingletonHelper {
+        private static final SystemConfigLoader INSTANCE = new SystemConfigLoader();
     }
 
     /**
      * getInstance
      *
-     * @param configClass
-     * @param <T>
      * @return
      */
-    @SuppressWarnings("squid:S2168")
-    public static <T> SystemConfigLoader<T> getInstance(Class<T> configClass) {
-        if (instance == null) {
-            synchronized (SystemConfigLoader.class) {
-                if (instance == null) {
-                    instance = new SystemConfigLoader<>(configClass);
-                }
-            }
-        }
-
-        return (SystemConfigLoader<T>) instance;
-    }
-
-    /**
-     * getConfig
-     *
-     * @return
-     */
-    public SystemConfig<T> getConfig() {
-        return this.systemConfig;
+    public static SystemConfigLoader getInstance() {
+        return SingletonHelper.INSTANCE;
     }
 
     /**
@@ -65,25 +63,20 @@ public class SystemConfigLoader<T> {
         Yaml yaml = new Yaml();
         try (InputStream inputStream = SystemConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             Map<String, Object> configMap = yaml.load(inputStream);
-            this.systemConfig = new SystemConfig<>();
+            Object sysConfigObj = configMap.get(CONFIG_NODE_NAME_SYSTEM_CONFIG);
+            Object fileServerConfigObj = configMap.get(CONFIG_NODE_NAME_FILE_SERVER_CONFIG);
+            Object imAccessConfigObj = configMap.get(CONFIG_NODE_NAME_IM_ACCESS_CONFIG);
 
-            // 加载系统配置
-            Map<String, Object> systemMap = (Map<String, Object>) configMap.get("system");
-            this.systemConfig.setSystemName((String) systemMap.get("systemName"));
-            this.systemConfig.setZkAddress((String) systemMap.get("zkAddress"));
+            if (Objects.nonNull(sysConfigObj)) {
+                this.systemConfig = JSONUtil.toBean(JSONUtil.toJsonStr(sysConfigObj), SystemConfig.class);
+            }
 
-            Map<String, Object> clusterNodeMap = (Map<String, Object>) systemMap.get("clusterNode");
-            ClusterNode clusterNode = new ClusterNode();
-            clusterNode.setName((String) clusterNodeMap.get("name"));
-            clusterNode.setHost((String) clusterNodeMap.get("host"));
-            clusterNode.setPort((Integer) clusterNodeMap.get("port"));
-            clusterNode.setVirtualNodesNum((Integer) clusterNodeMap.get("virtualNodesNum"));
-            this.systemConfig.setClusterNode(clusterNode);
+            if (Objects.nonNull(fileServerConfigObj)) {
+                this.fileServerConfig = JSONUtil.toBean(JSONUtil.toJsonStr(fileServerConfigObj), FileServerConfig.class);
+            }
 
-            // 加载服务配置
-            if (Objects.nonNull(configMap.get("service"))) {
-                T serviceConfig = JSONUtil.toBean(JSONUtil.toJsonStr(configMap.get("service")), this.serviceConfigClass);
-                this.systemConfig.setService(serviceConfig);
+            if (Objects.nonNull(imAccessConfigObj)) {
+                this.imAccessConfig = JSONUtil.toBean(JSONUtil.toJsonStr(imAccessConfigObj), ImAccessConfig.class);
             }
         } catch (Exception ex) {
             throw new ServiceRuntimeException("load systemConfig error! message: " + ex.getMessage());

@@ -1,7 +1,7 @@
 package cn.bossfriday.im.access;
 
 import cn.bossfriday.common.PluginBootstrap;
-import cn.bossfriday.im.access.common.conf.ImAccessConfigLoader;
+import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.im.access.server.MqttAccessServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ public class ApplicationBootstrap extends PluginBootstrap {
     @Override
     protected void start() {
         try {
-            int port = ImAccessConfigLoader.getConfig().getTcpPort();
+            int port = SystemConfigLoader.getInstance().getImAccessConfig().getTcpPort();
             this.mqttAccessServer = new MqttAccessServer(port);
             this.mqttAccessServer.start();
         } catch (InterruptedException ex) {
@@ -50,6 +50,6 @@ public class ApplicationBootstrap extends PluginBootstrap {
      */
     public static void main(String[] args) {
         PluginBootstrap plugin = new ApplicationBootstrap();
-        plugin.startup(ImAccessConfigLoader.getSystemConfig());
+        plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }

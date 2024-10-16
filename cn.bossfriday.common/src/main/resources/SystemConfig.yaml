@@ -1,0 +1,24 @@
+# 系统配置
+system:
+  systemName: bossfriday
+  zkAddress: localhost:2181
+  clusterNode:
+    name: bossfriday-node1
+    host: 127.0.0.1
+    port: 9090
+    virtualNodesNum: 100
+
+# 文件服务配置
+fileServer:
+  httpPort: 18086
+  storageRootPath: fileData
+  cleanerScanInterval: 36000
+  namespaces:
+    - name: normal
+      expireDay: 180
+    - name: forever
+      expireDay: -1
+
+# IM接入服务配置
+imAccess:
+  tcpPort: 18080

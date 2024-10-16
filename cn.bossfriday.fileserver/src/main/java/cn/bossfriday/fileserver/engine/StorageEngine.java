@@ -1,11 +1,11 @@
 package cn.bossfriday.fileserver.engine;
 
+import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.common.conf.fileserver.FileServerConfig;
+import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.conf.FileServerConfig;
-import cn.bossfriday.fileserver.common.conf.FileServerConfigLoader;
-import cn.bossfriday.fileserver.common.conf.StorageNamespace;
 import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
@@ -258,7 +258,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     private void init() {
         try {
-            FileServerConfig config = FileServerConfigLoader.getConfig();
+            FileServerConfig config = SystemConfigLoader.getInstance().getFileServerConfig();
             this.storageCleaner = new StorageCleaner(config);
 
             // 存储空间
@@ -271,7 +271,7 @@ public class StorageEngine extends BaseStorageEngine {
             });
 
             // 目录初始化
-            this.baseDir = new File(config.getStorageRootPath(), FileServerConfigLoader.getClusterNodeName());
+            this.baseDir = new File(config.getStorageRootPath(), SystemConfigLoader.getInstance().getSystemConfig().getClusterNode().getName());
             if (!this.baseDir.exists()) {
                 this.baseDir.mkdirs();
             }

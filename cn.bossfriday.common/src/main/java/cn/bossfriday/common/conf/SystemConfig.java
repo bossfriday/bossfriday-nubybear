@@ -13,7 +13,7 @@ import java.util.List;
  *
  * @author chenx
  */
-public class SystemConfig<T> {
+public class SystemConfig {
 
     /**
      * 集群名称（取一个合适的名称即可，ZK根节点以此命名）
@@ -37,18 +37,11 @@ public class SystemConfig<T> {
     private ClusterNode clusterNode;
 
     /**
-     * 集群插件服务(有配置走配置，无配置反射获取当前jar包内所有UntypedActor类；)
+     * 集群服务
      */
     @Getter
     @Setter
     private List<PluginElement> plugins;
-
-    /**
-     * 服务配置
-     */
-    @Getter
-    @Setter
-    private T service;
 
     @Override
     public String toString() {

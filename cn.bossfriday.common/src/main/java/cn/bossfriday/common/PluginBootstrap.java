@@ -3,17 +3,22 @@ package cn.bossfriday.common;
 import cn.bossfriday.common.conf.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
+import cn.bossfriday.common.plugin.PluginElement;
 import cn.bossfriday.common.register.ActorRegister;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
+import cn.bossfriday.common.utils.ClassLoaderUtil;
 import cn.bossfriday.common.utils.CommonUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +43,7 @@ public abstract class PluginBootstrap implements IPlugin {
     protected abstract void stop();
 
     @Override
-    public void startup(SystemConfig<?> config) {
+    public void startup(SystemConfig config) {
         try {
             long begin = System.currentTimeMillis();
             if (config == null) {
@@ -47,7 +52,7 @@ public abstract class PluginBootstrap implements IPlugin {
 
             // 服务启动
             ClusterRouterFactory.build(config);
-            this.registerActor();
+            this.registerActor(config);
             ClusterRouterFactory.getClusterRouter().registryService();
             ClusterRouterFactory.getClusterRouter().startActorSystem();
             this.start();
@@ -77,16 +82,35 @@ public abstract class PluginBootstrap implements IPlugin {
     /**
      * registerActor
      */
-    private void registerActor() {
+    private void registerActor(SystemConfig config) throws IOException, ClassNotFoundException {
         List<Class<? extends BaseUntypedActor>> actorClassList = new ArrayList<>();
-        Set<Class<? extends BaseUntypedActor>> set = new Reflections().getSubTypesOf(BaseUntypedActor.class);
-        actorClassList.addAll(set);
+
+        // 有配置走配置，无配置反射获取当前jar包内所有UntypedActor类(将来打包部署时使用)
+        List<PluginElement> pluginElements = config.getPlugins();
+        if (!CollectionUtils.isEmpty(pluginElements)) {
+            for (PluginElement pluginConfig : pluginElements) {
+                if (StringUtils.isNotEmpty(pluginConfig.getPath())) {
+                    File file = new File(pluginConfig.getPath());
+                    if (!file.exists()) {
+                        LOGGER.warn("service build not existed! path={}", pluginConfig.getPath());
+                        continue;
+                    }
+
+                    List<Class<? extends BaseUntypedActor>> list = ClassLoaderUtil.getAllClass(pluginConfig.getPath(), BaseUntypedActor.class);
+                    actorClassList.addAll(list);
+                }
+            }
+        } else {
+            Set<Class<? extends BaseUntypedActor>> set = new Reflections().getSubTypesOf(BaseUntypedActor.class);
+            actorClassList.addAll(set);
+        }
 
         if (CollectionUtils.isEmpty(actorClassList)) {
             LOGGER.warn("no actor need to register!");
             return;
         }
 
+        // registerActor
         actorClassList.forEach(cls -> {
             if (cls.isAnnotationPresent(ActorRoute.class)) {
                 ActorRoute route = cls.getAnnotation(ActorRoute.class);
