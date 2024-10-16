@@ -1,6 +1,7 @@
 package cn.bossfriday.im.navigator;
 
 import cn.bossfriday.common.PluginBootstrap;
+import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.common.plugin.PluginType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ApplicationBootstrap extends PluginBootstrap {
-    
+
     @Override
     protected PluginType getPluginType() {
-        return null;
+        return PluginType.IM_NAVIGATOR;
     }
 
     @Override
@@ -27,5 +28,13 @@ public class ApplicationBootstrap extends PluginBootstrap {
     @Override
     protected void stop() {
         // ...
+    }
+
+    /**
+     * 本地测试启动入口
+     */
+    public static void main(String[] args) {
+        PluginBootstrap plugin = new ApplicationBootstrap();
+        plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }

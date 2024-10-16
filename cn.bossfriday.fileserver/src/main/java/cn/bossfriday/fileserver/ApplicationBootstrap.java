@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * ApplicationBootstrap
+ * <p>
+ * 文件服务：负责文件上传和下载；
  *
  * @author chenx
  */

@@ -10,6 +10,8 @@ import java.util.Objects;
 
 /**
  * ApplicationBootstrap
+ * <p>
+ * IM接入服务：客户端与该服务建立TCP长连接，协议使用非标MQTT；
  *
  * @author chenx
  */

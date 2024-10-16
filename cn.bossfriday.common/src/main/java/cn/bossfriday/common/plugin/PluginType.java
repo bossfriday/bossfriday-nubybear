@@ -17,7 +17,12 @@ public enum PluginType {
     /**
      * IM接入服务
      */
-    IM_ACCESS("BossFriday-IM-Access", "cn.bossfriday.im.access");
+    IM_ACCESS("BossFriday-IM-Access", "cn.bossfriday.im.access"),
+
+    /**
+     * IM导航服务
+     */
+    IM_NAVIGATOR("BossFriday-IM-navigator", "cn.bossfriday.im.navigator");
 
     @Getter
     private String serviceName;

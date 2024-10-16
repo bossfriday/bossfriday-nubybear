@@ -22,3 +22,7 @@ fileServer:
 # IM接入服务配置
 imAccess:
   tcpPort: 18080
+
+# IM导航服务
+imNavigator:
+  fileServer: "http://localhost:18086/"
