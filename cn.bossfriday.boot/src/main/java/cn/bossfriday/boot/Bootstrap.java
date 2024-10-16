@@ -9,6 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 
+import static cn.bossfriday.common.plugin.PluginType.PLUGIN_STARTUP_METHOD_NAME;
+
 /**
  * Bootstrap
  *
@@ -25,7 +27,7 @@ public class Bootstrap {
 
         for (Class<? extends PluginBootstrap> clazz : pluginBootstrapSet) {
             PluginBootstrap instance = clazz.getDeclaredConstructor().newInstance();
-            Method startupMethod = clazz.getMethod("startup", SystemConfig.class);
+            Method startupMethod = clazz.getMethod(PLUGIN_STARTUP_METHOD_NAME, SystemConfig.class);
 
             startupMethod.invoke(instance, SystemConfigLoader.getInstance().getSystemConfig());
         }

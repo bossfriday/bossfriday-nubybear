@@ -36,6 +36,7 @@ public abstract class BaseUntypedActor {
      * @param message
      * @param actorSystem
      */
+    @SuppressWarnings("squid:S1181")
     public void onReceive(RpcMessage message, ActorSystem actorSystem) {
         if (message == null || actorSystem == null) {
             log.warn("UntypedActor.onReceive(msg, actorSystem) returned by msg or actorSystem is null!");

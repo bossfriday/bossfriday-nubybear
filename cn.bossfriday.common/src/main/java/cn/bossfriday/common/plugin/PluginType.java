@@ -8,7 +8,7 @@ import lombok.Getter;
  * @author chenx
  */
 public enum PluginType {
-    
+
     /**
      * 文件服务
      */
@@ -24,6 +24,9 @@ public enum PluginType {
 
     @Getter
     private String packageName;
+
+    public static final String PLUGIN_STARTUP_METHOD_NAME = "startup";
+    public static final String PLUGIN_SHUTDOWN_METHOD_NAME = "shutdown";
 
     PluginType(String serviceName, String packageName) {
         this.serviceName = serviceName;
