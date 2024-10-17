@@ -63,7 +63,7 @@ public class UrlParser {
 
             switch (urlElement.getType()) {
                 case FIXED:
-                    if (!element.equals(urlElement.getName())) {
+                    if (!element.equalsIgnoreCase(urlElement.getName())) {
                         return pathArgsMap;
                     }
 
@@ -79,6 +79,39 @@ public class UrlParser {
         }
 
         return pathArgsMap;
+    }
+
+    public boolean isMatch(@NonNull final URI uri) {
+        String path = uri.getPath();
+        this.validate(path);
+        final String[] pathElements = path.split(PATH_DELIMITER);
+
+        // If the number of elements in the URI path is different from the template, it's not a match
+        if (pathElements.length != this.urlElements.size()) {
+            return false;
+        }
+
+        // Start from i = 1 to skip the 0th element (it's always empty due to the leading '/')
+        for (int i = 1; i < this.urlElements.size(); i++) {
+            final String element = pathElements[i];
+            final UrlElement urlElement = this.urlElements.get(i);
+
+            switch (urlElement.getType()) {
+                case FIXED:
+                    // If a fixed element doesn't match, return false
+                    if (!element.equalsIgnoreCase(urlElement.getName())) {
+                        return false;
+                    }
+                    break;
+                case ATTRIBUTE:
+                    // For ATTRIBUTE, it's considered a match, we don't need to validate the value
+                    break;
+                default:
+                    throw new ServiceRuntimeException("invalid UrlElementType !");
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -136,5 +169,13 @@ public class UrlParser {
      */
     private boolean isAttribute(@NonNull final String str) {
         return str.startsWith("{") && str.endsWith("}");
+    }
+
+    public static void main(String[] args) throws Exception {
+        String tmp = "/official/aaaccc/bbbddd/media/upload";
+        UrlParser parser = new UrlParser("/official/{%s}/{%s}/media/upload1");
+        URI uri = new URI(tmp);
+        boolean isMatch = parser.isMatch(uri);
+        System.out.println(isMatch);
     }
 }
