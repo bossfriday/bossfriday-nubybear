@@ -1,4 +1,3 @@
-# 系统配置
 system:
   systemName: bossfriday
   zkAddress: localhost:2181
