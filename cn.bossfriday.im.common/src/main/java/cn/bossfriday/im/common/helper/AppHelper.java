@@ -10,13 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 
 /**
- * AppRegistrationHelper
+ * AppHelper
  *
  * @author chenx
  */
-public class AppRegistrationHelper {
+public class AppHelper {
 
-    private AppRegistrationHelper() {
+    private AppHelper() {
         // do nothing
     }
 

@@ -7,27 +7,51 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 /**
- * HexUtils
+ * HashUtils
  *
  * @author chenx
  */
-public class HexUtils {
+public class HashUtils {
 
-    private HexUtils() {
+    private static final String HASH_ALGORITHM_SHA1 = "SHA-1";
+    private static final String HASH_ALGORITHM_MD5 = "MD5";
+
+    private HashUtils() {
         // do nothing
     }
 
     /**
-     * hexSHA1
+     * sha1
+     *
+     * @param input
+     * @return
+     */
+    public static String sha1(String input) {
+        return hexHash(input, HASH_ALGORITHM_SHA1);
+    }
+
+    /**
+     * md5
+     *
+     * @param input
+     * @return
+     */
+    public static String md5(String input) {
+        return hexHash(input, HASH_ALGORITHM_MD5);
+    }
+
+    /**
+     * hexHash
      *
      * @param value
      * @return
      */
-    public static String hexSHA1(String value) {
+    public static String hexHash(String value, String algorithm) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            MessageDigest md = MessageDigest.getInstance(algorithm);
             md.update(value.getBytes(StandardCharsets.UTF_8));
             byte[] digest = md.digest();
+            
             return byteToHexString(digest);
         } catch (Exception ex) {
             throw new ServiceRuntimeException(ex.getMessage());

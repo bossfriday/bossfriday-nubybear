@@ -8,7 +8,7 @@ import cn.bossfriday.im.common.conf.GlobalConfigAllLoader;
 import cn.bossfriday.im.common.conf.entity.AppInfo;
 import cn.bossfriday.im.common.conf.entity.GlobalConfigAll;
 import cn.bossfriday.im.common.entity.ImToken;
-import cn.bossfriday.im.common.helper.AppRegistrationHelper;
+import cn.bossfriday.im.common.helper.AppHelper;
 import cn.bossfriday.im.protocol.client.ClientInfo;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
 import cn.bossfriday.im.protocol.message.ConnectMessage;
@@ -74,15 +74,15 @@ public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessa
 
             // app状态检查
             long appId = token.getAppId();
-            boolean isAppOk = AppRegistrationHelper.isAppOk(appId);
+            boolean isAppOk = AppHelper.isAppOk(appId);
             if (!isAppOk) {
                 MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.APP_BLOCK_OR_DELETE, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
 
             // appSecret刷新所有老token失效；
-            AppInfo appInfo = AppRegistrationHelper.getAppInfo(appId);
-            if (token.getAppSecretHash() != AppRegistrationHelper.getAppSecretHashCode(appInfo.getAppSecret())) {
+            AppInfo appInfo = AppHelper.getAppInfo(appId);
+            if (token.getAppSecretHash() != AppHelper.getAppSecretHashCode(appInfo.getAppSecret())) {
                 MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.INVALID_TOKEN, ConnectState.CONN_ACK_FAILURE);
                 return;
             }
