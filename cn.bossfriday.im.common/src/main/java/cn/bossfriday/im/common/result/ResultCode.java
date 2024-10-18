@@ -13,15 +13,22 @@ import static cn.bossfriday.im.common.result.Result.OK_MSG;
 public enum ResultCode {
 
     /**
-     * 公共错误码 0-500
+     * OK
      */
     OK(OK_CODE, OK_MSG),
-    SYSTEM_ERROR(500, "System error!"),
 
     /**
      * API服务错误码 1000 - 1999
      */
-    API_REQUEST_URI_ERROR(1000, "Reqeust URI Error!");
+    API_UNSUPPORTED(1000, "Unsupported API!"),
+    API_AUTHENTICATION_FAILED(1001, "API Authentication Failed!"),
+
+    /**
+     * 公共错误码 9000 - 9999
+     */
+    APP_NOT_EXISTED_OR_INVALID(9000, "App Not Existed Or Invalid!"),
+    SYSTEM_ERROR(9999, "System Error!"),
+    ;
 
     @Getter
     private int code;

@@ -1,6 +1,7 @@
 package cn.bossfriday.im.api.http;
 
 import cn.bossfriday.im.api.common.enums.ApiRequestType;
+import cn.bossfriday.im.api.helper.ApiHelper;
 import cn.bossfriday.im.api.helper.ApiServerResponseHelper;
 import cn.bossfriday.im.common.result.ResultCode;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,11 +51,26 @@ public class HttpApiServerHandler extends ChannelInboundHandlerAdapter {
             URI uri = new URI(httpRequest.uri());
             ApiRequestType requestType = ApiRequestType.find(httpRequest.method().name(), uri);
             if (Objects.isNull(requestType)) {
-                ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.API_REQUEST_URI_ERROR);
+                ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.API_UNSUPPORTED);
                 return;
             }
 
-            ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.OK);
+            ResultCode authResult = ApiHelper.auth(httpRequest);
+            if (authResult.getCode() != ResultCode.OK.getCode()) {
+                ApiServerResponseHelper.sendApiResponse(ctx, authResult);
+                return;
+            }
+
+            switch (requestType) {
+                case NAV:
+                    // nav
+                    break;
+                case GET_TOKEN:
+                    // getToken
+                    break;
+                default:
+                    ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.API_UNSUPPORTED);
+            }
         } catch (Exception ex) {
             log.error("HttpApiServerHandler.onMessageReceived() error!", ex);
             ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.SYSTEM_ERROR);
