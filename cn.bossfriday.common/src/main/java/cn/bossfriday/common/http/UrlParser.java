@@ -170,12 +170,4 @@ public class UrlParser {
     private boolean isAttribute(@NonNull final String str) {
         return str.startsWith("{") && str.endsWith("}");
     }
-
-    public static void main(String[] args) throws Exception {
-        String tmp = "/official/aaaccc/bbbddd/media/upload";
-        UrlParser parser = new UrlParser("/official/{%s}/{%s}/media/upload1");
-        URI uri = new URI(tmp);
-        boolean isMatch = parser.isMatch(uri);
-        System.out.println(isMatch);
-    }
 }

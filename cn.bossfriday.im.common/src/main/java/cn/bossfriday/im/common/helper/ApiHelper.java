@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class ApiHelper {
 
-    public ApiHelper() {
+    private ApiHelper() {
         // do nothing
     }
 

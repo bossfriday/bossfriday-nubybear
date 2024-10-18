@@ -29,6 +29,6 @@ public class ApiRequestTypeTest {
         URI uri = new URI("/api/v2/user/getToken");
         ApiRequestType apiRequestType = ApiRequestType.find(HttpMethod.POST.name(), uri);
         System.out.println(apiRequestType.name());
-        Assert.assertEquals(apiRequestType, ApiRequestType.GET_TOKEN);
+        Assert.assertEquals(ApiRequestType.GET_TOKEN, apiRequestType);
     }
 }

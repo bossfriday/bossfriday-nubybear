@@ -89,8 +89,4 @@ public class SystemConfigLoader {
             throw new ServiceRuntimeException("load systemConfig error! message: " + ex.getMessage());
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(SystemConfigLoader.getInstance().getImApiConfig());
-    }
 }
