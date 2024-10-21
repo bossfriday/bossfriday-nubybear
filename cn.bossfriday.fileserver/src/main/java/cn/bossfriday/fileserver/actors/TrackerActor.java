@@ -21,7 +21,7 @@ import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TRACKER;
 public class TrackerActor extends BaseUntypedActor {
 
     @Override
-    public void onReceive(Object msg) {
+    public void onMsgReceive(Object msg) {
         try {
             if (msg instanceof WriteTmpFileResult) {
                 StorageTracker.getInstance().onWriteTmpFileResultReceived((WriteTmpFileResult) msg);

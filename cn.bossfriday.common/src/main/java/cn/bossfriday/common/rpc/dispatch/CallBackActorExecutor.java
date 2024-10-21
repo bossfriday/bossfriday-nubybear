@@ -43,7 +43,7 @@ public class CallBackActorExecutor implements IExecutor {
         if (this.actor != null) {
             this.callBackThreadPool.submit(() -> {
                 try {
-                    this.actor.onReceive(message, actorSystem);
+                    this.actor.onMsgReceive(message, actorSystem);
                 } catch (Exception e) {
                     this.actor.onFailed(e);
                 }

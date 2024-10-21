@@ -55,7 +55,7 @@ public class ActorExecutor implements IExecutor {
             try {
                 actor = this.actorPool.borrowObject();
                 if (actor != null) {
-                    actor.onReceive(message, actorSystem);
+                    actor.onMsgReceive(message, actorSystem);
                 }
             } catch (Exception e) {
                 log.error("ActorExecutor.process() error!", e);

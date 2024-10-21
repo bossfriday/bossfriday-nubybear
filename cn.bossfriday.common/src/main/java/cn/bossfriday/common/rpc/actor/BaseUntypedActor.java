@@ -24,11 +24,11 @@ public abstract class BaseUntypedActor {
     private ActorRef self;
 
     /**
-     * onReceive
+     * onMsgReceive
      *
      * @param msg
      */
-    public abstract void onReceive(Object msg);
+    public abstract void onMsgReceive(Object msg);
 
     /**
      * onReceive
@@ -37,7 +37,7 @@ public abstract class BaseUntypedActor {
      * @param actorSystem
      */
     @SuppressWarnings("squid:S1181")
-    public void onReceive(RpcMessage message, ActorSystem actorSystem) {
+    public void onMsgReceive(RpcMessage message, ActorSystem actorSystem) {
         if (message == null || actorSystem == null) {
             log.warn("UntypedActor.onReceive(msg, actorSystem) returned by msg or actorSystem is null!");
             return;
@@ -61,7 +61,7 @@ public abstract class BaseUntypedActor {
         Object msgObj = null;
         try {
             msgObj = actorSystem.getMsgDecoder().decode(message.getPayloadData());
-            this.onReceive(msgObj);
+            this.onMsgReceive(msgObj);
         } catch (Throwable throwable) {
             this.onFailed(throwable);
         } finally {

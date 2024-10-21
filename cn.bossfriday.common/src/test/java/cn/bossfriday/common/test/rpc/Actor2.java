@@ -6,7 +6,7 @@ import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 
 public class Actor2 extends BaseUntypedActor {
     @Override
-    public void onReceive(Object msg) {
+    public void onMsgReceive(Object msg) {
         try {
             if (msg instanceof Foo) {
                 this.getSender().tell(this.process((Foo) msg), ActorRef.noSender());

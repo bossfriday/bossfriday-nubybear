@@ -10,7 +10,7 @@ import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
  */
 public class Actor1 extends BaseUntypedActor {
     @Override
-    public void onReceive(Object msg) {
+    public void onMsgReceive(Object msg) {
         try {
             if (msg instanceof FooResult) {
                 FooResult result = (FooResult) msg;

@@ -15,7 +15,7 @@ public abstract class BaseTypedActor<T> extends BaseUntypedActor {
     public abstract void onMessageReceived(T msg);
 
     @Override
-    public void onReceive(Object msg) {
+    public void onMsgReceive(Object msg) {
         this.onMessageReceived((T) msg);
     }
 }
