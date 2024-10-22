@@ -90,7 +90,7 @@ public abstract class PluginBootstrap implements IPlugin {
     private void registerActor(SystemConfig config) throws IOException, ClassNotFoundException {
         List<Class<? extends BaseUntypedActor>> actorClassList = new ArrayList<>();
 
-        // 有配置走配置，无配置反射获取当前jar包内所有UntypedActor类(将来打包部署时使用)
+        // 有配置走配置
         if (!CollectionUtils.isEmpty(config.getPluginJarFilePath())) {
             for (String jarFilePath : config.getPluginJarFilePath()) {
                 if (StringUtils.isNotEmpty(jarFilePath)) {
@@ -105,6 +105,7 @@ public abstract class PluginBootstrap implements IPlugin {
                 }
             }
         } else {
+            // 无配置反射获取当前jar包
             Set<Class<? extends BaseUntypedActor>> set = new Reflections(this.getPluginType().getPackageName()).getSubTypesOf(BaseUntypedActor.class);
             actorClassList.addAll(set);
         }

@@ -62,10 +62,10 @@ public class HttpApiServerHandler extends ChannelInboundHandlerAdapter {
             }
 
             switch (requestType) {
-                case NAV:
+                case CLIENT_NAV:
                     // nav
                     break;
-                case GET_TOKEN:
+                case USER_GET_TOKEN:
                     // getToken
                     break;
                 default:

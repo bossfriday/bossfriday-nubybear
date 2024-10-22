@@ -1,6 +1,6 @@
 package cn.bossfriday.im.api;
 
-import cn.bossfriday.common.PluginBootstrap;
+import cn.bossfriday.common.bootstrap.HttpApiPluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.im.api.http.HttpApiServer;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * @author chenx
  */
 @Slf4j
-public class ApplicationBootstrap extends PluginBootstrap {
+public class ApplicationBootstrap extends HttpApiPluginBootstrap {
 
     private HttpApiServer httpApiServer;
 
@@ -57,7 +57,7 @@ public class ApplicationBootstrap extends PluginBootstrap {
      * 本地测试启动入口
      */
     public static void main(String[] args) {
-        PluginBootstrap plugin = new ApplicationBootstrap();
+        ApplicationBootstrap plugin = new ApplicationBootstrap();
         plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }

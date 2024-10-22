@@ -26,13 +26,16 @@ public enum ApiRequestType {
     /**
      * client api
      */
-    NAV(HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/client/nav", URL_ARGS_API_VERSION))),
+    CLIENT_NAV("clientNav", HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/client/nav", URL_ARGS_API_VERSION))),
 
     /**
      * user api
      */
-    GET_TOKEN(HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/user/getToken", URL_ARGS_API_VERSION))),
+    USER_GET_TOKEN("userGetToken", HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/user/getToken", URL_ARGS_API_VERSION))),
     ;
+
+    @Getter
+    private String apiRouteKey;
 
     @Getter
     private String httpMethod;
@@ -40,7 +43,8 @@ public enum ApiRequestType {
     @Getter
     private UrlParser urlParser;
 
-    ApiRequestType(String httpMethod, UrlParser urlParser) {
+    ApiRequestType(String apiRouteKey, String httpMethod, UrlParser urlParser) {
+        this.apiRouteKey = apiRouteKey;
         this.httpMethod = httpMethod;
         this.urlParser = urlParser;
     }
