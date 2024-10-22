@@ -1,8 +1,7 @@
 package cn.bossfriday.im.common.test.cluster;
 
-import cn.bossfriday.common.rpc.actor.BaseActor;
-import cn.bossfriday.im.common.message.context.ActorContext;
 import cn.bossfriday.im.common.message.user.GetTokenInput;
+import cn.bossfriday.im.common.rpc.BaseActor;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author chenx
  */
 @RunWith(MockitoJUnitRunner.class)
-public class BaseActorTest extends BaseActor<GetTokenInput, ActorContext> {
+public class BaseActorTest extends BaseActor<GetTokenInput> {
 
     @Override
     public void onMessageReceived(GetTokenInput msg) {

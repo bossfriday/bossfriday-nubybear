@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.message.context;
+package cn.bossfriday.im.common.rpc;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.AllArgsConstructor;
@@ -35,7 +35,7 @@ public class ActorContext {
 
     private String sdkVersion;
 
-    private String protocolVersion;
+    private byte protocolVersion;
 
     private String requesterId;
 
@@ -56,8 +56,6 @@ public class ActorContext {
     private String userId;
 
     private String userName;
-
-    private boolean isSensitive;
 
     private String clientAddr;
 

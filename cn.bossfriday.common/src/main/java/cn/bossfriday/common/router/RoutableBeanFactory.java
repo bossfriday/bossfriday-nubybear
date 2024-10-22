@@ -51,8 +51,7 @@ public class RoutableBeanFactory {
      * @param msg
      * @return
      */
-    public static RoutableBean<Object> buildResourceIdRouteBean(String resourceId, String method, Object msg) {
-        long appId = RoutableBean.DEFAULT_APP_ID;
+    public static RoutableBean<Object> buildResourceIdRouteBean(long appId, String method, String resourceId, Object msg) {
         byte routeType = RouteType.RESOURCE_ID_ROUTE.getValue();
 
         return new RoutableBean<>(appId, null, method, resourceId, null, msg, routeType);

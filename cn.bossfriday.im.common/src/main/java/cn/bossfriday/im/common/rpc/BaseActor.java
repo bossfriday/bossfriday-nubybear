@@ -1,9 +1,12 @@
-package cn.bossfriday.common.rpc.actor;
+package cn.bossfriday.im.common.rpc;
 
 import cn.bossfriday.common.router.ClusterRouter;
 import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.rpc.ActorSystem;
+import cn.bossfriday.common.rpc.actor.ActorRef;
+import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
+import cn.bossfriday.im.common.rpc.message.ApiRequest;
 import lombok.Getter;
 
 import java.lang.reflect.ParameterizedType;
@@ -17,19 +20,19 @@ import java.lang.reflect.Type;
  *
  * @author chenx
  */
-public abstract class BaseActor<R, C> extends BaseUntypedActor {
+public abstract class BaseActor<T> extends BaseUntypedActor {
 
     @Getter
-    protected C context;
+    protected ActorContext context;
 
     @Getter
-    protected Class<R> requestType;
+    protected Class<T> requestType;
 
     protected BaseActor() {
         Type superclass = this.getClass().getGenericSuperclass();
         if (superclass instanceof ParameterizedType) {
             ParameterizedType parameterized = (ParameterizedType) superclass;
-            this.requestType = (Class<R>) parameterized.getActualTypeArguments()[0];
+            this.requestType = (Class<T>) parameterized.getActualTypeArguments()[0];
         }
     }
 
@@ -38,11 +41,19 @@ public abstract class BaseActor<R, C> extends BaseUntypedActor {
      *
      * @param msg
      */
-    public abstract void onMessageReceived(R msg);
+    public abstract void onMessageReceived(T msg);
 
     @Override
     public void onMsgReceive(Object msg) {
-        this.onMessageReceived((R) msg);
+        T request = null;
+
+        if (msg.getClass() == this.requestType) {
+            request = (T) msg;
+        } else if (msg instanceof ApiRequest) {
+            this.context = ((ApiRequest) msg).getActorContext();
+        }
+
+        this.onMessageReceived((T) msg);
     }
 
     /**
