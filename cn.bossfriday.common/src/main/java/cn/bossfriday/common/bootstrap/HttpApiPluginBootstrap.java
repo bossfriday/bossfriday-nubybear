@@ -5,7 +5,6 @@ import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.http.HttpProcessorMapper;
 import cn.bossfriday.common.http.IHttpProcessor;
 import cn.bossfriday.common.plugin.IPlugin;
-import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.common.register.HttpApiRoute;
 import cn.bossfriday.common.utils.ClassLoaderUtil;
 import cn.bossfriday.common.utils.CommonUtils;
@@ -34,7 +33,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
     /**
      * 服务包名（服务启动只获取该包下所有的 IHttpProcessor 进行装载）
      */
-    protected abstract PluginType getPluginType();
+    protected abstract String getServiceName();
 
     /**
      * start
@@ -60,7 +59,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
 
             // 启动日志
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getPluginType().getServiceName() + "] Start Done, Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getServiceName() + "] Start Done, Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (Exception ex) {
             LOGGER.error("HttpApiPluginBootstrap.error!", ex);
@@ -99,7 +98,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
             }
         } else {
             // 无配置反射获取当前jar包
-            Set<Class<? extends IHttpProcessor>> set = new Reflections(this.getPluginType().getPackageName()).getSubTypesOf(IHttpProcessor.class);
+            Set<Class<? extends IHttpProcessor>> set = new Reflections(this.getClass().getPackage().getName()).getSubTypesOf(IHttpProcessor.class);
             classList.addAll(set);
         }
 

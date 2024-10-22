@@ -4,7 +4,6 @@ import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.conf.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
-import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.common.register.ActorRegister;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.router.ClusterRouterFactory;
@@ -36,7 +35,7 @@ public abstract class ServicePluginBootstrap implements IPlugin {
     /**
      * 服务包名（服务启动只获取该包下所有的 actor 进行注册）
      */
-    protected abstract PluginType getPluginType();
+    protected abstract String getServiceName();
 
     /**
      * start
@@ -65,7 +64,7 @@ public abstract class ServicePluginBootstrap implements IPlugin {
 
             // 启动日志
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getPluginType().getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
             LOGGER.error("ServicePluginBootstrap.startup() InterruptedException!", interEx);
@@ -106,7 +105,7 @@ public abstract class ServicePluginBootstrap implements IPlugin {
             }
         } else {
             // 无配置反射获取当前jar包
-            Set<Class<? extends BaseUntypedActor>> set = new Reflections(this.getPluginType().getPackageName()).getSubTypesOf(BaseUntypedActor.class);
+            Set<Class<? extends BaseUntypedActor>> set = new Reflections(this.getClass().getPackage().getName()).getSubTypesOf(BaseUntypedActor.class);
             actorClassList.addAll(set);
         }
 

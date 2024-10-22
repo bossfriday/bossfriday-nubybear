@@ -2,7 +2,6 @@ package cn.bossfriday.im.api;
 
 import cn.bossfriday.common.bootstrap.HttpApiPluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
-import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.im.api.http.HttpApiServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,8 +20,8 @@ public class ApplicationBootstrap extends HttpApiPluginBootstrap {
     private HttpApiServer httpApiServer;
 
     @Override
-    protected PluginType getPluginType() {
-        return PluginType.IM_API;
+    protected String getServiceName() {
+        return "BossFriday-IM-API";
     }
 
     @Override

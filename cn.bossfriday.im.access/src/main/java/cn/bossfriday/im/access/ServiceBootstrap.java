@@ -2,7 +2,6 @@ package cn.bossfriday.im.access;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
-import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.im.access.server.MqttAccessServer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,8 +20,8 @@ public class ServiceBootstrap extends ServicePluginBootstrap {
     private MqttAccessServer mqttAccessServer = null;
 
     @Override
-    protected PluginType getPluginType() {
-        return PluginType.IM_ACCESS;
+    protected String getServiceName() {
+        return "BossFriday-IM-Access";
     }
 
     @Override
