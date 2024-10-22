@@ -1,4 +1,4 @@
-package cn.bossfriday.common;
+package cn.bossfriday.common.bootstrap;
 
 import cn.bossfriday.common.common.SystemConstant;
 import cn.bossfriday.common.conf.SystemConfig;
@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * AbstractServiceBootstrap
+ * ServicePluginBootstrap
  *
  * @author chenx
  */
-public abstract class PluginBootstrap implements IPlugin {
+public abstract class ServicePluginBootstrap implements IPlugin {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PluginBootstrap.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServicePluginBootstrap.class);
 
     /**
      * 服务包名（服务启动只获取该包下的所有actor进行注册）
@@ -68,10 +68,10 @@ public abstract class PluginBootstrap implements IPlugin {
             String logInfo = "[" + config.getClusterNode().getName() + "].[" + this.getPluginType().getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
-            LOGGER.error("Bootstrap.startup() InterruptedException!", interEx);
+            LOGGER.error("ServicePluginBootstrap.startup() InterruptedException!", interEx);
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
-            LOGGER.error("Bootstrap.startup() error!", ex);
+            LOGGER.error("ServicePluginBootstrap.startup() error!", ex);
         }
     }
 
@@ -79,8 +79,8 @@ public abstract class PluginBootstrap implements IPlugin {
     public void shutdown() {
         try {
             this.stop();
-        } catch (Exception e) {
-            LOGGER.error("service shutdown error!", e);
+        } catch (Exception ex) {
+            LOGGER.error("ServicePluginBootstrap.shutdown() error!", ex);
         }
     }
 

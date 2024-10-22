@@ -11,7 +11,11 @@ import java.util.HashMap;
  */
 public class HttpProcessorMapper {
 
-    private static HashMap<String, Class<? extends IHttpProcessor>> httpProcessorMapper = new HashMap<>();
+    private static HashMap<String, Class<? extends IHttpProcessor>> processorMapper = new HashMap<>();
+
+    private HttpProcessorMapper() {
+        // do nothing
+    }
 
     /**
      * putHttpProcessor
@@ -20,7 +24,7 @@ public class HttpProcessorMapper {
      * @param httpProcessor
      */
     public static Class<? extends IHttpProcessor> putHttpProcessor(String apiRouteKey, Class<? extends IHttpProcessor> httpProcessor) {
-        return httpProcessorMapper.putIfAbsent(apiRouteKey, httpProcessor);
+        return processorMapper.putIfAbsent(apiRouteKey, httpProcessor);
     }
 
     /**
@@ -34,7 +38,7 @@ public class HttpProcessorMapper {
             throw new ServiceRuntimeException("IHttpProcessor not existed! apiRouteKey=" + apiRouteKey);
         }
 
-        Class<? extends IHttpProcessor> processor = httpProcessorMapper.get(apiRouteKey);
+        Class<? extends IHttpProcessor> processor = processorMapper.get(apiRouteKey);
 
         return processor.newInstance();
     }
@@ -46,6 +50,6 @@ public class HttpProcessorMapper {
      * @return
      */
     public static boolean contains(String apiRouteKey) {
-        return httpProcessorMapper.containsKey(apiRouteKey);
+        return processorMapper.containsKey(apiRouteKey);
     }
 }

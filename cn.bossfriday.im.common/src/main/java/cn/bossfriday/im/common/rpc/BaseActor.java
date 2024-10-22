@@ -53,7 +53,7 @@ public abstract class BaseActor<T> extends BaseUntypedActor {
             this.context = ((ApiRequest) msg).getActorContext();
         }
 
-        this.onMessageReceived((T) msg);
+        this.onMessageReceived(request);
     }
 
     /**

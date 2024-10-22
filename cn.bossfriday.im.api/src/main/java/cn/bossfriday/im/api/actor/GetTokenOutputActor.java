@@ -19,6 +19,6 @@ public class GetTokenOutputActor extends BaseActor<GetTokenInput> {
 
     @Override
     public void onMessageReceived(GetTokenInput msg) {
-
+        // ...
     }
 }

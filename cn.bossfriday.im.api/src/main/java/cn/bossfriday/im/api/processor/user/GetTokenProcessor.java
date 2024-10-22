@@ -19,6 +19,6 @@ public class GetTokenProcessor implements IHttpProcessor {
 
     @Override
     public void process(ChannelHandlerContext ctx, FullHttpRequest httpRequest) {
-
+        // ...
     }
 }

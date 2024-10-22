@@ -78,6 +78,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
     /**
      * loadHttpProcessor
      */
+    @SuppressWarnings("squid:S3776")
     private void loadHttpProcessor(SystemConfig config) throws IOException, ClassNotFoundException {
         List<Class<? extends IHttpProcessor>> classList = new ArrayList<>();
 
@@ -102,7 +103,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
         }
 
         if (CollectionUtils.isEmpty(classList)) {
-            LOGGER.warn("no IHttpProcessor need to load!");
+            LOGGER.warn("No IHttpProcessor need to load!");
             return;
         }
 

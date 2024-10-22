@@ -1,6 +1,6 @@
 package cn.bossfriday.im.access;
 
-import cn.bossfriday.common.PluginBootstrap;
+import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
 import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.common.plugin.PluginType;
 import cn.bossfriday.im.access.server.MqttAccessServer;
@@ -16,7 +16,7 @@ import java.util.Objects;
  * @author chenx
  */
 @Slf4j
-public class ApplicationBootstrap extends PluginBootstrap {
+public class ServiceBootstrap extends ServicePluginBootstrap {
 
     private MqttAccessServer mqttAccessServer = null;
 
@@ -32,10 +32,10 @@ public class ApplicationBootstrap extends PluginBootstrap {
             this.mqttAccessServer = new MqttAccessServer(port);
             this.mqttAccessServer.start();
         } catch (InterruptedException ex) {
-            log.error("ApplicationBootstrap.start() Interrupted!", ex);
+            log.error("ServiceBootstrap.start() Interrupted!", ex);
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
-            log.error("ApplicationBootstrap.start() error!", ex);
+            log.error("ServiceBootstrap.start() error!", ex);
         }
     }
 
@@ -46,10 +46,10 @@ public class ApplicationBootstrap extends PluginBootstrap {
                 this.mqttAccessServer.stop();
             }
         } catch (InterruptedException ex) {
-            log.error("ApplicationBootstrap.stop() Interrupted!", ex);
+            log.error("ServiceBootstrap.stop() Interrupted!", ex);
             Thread.currentThread().interrupt();
         } catch (Exception ex) {
-            log.error("ApplicationBootstrap.stop() error!", ex);
+            log.error("ServiceBootstrap.stop() error!", ex);
         }
     }
 
@@ -57,7 +57,7 @@ public class ApplicationBootstrap extends PluginBootstrap {
      * 本地测试启动入口
      */
     public static void main(String[] args) {
-        PluginBootstrap plugin = new ApplicationBootstrap();
+        ServicePluginBootstrap plugin = new ServiceBootstrap();
         plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }
