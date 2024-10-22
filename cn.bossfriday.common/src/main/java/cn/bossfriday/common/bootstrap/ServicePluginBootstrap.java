@@ -34,7 +34,7 @@ public abstract class ServicePluginBootstrap implements IPlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicePluginBootstrap.class);
 
     /**
-     * 服务包名（服务启动只获取该包下的所有actor进行注册）
+     * 服务包名（服务启动只获取该包下所有的 actor 进行注册）
      */
     protected abstract PluginType getPluginType();
 
@@ -65,7 +65,7 @@ public abstract class ServicePluginBootstrap implements IPlugin {
 
             // 启动日志
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "].[" + this.getPluginType().getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getPluginType().getServiceName() + "] Start Done, RpcPort: " + config.getClusterNode().getPort() + ", Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (InterruptedException interEx) {
             LOGGER.error("ServicePluginBootstrap.startup() InterruptedException!", interEx);

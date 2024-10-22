@@ -32,7 +32,7 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpApiPluginBootstrap.class);
 
     /**
-     * 服务包名（服务启动只获取该包下的所有actor进行注册）
+     * 服务包名（服务启动只获取该包下所有的 IHttpProcessor 进行装载）
      */
     protected abstract PluginType getPluginType();
 
@@ -54,12 +54,13 @@ public abstract class HttpApiPluginBootstrap implements IPlugin {
                 throw new ServiceRuntimeException("ServiceConfig is null");
             }
 
+            // 服务启动
             this.loadHttpProcessor(config);
             this.start();
 
             // 启动日志
             long time = System.currentTimeMillis() - begin;
-            String logInfo = "[" + config.getClusterNode().getName() + "].[" + this.getPluginType().getServiceName() + "] Start Done, Time: " + time;
+            String logInfo = "[" + config.getClusterNode().getName() + "]-[" + this.getPluginType().getServiceName() + "] Start Done, Time: " + time;
             CommonUtils.printSeparatedLog(LOGGER, logInfo);
         } catch (Exception ex) {
             LOGGER.error("HttpApiPluginBootstrap.error!", ex);
