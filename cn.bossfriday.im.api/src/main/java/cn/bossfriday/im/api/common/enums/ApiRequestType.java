@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static cn.bossfriday.im.api.common.ApiConstant.HTTP_URL_ARGS_API_VERSION;
+import static cn.bossfriday.im.api.common.ApiConstant.*;
 
 /**
  * ApiRequestType
@@ -26,12 +26,12 @@ public enum ApiRequestType {
     /**
      * client api
      */
-    CLIENT_NAV("clientNav", HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/client/nav", HTTP_URL_ARGS_API_VERSION))),
+    CLIENT_NAV(API_ROUTE_KEY_CLIENT_NAV, HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/client/nav", HTTP_URL_ARGS_API_VERSION))),
 
     /**
      * user api
      */
-    USER_GET_TOKEN("userGetToken", HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/user/getToken", HTTP_URL_ARGS_API_VERSION))),
+    USER_GET_TOKEN(API_ROUTE_KEY_USER_GET_TOKEN, HttpMethod.POST.name(), new UrlParser(String.format("/api/{%s}/user/getToken", HTTP_URL_ARGS_API_VERSION))),
     ;
 
     @Getter
