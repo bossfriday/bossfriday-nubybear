@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author chenx
  */
 @Slf4j
-public class ServiceBootstrap extends ServicePluginBootstrap {
+public class Bootstrap extends ServicePluginBootstrap {
 
     @Override
     protected String getServiceName() {
@@ -53,7 +53,7 @@ public class ServiceBootstrap extends ServicePluginBootstrap {
      * 本地启动入口
      */
     public static void main(String[] args) {
-        ServicePluginBootstrap plugin = new ServiceBootstrap();
+        Bootstrap plugin = new Bootstrap();
         plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }

@@ -15,7 +15,7 @@ import java.util.Objects;
  * @author chenx
  */
 @Slf4j
-public class ServiceBootstrap extends ServicePluginBootstrap {
+public class Bootstrap extends ServicePluginBootstrap {
 
     private MqttAccessServer mqttAccessServer = null;
 
@@ -56,7 +56,7 @@ public class ServiceBootstrap extends ServicePluginBootstrap {
      * 本地测试启动入口
      */
     public static void main(String[] args) {
-        ServicePluginBootstrap plugin = new ServiceBootstrap();
+        Bootstrap plugin = new Bootstrap();
         plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }

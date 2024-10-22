@@ -15,7 +15,7 @@ import java.util.Objects;
  * @author chenx
  */
 @Slf4j
-public class ApplicationBootstrap extends HttpApiPluginBootstrap {
+public class Bootstrap extends HttpApiPluginBootstrap {
 
     private HttpApiServer httpApiServer;
 
@@ -56,7 +56,7 @@ public class ApplicationBootstrap extends HttpApiPluginBootstrap {
      * 本地测试启动入口
      */
     public static void main(String[] args) {
-        ApplicationBootstrap plugin = new ApplicationBootstrap();
+        Bootstrap plugin = new Bootstrap();
         plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
     }
 }
