@@ -37,5 +37,10 @@
             <artifactId>cn.bossfriday.im.api</artifactId>
             <version>${bossfriday.version}</version>
         </dependency>
+        <dependency>
+            <groupId>cn.bossfriday</groupId>
+            <artifactId>cn.bossfriday.im.user</artifactId>
+            <version>${bossfriday.version}</version>
+        </dependency>
     </dependencies>
 </project>

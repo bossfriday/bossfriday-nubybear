@@ -8,7 +8,7 @@
         <version>1.0.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>cn.bossfriday.im.api</artifactId>
+    <artifactId>cn.bossfriday.im.user</artifactId>
     <version>${bossfriday.version}</version>
 
     <properties>

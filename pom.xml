@@ -16,6 +16,7 @@
         <module>cn.bossfriday.boot</module>
         <module>cn.bossfriday.im.api</module>
         <module>cn.bossfriday.im.sdk</module>
+        <module>cn.bossfriday.im.user</module>
     </modules>
 
     <properties>
