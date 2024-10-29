@@ -9,7 +9,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cn.bossfriday.im.protocol</artifactId>
-    <version>${bossfriday.version}</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -20,7 +19,6 @@
         <dependency>
             <groupId>cn.bossfriday</groupId>
             <artifactId>cn.bossfriday.common</artifactId>
-            <version>${bossfriday.version}</version>
         </dependency>
     </dependencies>
 

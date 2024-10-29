@@ -22,7 +22,6 @@
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <bossfriday.version>1.0.1.0</bossfriday.version>
         <bossfriday.skd.version>1.0.0.0</bossfriday.skd.version>
         <junit.version>3.8.1</junit.version>
         <log4j2.version>2.17.1</log4j2.version>
@@ -40,6 +39,47 @@
         <disruptor.version>3.4.2</disruptor.version>
         <httpclient.version>4.5.13</httpclient.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.im.common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.im.protocol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.fileserver</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.im.access</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.im.api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.bossfriday</groupId>
+                <artifactId>cn.bossfriday.im.user</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <!--lombok-->
         <dependency>
