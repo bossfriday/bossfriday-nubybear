@@ -29,11 +29,17 @@ public class AppHelper {
      * @return
      */
     public static long getAppId(String appKey) {
-        try {
-            return SystemIdWorker.getId(appKey);
-        } catch (Exception ex) {
-            return -1;
-        }
+        return SystemIdWorker.getId(appKey);
+    }
+
+    /**
+     * getAppKey
+     *
+     * @param appId
+     * @return
+     */
+    public static String getAppKey(long appId) {
+        return SystemIdWorker.getKey(appId);
     }
 
     /**
@@ -103,5 +109,4 @@ public class AppHelper {
 
         return MurmurHashUtil.hash64(appSecret);
     }
-
 }

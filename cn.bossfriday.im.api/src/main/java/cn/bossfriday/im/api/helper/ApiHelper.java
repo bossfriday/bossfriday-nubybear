@@ -48,7 +48,7 @@ public class ApiHelper {
             return ResultCode.APP_NOT_EXISTED_OR_INVALID;
         }
 
-        if (signature.equalsIgnoreCase(getSignature(appInfo.getAppSecret(), nonce, timestamp))) {
+        if (!signature.equalsIgnoreCase(getSignature(appInfo.getAppSecret(), nonce, timestamp))) {
             return ResultCode.API_AUTHENTICATION_FAILED;
         }
 

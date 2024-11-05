@@ -1,9 +1,11 @@
 package cn.bossfriday.im.api.http;
 
-import cn.bossfriday.im.common.enums.api.ApiRequestType;
+import cn.bossfriday.common.http.HttpProcessorMapper;
+import cn.bossfriday.common.http.IHttpProcessor;
 import cn.bossfriday.im.api.helper.ApiHelper;
 import cn.bossfriday.im.api.helper.ApiServerResponseHelper;
 import cn.bossfriday.im.common.entity.result.ResultCode;
+import cn.bossfriday.im.common.enums.api.ApiRequestType;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -61,16 +63,8 @@ public class HttpApiServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
 
-            switch (requestType) {
-                case CLIENT_NAV:
-                    // nav
-                    break;
-                case USER_GET_TOKEN:
-                    // getToken
-                    break;
-                default:
-                    ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.API_UNSUPPORTED);
-            }
+            IHttpProcessor processor = HttpProcessorMapper.getHttpProcessor(requestType.getApiRouteKey());
+            processor.process(ctx, httpRequest);
         } catch (Exception ex) {
             log.error("HttpApiServerHandler.onMessageReceived() error!", ex);
             ApiServerResponseHelper.sendApiResponse(ctx, ResultCode.SYSTEM_ERROR);

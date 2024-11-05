@@ -1,11 +1,11 @@
 package cn.bossfriday.common.id;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
+import cn.bossfriday.common.utils.Base58Util;
 import cn.bossfriday.common.utils.ByteUtil;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 
 import java.io.*;
-import java.util.Base64;
 
 /**
  * SystemIdWorker
@@ -39,7 +39,7 @@ public class SystemIdWorker {
         byte[] bytes = serialize(snowFlakeIdWorker.nextId());
         ByteUtil.hashObfuscate(bytes, Integer.BYTES);
 
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        return Base58Util.encode(bytes);
     }
 
     /**
@@ -50,7 +50,7 @@ public class SystemIdWorker {
      * @throws IOException
      */
     public static Long getId(String key) {
-        byte[] bytes = Base64.getUrlDecoder().decode(key);
+        byte[] bytes = Base58Util.decode(key);
         ByteUtil.hashObfuscate(bytes, Integer.BYTES);
 
         return deserialize(bytes);
@@ -67,7 +67,7 @@ public class SystemIdWorker {
         byte[] bytes = serialize(id);
         ByteUtil.hashObfuscate(bytes, Integer.BYTES);
 
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        return Base58Util.encode(bytes);
     }
 
     /**

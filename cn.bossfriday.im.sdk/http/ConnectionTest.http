@@ -1,5 +1,9 @@
 ### 获取token
 POST localhost:18081/api/v1/user/getToken
+Nonce: 53751.20438417491
+AppKey: 4UKeB5wgkzxzv1K1j
+Signature: 2667a87274882717caac8855e28e52ab778fc59f
+Timestamp: 1730802037
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
 
 userId=123&deviceId=12143324

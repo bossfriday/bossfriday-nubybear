@@ -24,6 +24,10 @@
             <groupId>cn.bossfriday</groupId>
             <artifactId>cn.bossfriday.im.protocol</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.bossfriday</groupId>
+            <artifactId>cn.bossfriday.im.api</artifactId>
+        </dependency>
         <!--httpClient-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
