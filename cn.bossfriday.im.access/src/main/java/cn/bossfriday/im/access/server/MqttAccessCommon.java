@@ -1,6 +1,6 @@
 package cn.bossfriday.im.access.server;
 
-import cn.bossfriday.im.access.common.enums.ConnectState;
+import cn.bossfriday.im.common.enums.access.ConnectState;
 import cn.bossfriday.im.protocol.core.MqttMessage;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
 import cn.bossfriday.im.protocol.message.ConnAckMessage;

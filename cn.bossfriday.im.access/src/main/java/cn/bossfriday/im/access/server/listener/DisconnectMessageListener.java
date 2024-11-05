@@ -1,7 +1,7 @@
 package cn.bossfriday.im.access.server.listener;
 
-import cn.bossfriday.im.access.common.enums.DisconnectReason;
 import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
+import cn.bossfriday.im.common.enums.access.DisconnectReason;
 import cn.bossfriday.im.protocol.message.DisconnectMessage;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;

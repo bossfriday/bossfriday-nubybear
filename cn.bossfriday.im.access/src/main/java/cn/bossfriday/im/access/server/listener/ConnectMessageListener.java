@@ -1,6 +1,5 @@
 package cn.bossfriday.im.access.server.listener;
 
-import cn.bossfriday.im.access.common.enums.ConnectState;
 import cn.bossfriday.im.access.server.MqttAccessCommon;
 import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
 import cn.bossfriday.im.common.codec.ImTokenCodec;
@@ -8,6 +7,7 @@ import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.entity.ImToken;
 import cn.bossfriday.im.common.entity.conf.AppInfo;
 import cn.bossfriday.im.common.entity.conf.GlobalConfig;
+import cn.bossfriday.im.common.enums.access.ConnectState;
 import cn.bossfriday.im.common.helper.AppHelper;
 import cn.bossfriday.im.protocol.client.ClientInfo;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;

@@ -15,8 +15,7 @@ import java.lang.reflect.Type;
 /**
  * BaseActor
  * <p>
- * R: RequestMsgType
- * C: ActorContextType
+ * T: Input
  *
  * @author chenx
  */

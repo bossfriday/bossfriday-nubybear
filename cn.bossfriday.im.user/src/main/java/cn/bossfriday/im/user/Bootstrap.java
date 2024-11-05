@@ -22,7 +22,7 @@ public class Bootstrap extends ServicePluginBootstrap {
     @Override
     protected void start() {
         try {
-
+            // ...
         } catch (Exception ex) {
             log.error("Bootstrap.start() error!", ex);
         }
@@ -31,7 +31,7 @@ public class Bootstrap extends ServicePluginBootstrap {
     @Override
     protected void stop() {
         try {
-
+            // ...
         } catch (Exception ex) {
             log.error("Bootstrap.stop() error!", ex);
         }

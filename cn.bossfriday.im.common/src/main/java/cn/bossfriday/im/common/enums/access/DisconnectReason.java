@@ -1,4 +1,4 @@
-package cn.bossfriday.im.access.common.enums;
+package cn.bossfriday.im.common.enums.access;
 
 public enum DisconnectReason {
 
