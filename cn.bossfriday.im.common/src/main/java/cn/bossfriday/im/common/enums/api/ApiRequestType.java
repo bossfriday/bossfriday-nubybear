@@ -1,4 +1,4 @@
-package cn.bossfriday.im.api.common.enums;
+package cn.bossfriday.im.common.enums.api;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.http.UrlParser;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static cn.bossfriday.im.api.common.ApiConstant.*;
+import static cn.bossfriday.im.common.constant.ApiConstant.*;
 
 /**
  * ApiRequestType

@@ -12,7 +12,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.im.api.common.ApiConstant.HTTP_CONTENT_TYPE_JSON;
+import static cn.bossfriday.im.common.constant.ApiConstant.HTTP_CONTENT_TYPE_JSON;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 /**

@@ -1,6 +1,6 @@
 package cn.bossfriday.im.api.test.common;
 
-import cn.bossfriday.im.api.common.enums.ApiRequestType;
+import cn.bossfriday.im.common.enums.api.ApiRequestType;
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.Assert;
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package cn.bossfriday.im.api.common;
+package cn.bossfriday.im.common.constant;
 
 /**
  * ApiConstant

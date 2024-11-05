@@ -1,6 +1,6 @@
 package cn.bossfriday.im.api.http;
 
-import cn.bossfriday.im.api.common.enums.ApiRequestType;
+import cn.bossfriday.im.common.enums.api.ApiRequestType;
 import cn.bossfriday.im.api.helper.ApiHelper;
 import cn.bossfriday.im.api.helper.ApiServerResponseHelper;
 import cn.bossfriday.im.common.entity.result.ResultCode;

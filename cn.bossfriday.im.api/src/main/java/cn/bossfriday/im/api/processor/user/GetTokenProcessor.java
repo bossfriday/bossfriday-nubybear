@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.im.api.common.ApiConstant.API_ROUTE_KEY_USER_GET_TOKEN;
+import static cn.bossfriday.im.common.constant.ApiConstant.API_ROUTE_KEY_USER_GET_TOKEN;
 
 /**
  * GetTokenProcessor
