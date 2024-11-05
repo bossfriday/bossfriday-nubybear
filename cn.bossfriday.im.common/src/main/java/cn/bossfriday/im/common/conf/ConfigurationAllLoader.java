@@ -18,22 +18,22 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * SystemConfigLoader
+ * ConfigurationAllLoader
  * <p>
  * 由于只是一个脚手架示例项目，为使得项目更加轻量，因此不想依赖Apollo或者其他配置中心，故全部走本地配置文件；
  *
  * @author chenx
  */
 @Slf4j
-public class SystemConfigLoader {
+public class ConfigurationAllLoader {
 
-    private static final String CONFIG_FILE = "SystemConfig.yaml";
-    private static final String CONFIG_NODE_NAME_SYSTEM = "system";
-    private static final String CONFIG_NODE_NAME_GLOBAL = "global";
-    private static final String CONFIG_NODE_NAME_FILE_SERVER = "fileServer";
-    private static final String CONFIG_NODE_NAME_IM_ACCESS = "imAccess";
-    private static final String CONFIG_NODE_NAME_IM_API = "imApi";
-    private static final String CONFIG_NODE_NAME_APP_REGISTRATION = "appRegistration";
+    private static final String CONFIG_FILE = "ConfigurationAll.yaml";
+    private static final String CONFIG_NODE_NAME_SYSTEM = "System";
+    private static final String CONFIG_NODE_NAME_GLOBAL = "Global";
+    private static final String CONFIG_NODE_NAME_FILE_SERVER = "FileServer";
+    private static final String CONFIG_NODE_NAME_IM_ACCESS = "ImAccess";
+    private static final String CONFIG_NODE_NAME_IM_API = "ImApi";
+    private static final String CONFIG_NODE_NAME_APP_REGISTRATION = "DbApRegistration";
 
     @Getter
     private SystemConfig systemConfig;
@@ -56,7 +56,7 @@ public class SystemConfigLoader {
     @Getter
     private HashMap<Long, AppInfo> appMap;
 
-    private SystemConfigLoader() {
+    private ConfigurationAllLoader() {
         this.loadConfig();
     }
 
@@ -64,7 +64,7 @@ public class SystemConfigLoader {
      * SingletonHelper
      */
     private static class SingletonHelper {
-        private static final SystemConfigLoader INSTANCE = new SystemConfigLoader();
+        private static final ConfigurationAllLoader INSTANCE = new ConfigurationAllLoader();
     }
 
     /**
@@ -72,7 +72,7 @@ public class SystemConfigLoader {
      *
      * @return
      */
-    public static SystemConfigLoader getInstance() {
+    public static ConfigurationAllLoader getInstance() {
         return SingletonHelper.INSTANCE;
     }
 
@@ -81,7 +81,7 @@ public class SystemConfigLoader {
      */
     private void loadConfig() {
         Yaml yaml = new Yaml();
-        try (InputStream inputStream = SystemConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
+        try (InputStream inputStream = ConfigurationAllLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             Map<String, Object> configMap = yaml.load(inputStream);
             Object sysConfigObj = configMap.get(CONFIG_NODE_NAME_SYSTEM);
             Object globalConfigObj = configMap.get(CONFIG_NODE_NAME_GLOBAL);

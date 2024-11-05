@@ -9,7 +9,7 @@ import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.enums.file.OperationResult;
 import cn.bossfriday.im.common.message.file.WriteTmpFileInput;
 import cn.bossfriday.im.common.message.file.WriteTmpFileOutput;
@@ -214,7 +214,7 @@ public class TmpFileHandler implements ITmpFileHandler {
         result.setResult(OperationResult.OK);
         result.setStorageEngineVersion(msg.getStorageEngineVersion());
         result.setStorageNamespace(msg.getStorageNamespace());
-        result.setClusterNodeName(SystemConfigLoader.getInstance().getSystemConfig().getClusterNode().getName());
+        result.setClusterNodeName(ConfigurationAllLoader.getInstance().getSystemConfig().getClusterNode().getName());
         result.setKeepAlive(msg.isKeepAlive());
         result.setTimestamp(System.currentTimeMillis());
         result.setFileTotalSize(msg.getFileTotalSize());

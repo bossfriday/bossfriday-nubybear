@@ -3,7 +3,7 @@ package cn.bossfriday.im.common.helper;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.id.SystemIdWorker;
 import cn.bossfriday.common.utils.MurmurHashUtil;
-import cn.bossfriday.im.common.conf.GlobalConfigAllLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.entity.conf.AppInfo;
 import cn.bossfriday.im.common.enums.AppStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +43,7 @@ public class AppHelper {
      * @return
      */
     public static AppInfo getAppInfo(long appId) {
-        AppInfo appInfo = GlobalConfigAllLoader.getInstance().getAppMap().get(appId);
+        AppInfo appInfo = ConfigurationAllLoader.getInstance().getAppMap().get(appId);
         if (Objects.isNull(appInfo)) {
             return null;
         }
@@ -82,7 +82,7 @@ public class AppHelper {
      * @return
      */
     public static boolean isAppOk(long appId) {
-        Map<Long, AppInfo> appMap = GlobalConfigAllLoader.getInstance().getAppMap();
+        Map<Long, AppInfo> appMap = ConfigurationAllLoader.getInstance().getAppMap();
         if (!appMap.containsKey(appId)) {
             return false;
         }

@@ -1,7 +1,7 @@
 package cn.bossfriday.im.common.test.conf;
 
 import cn.bossfriday.common.common.SystemConfig;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.entity.conf.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,7 +18,7 @@ import java.util.List;
  * @author chenx
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SystemConfigLoaderTest {
+public class ConfigurationAllLoaderTest {
 
     @Before
     public void mockInit() {
@@ -27,25 +27,25 @@ public class SystemConfigLoaderTest {
 
     @Test
     public void getGlobalConfigAllTest() {
-        SystemConfig systemConfig = SystemConfigLoader.getInstance().getSystemConfig();
+        SystemConfig systemConfig = ConfigurationAllLoader.getInstance().getSystemConfig();
         System.out.println(systemConfig);
 
-        GlobalConfig globalConfig = SystemConfigLoader.getInstance().getGlobalConfig();
+        GlobalConfig globalConfig = ConfigurationAllLoader.getInstance().getGlobalConfig();
         System.out.println(globalConfig);
 
-        FileServerConfig fileServerConfig = SystemConfigLoader.getInstance().getFileServerConfig();
+        FileServerConfig fileServerConfig = ConfigurationAllLoader.getInstance().getFileServerConfig();
         System.out.println(fileServerConfig);
 
-        ImAccessConfig accessConfig = SystemConfigLoader.getInstance().getImAccessConfig();
+        ImAccessConfig accessConfig = ConfigurationAllLoader.getInstance().getImAccessConfig();
         System.out.println(accessConfig);
 
-        ImApiConfig imApiConfig = SystemConfigLoader.getInstance().getImApiConfig();
+        ImApiConfig imApiConfig = ConfigurationAllLoader.getInstance().getImApiConfig();
         System.out.println(imApiConfig);
 
-        List<AppInfo> appRegistrationConfig = SystemConfigLoader.getInstance().getAppRegistrationConfig();
+        List<AppInfo> appRegistrationConfig = ConfigurationAllLoader.getInstance().getAppRegistrationConfig();
         System.out.println(appRegistrationConfig);
 
-        HashMap<Long, AppInfo> appMap = SystemConfigLoader.getInstance().getAppMap();
+        HashMap<Long, AppInfo> appMap = ConfigurationAllLoader.getInstance().getAppMap();
         System.out.println(appMap.size());
 
         Assert.assertNotNull(systemConfig);

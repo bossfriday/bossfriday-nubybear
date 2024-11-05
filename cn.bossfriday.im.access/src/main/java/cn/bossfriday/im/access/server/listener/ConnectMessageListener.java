@@ -4,10 +4,10 @@ import cn.bossfriday.im.access.common.enums.ConnectState;
 import cn.bossfriday.im.access.server.MqttAccessCommon;
 import cn.bossfriday.im.access.server.core.BaseMqttMessageListener;
 import cn.bossfriday.im.common.codec.ImTokenCodec;
-import cn.bossfriday.im.common.conf.GlobalConfigAllLoader;
-import cn.bossfriday.im.common.entity.conf.AppInfo;
-import cn.bossfriday.im.common.entity.conf.GlobalConfigAll;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.entity.ImToken;
+import cn.bossfriday.im.common.entity.conf.AppInfo;
+import cn.bossfriday.im.common.entity.conf.GlobalConfig;
 import cn.bossfriday.im.common.helper.AppHelper;
 import cn.bossfriday.im.protocol.client.ClientInfo;
 import cn.bossfriday.im.protocol.enums.ConnectionStatus;
@@ -50,7 +50,7 @@ public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessa
             }
 
             this.ctx.channel().attr(CLIENT_INFO).set(clientInfo);
-            GlobalConfigAll globalConfigAll = GlobalConfigAllLoader.getInstance().getGlobalConfigAll();
+            GlobalConfig globalConfig = ConfigurationAllLoader.getInstance().getGlobalConfig();
 
             // Token校验
             ImToken token = ImTokenCodec.decode(this.msg.getToken());
@@ -66,7 +66,7 @@ public class ConnectMessageListener extends BaseMqttMessageListener<ConnectMessa
             }
 
             // token过期检查
-            long tokenExpireTime = globalConfigAll.getGlobal().getTokenExpireTime();
+            long tokenExpireTime = globalConfig.getTokenExpireTime();
             if ((System.currentTimeMillis() - token.getTime()) >= tokenExpireTime) {
                 MqttAccessCommon.sendConnAck(this.ctx, ConnectionStatus.TOKEN_EXPIRE, ConnectState.CONN_ACK_FAILURE);
                 return;

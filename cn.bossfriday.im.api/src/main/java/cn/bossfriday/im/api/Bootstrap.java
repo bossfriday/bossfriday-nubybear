@@ -2,7 +2,7 @@ package cn.bossfriday.im.api;
 
 import cn.bossfriday.common.bootstrap.HttpApiPluginBootstrap;
 import cn.bossfriday.im.api.http.HttpApiServer;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -27,7 +27,7 @@ public class Bootstrap extends HttpApiPluginBootstrap {
     @Override
     protected void start() {
         try {
-            int port = SystemConfigLoader.getInstance().getImApiConfig().getHttpPort();
+            int port = ConfigurationAllLoader.getInstance().getImApiConfig().getHttpPort();
             this.httpApiServer = new HttpApiServer(port);
             this.httpApiServer.start();
         } catch (InterruptedException ex) {
@@ -57,6 +57,6 @@ public class Bootstrap extends HttpApiPluginBootstrap {
      */
     public static void main(String[] args) {
         Bootstrap plugin = new Bootstrap();
-        plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
+        plugin.startup(ConfigurationAllLoader.getInstance().getSystemConfig());
     }
 }

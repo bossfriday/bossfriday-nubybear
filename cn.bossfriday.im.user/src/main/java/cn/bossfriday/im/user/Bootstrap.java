@@ -1,7 +1,7 @@
 package cn.bossfriday.im.user;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -42,6 +42,6 @@ public class Bootstrap extends ServicePluginBootstrap {
      */
     public static void main(String[] args) {
         Bootstrap plugin = new Bootstrap();
-        plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
+        plugin.startup(ConfigurationAllLoader.getInstance().getSystemConfig());
     }
 }

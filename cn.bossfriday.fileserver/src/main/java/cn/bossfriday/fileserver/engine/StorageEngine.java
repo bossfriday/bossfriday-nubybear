@@ -6,7 +6,7 @@ import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import cn.bossfriday.im.common.entity.conf.FileServerConfig;
 import cn.bossfriday.im.common.entity.conf.StorageNamespace;
 import cn.bossfriday.im.common.entity.file.*;
@@ -258,7 +258,7 @@ public class StorageEngine extends BaseStorageEngine {
      */
     private void init() {
         try {
-            FileServerConfig config = SystemConfigLoader.getInstance().getFileServerConfig();
+            FileServerConfig config = ConfigurationAllLoader.getInstance().getFileServerConfig();
             this.storageCleaner = new StorageCleaner(config);
 
             // 存储空间
@@ -271,7 +271,7 @@ public class StorageEngine extends BaseStorageEngine {
             });
 
             // 目录初始化
-            this.baseDir = new File(config.getStorageRootPath(), SystemConfigLoader.getInstance().getSystemConfig().getClusterNode().getName());
+            this.baseDir = new File(config.getStorageRootPath(), ConfigurationAllLoader.getInstance().getSystemConfig().getClusterNode().getName());
             if (!this.baseDir.exists()) {
                 this.baseDir.mkdirs();
             }

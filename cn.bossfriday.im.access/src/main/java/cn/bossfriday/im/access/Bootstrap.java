@@ -2,7 +2,7 @@ package cn.bossfriday.im.access;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
 import cn.bossfriday.im.access.server.MqttAccessServer;
-import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.ConfigurationAllLoader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -27,7 +27,7 @@ public class Bootstrap extends ServicePluginBootstrap {
     @Override
     protected void start() {
         try {
-            int port = SystemConfigLoader.getInstance().getImAccessConfig().getMqttPort();
+            int port = ConfigurationAllLoader.getInstance().getImAccessConfig().getMqttPort();
             this.mqttAccessServer = new MqttAccessServer(port);
             this.mqttAccessServer.start();
         } catch (InterruptedException ex) {
@@ -57,6 +57,6 @@ public class Bootstrap extends ServicePluginBootstrap {
      */
     public static void main(String[] args) {
         Bootstrap plugin = new Bootstrap();
-        plugin.startup(SystemConfigLoader.getInstance().getSystemConfig());
+        plugin.startup(ConfigurationAllLoader.getInstance().getSystemConfig());
     }
 }

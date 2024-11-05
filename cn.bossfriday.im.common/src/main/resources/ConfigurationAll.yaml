@@ -1,5 +1,4 @@
-# 系统配置
-system:
+System:
   systemName: bossfriday
   zkAddress: localhost:2181
   clusterNode:
@@ -8,12 +7,10 @@ system:
     port: 9090
     virtualNodesNum: 100
 
-# 全局配置
-global:
+Global:
   tokenExpireTime: 2592000000
 
-# 文件服务配置
-fileServer:
+FileServer:
   httpPort: 18086
   storageRootPath: fileData
   cleanerScanInterval: 36000
@@ -23,16 +20,13 @@ fileServer:
     - name: forever
       expireDay: -1
 
-# 接入服务配置
-imAccess:
+ImAccess:
   mqttPort: 18080
 
-# API服务配置
-imApi:
+ImApi:
   httpPort: 18081
 
-# DB配置: appRegistration
-appRegistration:
+DbApRegistration:
   - appId: 100000
     appSecret: "WLYIRU6gHwhUv2"
     secureKey: "gu2VUG0n"
