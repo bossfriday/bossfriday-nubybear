@@ -1,7 +1,7 @@
 package cn.bossfriday.im.common.test.conf;
 
 import cn.bossfriday.im.common.conf.GlobalConfigAllLoader;
-import cn.bossfriday.im.common.conf.entity.GlobalConfigAll;
+import cn.bossfriday.im.common.entity.conf.GlobalConfigAll;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

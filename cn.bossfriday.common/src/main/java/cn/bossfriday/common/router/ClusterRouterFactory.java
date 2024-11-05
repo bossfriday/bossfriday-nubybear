@@ -1,6 +1,6 @@
 package cn.bossfriday.common.router;
 
-import cn.bossfriday.common.conf.SystemConfig;
+import cn.bossfriday.common.common.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 

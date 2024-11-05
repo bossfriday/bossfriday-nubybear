@@ -1,8 +1,8 @@
 package cn.bossfriday.im.access;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
-import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.im.access.server.MqttAccessServer;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;

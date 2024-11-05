@@ -1,6 +1,6 @@
 package cn.bossfriday.common.plugin;
 
-import cn.bossfriday.common.conf.SystemConfig;
+import cn.bossfriday.common.common.SystemConfig;
 
 /**
  * IPlugin

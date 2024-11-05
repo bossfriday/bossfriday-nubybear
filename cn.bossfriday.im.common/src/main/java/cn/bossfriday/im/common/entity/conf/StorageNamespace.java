@@ -1,19 +1,23 @@
-package cn.bossfriday.common.conf;
+package cn.bossfriday.im.common.entity.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * ImAccessConfig
+ * StorageNamespace
  *
  * @author chenx
  */
-public class ImAccessConfig {
+public class StorageNamespace {
 
     @Getter
     @Setter
-    private int mqttPort;
+    private String name;
+
+    @Getter
+    @Setter
+    private int expireDay;
 
     @Override
     public String toString() {

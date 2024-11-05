@@ -1,7 +1,7 @@
 package cn.bossfriday.im.user;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
-import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
 import lombok.extern.slf4j.Slf4j;
 
 /**

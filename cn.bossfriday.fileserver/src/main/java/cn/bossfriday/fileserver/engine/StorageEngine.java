@@ -1,14 +1,14 @@
 package cn.bossfriday.fileserver.engine;
 
-import cn.bossfriday.common.conf.FileServerConfig;
-import cn.bossfriday.common.conf.SystemConfigLoader;
-import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.entity.conf.FileServerConfig;
+import cn.bossfriday.im.common.entity.conf.StorageNamespace;
 import cn.bossfriday.im.common.entity.file.*;
 import cn.bossfriday.im.common.enums.file.OperationResult;
 import cn.bossfriday.im.common.enums.file.StorageEngineVersion;

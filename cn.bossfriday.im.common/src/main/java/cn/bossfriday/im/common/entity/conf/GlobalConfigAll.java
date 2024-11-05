@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.conf.entity;
+package cn.bossfriday.im.common.entity.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.AllArgsConstructor;

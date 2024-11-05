@@ -1,3 +1,4 @@
+# 系统配置
 system:
   systemName: bossfriday
   zkAddress: localhost:2181
@@ -7,6 +8,11 @@ system:
     port: 9090
     virtualNodesNum: 100
 
+# 全局配置
+global:
+  tokenExpireTime: 2592000000
+
+# 文件服务配置
 fileServer:
   httpPort: 18086
   storageRootPath: fileData
@@ -17,8 +23,19 @@ fileServer:
     - name: forever
       expireDay: -1
 
+# 接入服务配置
 imAccess:
   mqttPort: 18080
 
+# API服务配置
 imApi:
   httpPort: 18081
+
+# DB配置: appRegistration
+appRegistration:
+  - appId: 100000
+    appSecret: "WLYIRU6gHwhUv2"
+    secureKey: "gu2VUG0n"
+    status: 1
+    fileServerAddress: "http://localhost:18086/"
+    apiServerAddress: "http://localhost:18081/"

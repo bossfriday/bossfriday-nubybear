@@ -1,9 +1,9 @@
 package cn.bossfriday.boot;
 
-import cn.bossfriday.common.conf.SystemConfig;
-import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.common.common.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
 import org.apache.commons.lang.StringUtils;
 import org.reflections.Reflections;
 

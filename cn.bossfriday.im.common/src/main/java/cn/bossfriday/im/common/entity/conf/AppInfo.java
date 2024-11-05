@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.conf.entity;
+package cn.bossfriday.im.common.entity.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * GlobalConfig
+ * AppInfo
  *
  * @author chenx
  */
@@ -15,9 +15,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GlobalConfig {
+public class AppInfo {
 
-    private long tokenExpireTime;
+    private long appId;
+
+    private String appSecret;
+
+    private String secureKey;
+
+    private int status;
+
+    private String fileServerAddress;
+
+    private String apiServerAddress;
 
     @Override
     public String toString() {

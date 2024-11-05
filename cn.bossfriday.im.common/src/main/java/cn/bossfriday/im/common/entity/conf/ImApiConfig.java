@@ -1,4 +1,4 @@
-package cn.bossfriday.common.conf;
+package cn.bossfriday.im.common.entity.conf;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;

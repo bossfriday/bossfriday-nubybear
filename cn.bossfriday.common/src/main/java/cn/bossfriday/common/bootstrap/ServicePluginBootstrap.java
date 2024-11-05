@@ -1,7 +1,7 @@
 package cn.bossfriday.common.bootstrap;
 
 import cn.bossfriday.common.common.SystemConstant;
-import cn.bossfriday.common.conf.SystemConfig;
+import cn.bossfriday.common.common.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.plugin.IPlugin;
 import cn.bossfriday.common.register.ActorRegister;

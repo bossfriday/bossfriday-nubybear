@@ -1,14 +1,21 @@
-package cn.bossfriday.common.conf;
+package cn.bossfriday.im.common.conf;
 
+import cn.bossfriday.common.common.SystemConfig;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
+import cn.bossfriday.im.common.entity.conf.*;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * SystemConfigLoader
@@ -21,13 +28,18 @@ import java.util.Objects;
 public class SystemConfigLoader {
 
     private static final String CONFIG_FILE = "SystemConfig.yaml";
-    private static final String CONFIG_NODE_NAME_SYSTEM_CONFIG = "system";
-    private static final String CONFIG_NODE_NAME_FILE_SERVER_CONFIG = "fileServer";
-    private static final String CONFIG_NODE_NAME_IM_ACCESS_CONFIG = "imAccess";
-    private static final String CONFIG_NODE_NAME_IM_API_CONFIG = "imApi";
+    private static final String CONFIG_NODE_NAME_SYSTEM = "system";
+    private static final String CONFIG_NODE_NAME_GLOBAL = "global";
+    private static final String CONFIG_NODE_NAME_FILE_SERVER = "fileServer";
+    private static final String CONFIG_NODE_NAME_IM_ACCESS = "imAccess";
+    private static final String CONFIG_NODE_NAME_IM_API = "imApi";
+    private static final String CONFIG_NODE_NAME_APP_REGISTRATION = "appRegistration";
 
     @Getter
     private SystemConfig systemConfig;
+
+    @Getter
+    private GlobalConfig globalConfig;
 
     @Getter
     private FileServerConfig fileServerConfig;
@@ -37,6 +49,12 @@ public class SystemConfigLoader {
 
     @Getter
     private ImApiConfig imApiConfig;
+
+    @Getter
+    private List<AppInfo> appRegistrationConfig;
+
+    @Getter
+    private HashMap<Long, AppInfo> appMap;
 
     private SystemConfigLoader() {
         this.loadConfig();
@@ -65,13 +83,19 @@ public class SystemConfigLoader {
         Yaml yaml = new Yaml();
         try (InputStream inputStream = SystemConfigLoader.class.getClassLoader().getResourceAsStream(CONFIG_FILE)) {
             Map<String, Object> configMap = yaml.load(inputStream);
-            Object sysConfigObj = configMap.get(CONFIG_NODE_NAME_SYSTEM_CONFIG);
-            Object fileServerConfigObj = configMap.get(CONFIG_NODE_NAME_FILE_SERVER_CONFIG);
-            Object imAccessConfigObj = configMap.get(CONFIG_NODE_NAME_IM_ACCESS_CONFIG);
-            Object imApiConfigObj = configMap.get(CONFIG_NODE_NAME_IM_API_CONFIG);
+            Object sysConfigObj = configMap.get(CONFIG_NODE_NAME_SYSTEM);
+            Object globalConfigObj = configMap.get(CONFIG_NODE_NAME_GLOBAL);
+            Object fileServerConfigObj = configMap.get(CONFIG_NODE_NAME_FILE_SERVER);
+            Object imAccessConfigObj = configMap.get(CONFIG_NODE_NAME_IM_ACCESS);
+            Object imApiConfigObj = configMap.get(CONFIG_NODE_NAME_IM_API);
+            Object appRegistrationConfigObj = configMap.get(CONFIG_NODE_NAME_APP_REGISTRATION);
 
             if (Objects.nonNull(sysConfigObj)) {
                 this.systemConfig = JSONUtil.toBean(JSONUtil.toJsonStr(sysConfigObj), SystemConfig.class);
+            }
+
+            if (Objects.nonNull(globalConfigObj)) {
+                this.globalConfig = JSONUtil.toBean(JSONUtil.toJsonStr(globalConfigObj), GlobalConfig.class);
             }
 
             if (Objects.nonNull(fileServerConfigObj)) {
@@ -84,6 +108,18 @@ public class SystemConfigLoader {
 
             if (Objects.nonNull(imApiConfigObj)) {
                 this.imApiConfig = JSONUtil.toBean(JSONUtil.toJsonStr(imApiConfigObj), ImApiConfig.class);
+            }
+
+            if (Objects.nonNull(appRegistrationConfigObj)) {
+                JSONArray jsonArray = JSONUtil.parseArray(JSONUtil.toJsonStr(appRegistrationConfigObj));
+                this.appRegistrationConfig = jsonArray.stream()
+                        .map(json -> JSONUtil.toBean(json.toString(), AppInfo.class))
+                        .collect(Collectors.toList());
+
+                this.appMap = new HashMap<>();
+                if (CollectionUtils.isNotEmpty(this.appRegistrationConfig)) {
+                    this.appRegistrationConfig.forEach(entry -> this.appMap.putIfAbsent(entry.getAppId(), entry));
+                }
             }
         } catch (Exception ex) {
             throw new ServiceRuntimeException("load systemConfig error! message: " + ex.getMessage());

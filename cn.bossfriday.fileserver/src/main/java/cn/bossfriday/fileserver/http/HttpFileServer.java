@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.http;
 
-import cn.bossfriday.common.conf.SystemConfigLoader;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

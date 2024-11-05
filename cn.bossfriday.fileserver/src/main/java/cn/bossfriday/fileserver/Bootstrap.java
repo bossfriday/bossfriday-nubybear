@@ -1,10 +1,10 @@
 package cn.bossfriday.fileserver;
 
 import cn.bossfriday.common.bootstrap.ServicePluginBootstrap;
-import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.http.HttpFileServer;
+import cn.bossfriday.im.common.conf.SystemConfigLoader;
 import lombok.extern.slf4j.Slf4j;
 
 /**

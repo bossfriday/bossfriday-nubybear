@@ -1,4 +1,4 @@
-package cn.bossfriday.common.conf;
+package cn.bossfriday.common.common;
 
 import cn.bossfriday.common.router.ClusterNode;
 import cn.bossfriday.common.utils.GsonUtil;

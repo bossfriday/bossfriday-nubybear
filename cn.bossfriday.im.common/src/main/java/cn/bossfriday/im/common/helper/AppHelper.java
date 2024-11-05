@@ -4,7 +4,7 @@ import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.id.SystemIdWorker;
 import cn.bossfriday.common.utils.MurmurHashUtil;
 import cn.bossfriday.im.common.conf.GlobalConfigAllLoader;
-import cn.bossfriday.im.common.conf.entity.AppInfo;
+import cn.bossfriday.im.common.entity.conf.AppInfo;
 import cn.bossfriday.im.common.enums.AppStatus;
 import org.apache.commons.lang3.StringUtils;
 

@@ -1,7 +1,7 @@
 package cn.bossfriday.im.common.conf;
 
-import cn.bossfriday.im.common.conf.entity.AppInfo;
-import cn.bossfriday.im.common.conf.entity.GlobalConfigAll;
+import cn.bossfriday.im.common.entity.conf.AppInfo;
+import cn.bossfriday.im.common.entity.conf.GlobalConfigAll;
 import org.apache.commons.collections4.CollectionUtils;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
