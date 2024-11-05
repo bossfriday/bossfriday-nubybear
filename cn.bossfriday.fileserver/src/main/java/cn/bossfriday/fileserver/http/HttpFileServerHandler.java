@@ -4,9 +4,6 @@ import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.http.RangeParser;
 import cn.bossfriday.common.http.UrlParser;
 import cn.bossfriday.common.http.model.Range;
-import cn.bossfriday.fileserver.actors.model.FileDeleteMsg;
-import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
@@ -14,6 +11,9 @@ import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
 import cn.bossfriday.im.common.enums.file.FileUploadType;
+import cn.bossfriday.im.common.message.file.FileDeleteInput;
+import cn.bossfriday.im.common.message.file.FileDownloadInput;
+import cn.bossfriday.im.common.message.file.WriteTmpFileInput;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -27,8 +27,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;
 import static cn.bossfriday.im.common.constant.FileServerConstant.*;
+import static cn.bossfriday.im.common.message.file.FileDownloadInput.FIRST_CHUNK_INDEX;
 
 /**
  * HttpFileServerHandler
@@ -283,7 +283,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             partialData = new byte[readBytesCount];
             byteBuf.readBytes(partialData);
 
-            WriteTmpFileMsg msg = new WriteTmpFileMsg();
+            WriteTmpFileInput msg = new WriteTmpFileInput();
             msg.setStorageEngineVersion(this.version);
             msg.setFileTransactionId(this.fileTransactionId);
             msg.setStorageNamespace(this.storageNamespace);
@@ -335,7 +335,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             if (httpContent instanceof LastHttpContent) {
                 decodedFullData = Base64.decodeBase64(this.base64AggregatedData);
 
-                WriteTmpFileMsg msg = new WriteTmpFileMsg();
+                WriteTmpFileInput msg = new WriteTmpFileInput();
                 msg.setStorageEngineVersion(this.version);
                 msg.setFileTransactionId(this.fileTransactionId);
                 msg.setStorageNamespace(this.storageNamespace);
@@ -368,12 +368,12 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             try {
                 IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
                 MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
-                FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
+                FileDownloadInput fileDownloadInput = FileDownloadInput.builder()
                         .fileTransactionId(this.fileTransactionId)
                         .metaDataIndex(metaDataIndex)
                         .chunkIndex(FIRST_CHUNK_INDEX)
                         .build();
-                StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadMsg);
+                StorageTracker.getInstance().onDownloadRequestReceived(fileDownloadInput);
             } catch (Exception ex) {
                 log.error("HttpFileServerHandler.fileDownload() error!", ex);
                 throw new ServiceRuntimeException("File download error!");
@@ -391,7 +391,7 @@ public class HttpFileServerHandler extends ChannelInboundHandlerAdapter {
             try {
                 IMetaDataHandler metaDataHandler = StorageHandlerFactory.getMetaDataHandler(this.version);
                 MetaDataIndex metaDataIndex = metaDataHandler.downloadUrlDecode(this.metaDataIndexString);
-                FileDeleteMsg msg = FileDeleteMsg.builder()
+                FileDeleteInput msg = FileDeleteInput.builder()
                         .fileTransactionId(this.fileTransactionId)
                         .metaDataIndex(metaDataIndex)
                         .build();

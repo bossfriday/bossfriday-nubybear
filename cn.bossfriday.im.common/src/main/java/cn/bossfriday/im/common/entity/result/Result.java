@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common.result;
+package cn.bossfriday.im.common.entity.result;
 
 import cn.bossfriday.common.utils.GsonUtil;
 import lombok.Getter;

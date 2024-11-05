@@ -1,7 +1,7 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
+import cn.bossfriday.im.common.message.file.WriteTmpFileInput;
+import cn.bossfriday.im.common.message.file.WriteTmpFileOutput;
 
 /**
  * ITmpFileHandler
@@ -16,7 +16,7 @@ public interface ITmpFileHandler {
      * @param msg
      * @return
      */
-    WriteTmpFileResult write(WriteTmpFileMsg msg);
+    WriteTmpFileOutput write(WriteTmpFileInput msg);
 
     /**
      * rename

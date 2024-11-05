@@ -3,11 +3,11 @@ package cn.bossfriday.fileserver.utils;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.UUIDUtil;
-import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.im.common.enums.file.FileStatus;
+import cn.bossfriday.im.common.message.file.DeleteTmpFileInput;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -252,7 +252,7 @@ public class FileServerUtils {
             return;
         }
 
-        StorageTracker.getInstance().onDeleteTmpFileMsg(DeleteTmpFileMsg.builder()
+        StorageTracker.getInstance().onDeleteTmpFileMsg(DeleteTmpFileInput.builder()
                 .fileTransactionId(fileTransactionId)
                 .storageEngineVersion(version)
                 .build());

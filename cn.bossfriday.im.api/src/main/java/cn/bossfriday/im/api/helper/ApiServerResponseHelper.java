@@ -1,8 +1,8 @@
 package cn.bossfriday.im.api.helper;
 
 import cn.bossfriday.common.utils.GsonUtil;
-import cn.bossfriday.im.common.result.Result;
-import cn.bossfriday.im.common.result.ResultCode;
+import cn.bossfriday.im.common.entity.result.Result;
+import cn.bossfriday.im.common.entity.result.ResultCode;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;

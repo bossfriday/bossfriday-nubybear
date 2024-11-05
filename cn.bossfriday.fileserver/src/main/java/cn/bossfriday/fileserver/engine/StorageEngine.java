@@ -5,7 +5,6 @@ import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
@@ -13,6 +12,7 @@ import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.im.common.entity.file.*;
 import cn.bossfriday.im.common.enums.file.OperationResult;
 import cn.bossfriday.im.common.enums.file.StorageEngineVersion;
+import cn.bossfriday.im.common.message.file.WriteTmpFileOutput;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,7 +113,7 @@ public class StorageEngine extends BaseStorageEngine {
      * @return
      * @throws IOException
      */
-    public synchronized MetaDataIndex upload(WriteTmpFileResult data) throws IOException {
+    public synchronized MetaDataIndex upload(WriteTmpFileOutput data) throws IOException {
         if (data == null) {
             throw new ServiceRuntimeException("WriteTmpFileResult is null!");
         }

@@ -5,14 +5,14 @@ import cn.bossfriday.common.conf.SystemConfigLoader;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LruHashMap;
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import cn.bossfriday.im.common.enums.file.OperationResult;
+import cn.bossfriday.im.common.message.file.WriteTmpFileInput;
+import cn.bossfriday.im.common.message.file.WriteTmpFileOutput;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -41,14 +41,14 @@ public class TmpFileHandler implements ITmpFileHandler {
     }, DEFAULT_LRU_DURATION);
 
     @Override
-    public WriteTmpFileResult write(WriteTmpFileMsg msg) {
+    public WriteTmpFileOutput write(WriteTmpFileInput msg) {
         if (msg == null) {
             throw new ServiceRuntimeException("WriteTmpFileMsg is null!");
         }
 
         String fileTransactionId = msg.getFileTransactionId();
         FileChannel tmpFileChannel = null;
-        WriteTmpFileResult result = null;
+        WriteTmpFileOutput result = null;
         int chunkedDataSize = msg.getData().length;
         if (chunkedDataSize == 0) {
             return null;
@@ -90,7 +90,7 @@ public class TmpFileHandler implements ITmpFileHandler {
                 this.tmpFileChannelMap.remove(fileTransactionId);
             }
 
-            result = new WriteTmpFileResult(fileTransactionId, OperationResult.SYSTEM_ERROR);
+            result = new WriteTmpFileOutput(fileTransactionId, OperationResult.SYSTEM_ERROR);
         }
 
         return result;
@@ -139,7 +139,7 @@ public class TmpFileHandler implements ITmpFileHandler {
      * @throws IOException
      */
     @SuppressWarnings("squid:S2095")
-    private synchronized FileChannel getTmpFileChannel(WriteTmpFileMsg msg) throws IOException {
+    private synchronized FileChannel getTmpFileChannel(WriteTmpFileInput msg) throws IOException {
         String fileTransactionId = msg.getFileTransactionId();
         if (this.tmpFileChannelMap.containsKey(fileTransactionId)) {
             return this.tmpFileChannelMap.get(fileTransactionId);
@@ -175,7 +175,7 @@ public class TmpFileHandler implements ITmpFileHandler {
      * @param msg
      * @param result
      */
-    private static void renameTmpFile(WriteTmpFileMsg msg, WriteTmpFileResult result) {
+    private static void renameTmpFile(WriteTmpFileInput msg, WriteTmpFileOutput result) {
         String fileTransactionId = msg.getFileTransactionId();
         File tmpFile = getTmpFile(fileTransactionId);
         String extName = FileUtil.getFileExt(msg.getFileName()).toLowerCase();
@@ -204,12 +204,12 @@ public class TmpFileHandler implements ITmpFileHandler {
      * @param isFullDone
      * @return
      */
-    private static WriteTmpFileResult getWriteTmpFileResult(WriteTmpFileMsg msg, boolean isFullDone) {
+    private static WriteTmpFileOutput getWriteTmpFileResult(WriteTmpFileInput msg, boolean isFullDone) {
         if (msg == null) {
             throw new ServiceRuntimeException("the input WriteTmpFileMsg is null!");
         }
 
-        WriteTmpFileResult result = new WriteTmpFileResult();
+        WriteTmpFileOutput result = new WriteTmpFileOutput();
         result.setFileTransactionId(msg.getFileTransactionId());
         result.setResult(OperationResult.OK);
         result.setStorageEngineVersion(msg.getStorageEngineVersion());

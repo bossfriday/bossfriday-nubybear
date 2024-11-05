@@ -5,7 +5,6 @@ import cn.bossfriday.common.router.ClusterRouterFactory;
 import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
-import cn.bossfriday.fileserver.actors.model.*;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
@@ -13,6 +12,7 @@ import cn.bossfriday.fileserver.utils.FileServerUtils;
 import cn.bossfriday.im.common.entity.file.MetaData;
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
 import cn.bossfriday.im.common.enums.file.OperationResult;
+import cn.bossfriday.im.common.message.file.*;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelProgressiveFuture;
@@ -70,7 +70,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onPartialUploadDataReceived(WriteTmpFileMsg msg) {
+    public void onPartialUploadDataReceived(WriteTmpFileInput msg) {
         // 按fileTransactionId路由
         RoutableBean<Object> routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_TMP_FILE, msg);
         ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
@@ -81,7 +81,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onWriteTmpFileResultReceived(WriteTmpFileResult msg) {
+    public void onWriteTmpFileResultReceived(WriteTmpFileOutput msg) {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
 
@@ -107,7 +107,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onUploadResultReceived(FileUploadResult msg) throws IOException {
+    public void onUploadResultReceived(FileUploadOutput msg) throws IOException {
         if (msg.getResult().getCode() != OperationResult.OK.getCode()) {
             FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
 
@@ -128,7 +128,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onDownloadRequestReceived(FileDownloadMsg msg) {
+    public void onDownloadRequestReceived(FileDownloadInput msg) {
         String fileTransactionId = "";
         try {
             // 强制路由：优先从主节点下载
@@ -147,7 +147,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onDownloadResult(FileDownloadResult msg) {
+    public void onDownloadResult(FileDownloadOutput msg) {
         String fileTransactionId = "";
         try {
             final String tid = fileTransactionId = msg.getFileTransactionId();
@@ -218,13 +218,13 @@ public class StorageTracker {
 
             if (msg.getChunkIndex() < msg.getChunkCount() - 1) {
                 // 后续分片下载
-                FileDownloadMsg fileDownloadMsg = FileDownloadMsg.builder()
+                FileDownloadInput fileDownloadInput = FileDownloadInput.builder()
                         .fileTransactionId(fileTransactionId)
                         .metaDataIndex(msg.getMetaDataIndex())
                         .metaData(metaData)
                         .chunkIndex(msg.getChunkIndex() + 1)
                         .build();
-                this.onDownloadRequestReceived(fileDownloadMsg);
+                this.onDownloadRequestReceived(fileDownloadInput);
             }
         } catch (Exception ex) {
             FileServerUtils.sendResponse(msg.getFileTransactionId(), HttpResponseStatus.INTERNAL_SERVER_ERROR, msg.getResult().getMsg());
@@ -236,7 +236,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onDeleteTmpFileMsg(DeleteTmpFileMsg msg) {
+    public void onDeleteTmpFileMsg(DeleteTmpFileInput msg) {
         RoutableBean<Object> routableBean = RoutableBeanFactory.buildKeyRouteBean(msg.getFileTransactionId(), ACTOR_FS_DEL_TMP_FILE, msg);
         ClusterRouterFactory.getClusterRouter().routeMessage(routableBean, this.trackerActor);
     }
@@ -246,7 +246,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onFileDeleteMsg(FileDeleteMsg msg) {
+    public void onFileDeleteMsg(FileDeleteInput msg) {
         String fileTransactionId = "";
         try {
             // 强制路由：在主节点上进行删除（如果将来实现了高可用，则通过主从同步机制进行副本文件的删除）
@@ -265,7 +265,7 @@ public class StorageTracker {
      *
      * @param msg
      */
-    public void onFileDeleteResultMsg(FileDeleteResult msg) {
+    public void onFileDeleteResultMsg(FileDeleteOutput msg) {
         FileServerUtils.sendResponse(msg.getFileTransactionId(), msg.getResult().getStatus(), msg.getResult().getMsg());
     }
 }

@@ -1,13 +1,14 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * FileDeleteMsg
+ * FileUploadOutput
  *
  * @author chenx
  */
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileDeleteMsg {
+public class FileUploadOutput {
 
     /**
      * fileTransactionId
@@ -23,7 +24,17 @@ public class FileDeleteMsg {
     private String fileTransactionId;
 
     /**
+     * result
+     */
+    private OperationResult result;
+
+    /**
      * metaDataIndex
      */
     private MetaDataIndex metaDataIndex;
+
+    public FileUploadOutput(String fileTransactionId, OperationResult result) {
+        this.fileTransactionId = fileTransactionId;
+        this.result = result;
+    }
 }

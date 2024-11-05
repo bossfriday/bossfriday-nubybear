@@ -1,5 +1,7 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
+import cn.bossfriday.im.common.entity.file.ChunkedMetaData;
+import cn.bossfriday.im.common.entity.file.MetaData;
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
 import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.AllArgsConstructor;
@@ -8,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * FileUploadResult
+ * FileDownloadOutput
  *
  * @author chenx
  */
@@ -16,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileUploadResult {
+public class FileDownloadOutput {
 
     /**
      * fileTransactionId
@@ -33,7 +35,27 @@ public class FileUploadResult {
      */
     private MetaDataIndex metaDataIndex;
 
-    public FileUploadResult(String fileTransactionId, OperationResult result) {
+    /**
+     * metaData
+     */
+    private MetaData metaData;
+
+    /**
+     * chunkIndex
+     */
+    private long chunkIndex;
+
+    /**
+     * chunkCount
+     */
+    private long chunkCount;
+
+    /**
+     * chunkedMetaData
+     */
+    private ChunkedMetaData chunkedMetaData;
+
+    public FileDownloadOutput(String fileTransactionId, OperationResult result) {
         this.fileTransactionId = fileTransactionId;
         this.result = result;
     }

@@ -4,8 +4,6 @@ import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.register.ActorRoute;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
-import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
-import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
 import cn.bossfriday.im.common.entity.file.ChunkedMetaData;
@@ -13,11 +11,13 @@ import cn.bossfriday.im.common.entity.file.MetaData;
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
 import cn.bossfriday.im.common.enums.file.FileStatus;
 import cn.bossfriday.im.common.enums.file.OperationResult;
+import cn.bossfriday.im.common.message.file.FileDownloadInput;
+import cn.bossfriday.im.common.message.file.FileDownloadOutput;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;
 import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_DOWNLOAD;
 import static cn.bossfriday.im.common.constant.FileServerConstant.DOWNLOAD_CHUNK_SIZE;
+import static cn.bossfriday.im.common.message.file.FileDownloadInput.FIRST_CHUNK_INDEX;
 
 /**
  * FileDownloadActor
@@ -26,12 +26,12 @@ import static cn.bossfriday.im.common.constant.FileServerConstant.DOWNLOAD_CHUNK
  */
 @Slf4j
 @ActorRoute(methods = ACTOR_FS_DOWNLOAD, poolName = ACTOR_FS_DOWNLOAD + "_Pool")
-public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
+public class FileDownloadActor extends BaseTypedActor<FileDownloadInput> {
 
     @Override
-    public void onMessageReceived(FileDownloadMsg msg) {
+    public void onMessageReceived(FileDownloadInput msg) {
         String fileTransactionId = "";
-        FileDownloadResult result = null;
+        FileDownloadOutput result = null;
         try {
             fileTransactionId = msg.getFileTransactionId();
             MetaDataIndex metaDataIndex = msg.getMetaDataIndex();
@@ -39,7 +39,7 @@ public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
 
             // 如果文件被删除返回404
             if (FileServerUtils.isFileStatusTrue(metaData.getFileStatus(), FileStatus.IS_BIT1)) {
-                result = new FileDownloadResult(msg.getFileTransactionId(), OperationResult.NOT_FOUND);
+                result = new FileDownloadOutput(msg.getFileTransactionId(), OperationResult.NOT_FOUND);
                 return;
             }
 
@@ -59,7 +59,7 @@ public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
             }
 
             ChunkedMetaData chunkedMetaData = StorageEngine.getInstance().chunkedDownload(metaDataIndex, metaData, offset, limit);
-            result = FileDownloadResult.builder()
+            result = FileDownloadOutput.builder()
                     .fileTransactionId(fileTransactionId)
                     .result(OperationResult.OK)
                     .metaDataIndex(msg.getMetaDataIndex())
@@ -70,7 +70,7 @@ public class FileDownloadActor extends BaseTypedActor<FileDownloadMsg> {
                     .build();
         } catch (Exception ex) {
             log.error("DownloadActor process error: " + fileTransactionId, ex);
-            result = new FileDownloadResult(msg.getFileTransactionId(), OperationResult.SYSTEM_ERROR);
+            result = new FileDownloadOutput(msg.getFileTransactionId(), OperationResult.SYSTEM_ERROR);
         } finally {
             this.getSender().tell(result, ActorRef.noSender());
         }

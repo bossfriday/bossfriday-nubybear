@@ -1,6 +1,5 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
-import cn.bossfriday.im.common.entity.file.MetaData;
 import cn.bossfriday.im.common.entity.file.MetaDataIndex;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * FileDownloadMsg
+ * FileDeleteInput
  *
  * @author chenx
  */
@@ -16,10 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileDownloadMsg {
-
-
-    public static final long FIRST_CHUNK_INDEX = 0L;
+public class FileDeleteInput {
 
     /**
      * fileTransactionId
@@ -30,14 +26,4 @@ public class FileDownloadMsg {
      * metaDataIndex
      */
     private MetaDataIndex metaDataIndex;
-
-    /**
-     * metaData
-     */
-    private MetaData metaData;
-
-    /**
-     * chunkIndex
-     */
-    private long chunkIndex;
 }

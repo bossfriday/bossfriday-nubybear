@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
 import cn.bossfriday.common.http.model.Range;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * WriteTmpFileMsg
+ * WriteTmpFileInput
  *
  * @author chenx
  */
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WriteTmpFileMsg {
+public class WriteTmpFileInput {
 
     /**
      * storageEngineVersion

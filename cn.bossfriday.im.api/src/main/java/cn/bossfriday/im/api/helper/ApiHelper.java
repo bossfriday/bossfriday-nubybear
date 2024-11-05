@@ -2,8 +2,8 @@ package cn.bossfriday.im.api.helper;
 
 import cn.bossfriday.common.utils.HashUtils;
 import cn.bossfriday.im.common.conf.entity.AppInfo;
+import cn.bossfriday.im.common.entity.result.ResultCode;
 import cn.bossfriday.im.common.helper.AppHelper;
-import cn.bossfriday.im.common.result.ResultCode;
 import io.netty.handler.codec.http.FullHttpRequest;
 
 import java.util.HashMap;

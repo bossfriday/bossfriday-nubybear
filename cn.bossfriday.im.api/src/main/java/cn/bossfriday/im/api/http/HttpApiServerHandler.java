@@ -3,7 +3,7 @@ package cn.bossfriday.im.api.http;
 import cn.bossfriday.im.api.common.enums.ApiRequestType;
 import cn.bossfriday.im.api.helper.ApiHelper;
 import cn.bossfriday.im.api.helper.ApiServerResponseHelper;
-import cn.bossfriday.im.common.result.ResultCode;
+import cn.bossfriday.im.common.entity.result.ResultCode;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;

@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
 import cn.bossfriday.common.http.model.Range;
 import cn.bossfriday.im.common.enums.file.OperationResult;
@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * WriteTmpFileResult
+ * WriteTmpFileOutput
  *
  * @author chenx
  */
@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WriteTmpFileResult {
+public class WriteTmpFileOutput {
 
     /**
      * fileTransactionId
@@ -78,7 +78,7 @@ public class WriteTmpFileResult {
      */
     private Range range;
 
-    public WriteTmpFileResult(String fileTransactionId, OperationResult result) {
+    public WriteTmpFileOutput(String fileTransactionId, OperationResult result) {
         this.fileTransactionId = fileTransactionId;
         this.result = result;
     }

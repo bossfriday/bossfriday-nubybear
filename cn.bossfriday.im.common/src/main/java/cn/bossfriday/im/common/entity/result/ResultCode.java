@@ -1,9 +1,9 @@
-package cn.bossfriday.im.common.result;
+package cn.bossfriday.im.common.entity.result;
 
 import lombok.Getter;
 
-import static cn.bossfriday.im.common.result.Result.OK_CODE;
-import static cn.bossfriday.im.common.result.Result.OK_MSG;
+import static cn.bossfriday.im.common.entity.result.Result.OK_CODE;
+import static cn.bossfriday.im.common.entity.result.Result.OK_MSG;
 
 /**
  * ResultCode

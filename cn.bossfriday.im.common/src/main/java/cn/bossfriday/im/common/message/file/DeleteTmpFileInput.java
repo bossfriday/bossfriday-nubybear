@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DeleteTmpFileMsg
+ * DeleteTmpFileInput
  *
  * @author chenx
  */
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DeleteTmpFileMsg {
+public class DeleteTmpFileInput {
 
     /**
      * storageEngineVersion

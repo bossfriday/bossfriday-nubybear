@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.actors.model;
+package cn.bossfriday.im.common.message.file;
 
 import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * FileDeleteResult
+ * FileDeleteOutput
  *
  * @author chenx
  */
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileDeleteResult {
+public class FileDeleteOutput {
 
     /**
      * fileTransactionId
