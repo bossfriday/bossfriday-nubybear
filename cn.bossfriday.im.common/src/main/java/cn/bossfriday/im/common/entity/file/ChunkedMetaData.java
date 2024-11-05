@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.engine.model;
+package cn.bossfriday.im.common.entity.file;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

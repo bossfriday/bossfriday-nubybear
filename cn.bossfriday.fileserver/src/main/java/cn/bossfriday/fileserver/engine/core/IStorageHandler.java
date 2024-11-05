@@ -1,10 +1,10 @@
 package cn.bossfriday.fileserver.engine.core;
 
-import cn.bossfriday.fileserver.common.enums.OperationResult;
-import cn.bossfriday.fileserver.engine.model.MetaData;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
-import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
-import cn.bossfriday.fileserver.engine.model.StorageIndex;
+import cn.bossfriday.im.common.entity.file.MetaData;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.entity.file.RecoverableTmpFile;
+import cn.bossfriday.im.common.entity.file.StorageIndex;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 
 import java.io.IOException;
 

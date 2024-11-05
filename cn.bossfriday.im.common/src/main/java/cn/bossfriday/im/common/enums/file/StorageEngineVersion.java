@@ -1,6 +1,6 @@
-package cn.bossfriday.fileserver.engine.enums;
+package cn.bossfriday.im.common.enums.file;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
+import static cn.bossfriday.im.common.constant.FileServerConstant.DEFAULT_STORAGE_ENGINE_VERSION;
 
 /**
  * StorageEngineVersion

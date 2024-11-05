@@ -6,18 +6,18 @@ import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.FileDownloadResult;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
-import cn.bossfriday.fileserver.engine.enums.FileStatus;
-import cn.bossfriday.fileserver.engine.model.ChunkedMetaData;
-import cn.bossfriday.fileserver.engine.model.MetaData;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
+import cn.bossfriday.im.common.entity.file.ChunkedMetaData;
+import cn.bossfriday.im.common.entity.file.MetaData;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.enums.file.FileStatus;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.extern.slf4j.Slf4j;
 
 import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DOWNLOAD;
-import static cn.bossfriday.fileserver.common.FileServerConst.DOWNLOAD_CHUNK_SIZE;
+import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_DOWNLOAD;
+import static cn.bossfriday.im.common.constant.FileServerConstant.DOWNLOAD_CHUNK_SIZE;
 
 /**
  * FileDownloadActor

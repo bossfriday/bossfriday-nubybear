@@ -6,13 +6,13 @@ import cn.bossfriday.common.router.RoutableBean;
 import cn.bossfriday.common.router.RoutableBeanFactory;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.fileserver.actors.model.*;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
-import cn.bossfriday.fileserver.engine.model.MetaData;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
+import cn.bossfriday.im.common.entity.file.MetaData;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelProgressiveFuture;
@@ -26,7 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 /**
  * StorageTracker

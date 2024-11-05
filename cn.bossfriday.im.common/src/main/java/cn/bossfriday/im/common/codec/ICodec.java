@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.engine.core;
+package cn.bossfriday.im.common.codec;
 
 import java.io.IOException;
 

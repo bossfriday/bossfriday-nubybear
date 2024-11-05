@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.engine.enums;
+package cn.bossfriday.im.common.enums.file;
 
 import lombok.Getter;
 

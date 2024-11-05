@@ -5,17 +5,17 @@ import cn.bossfriday.common.utils.Base58Util;
 import cn.bossfriday.common.utils.DateUtil;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LruHashMap;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
-import cn.bossfriday.fileserver.engine.enums.FileStatus;
-import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
-import cn.bossfriday.fileserver.engine.model.MetaData;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
-import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
-import cn.bossfriday.fileserver.engine.model.StorageIndex;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
+import cn.bossfriday.im.common.entity.file.MetaData;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.entity.file.RecoverableTmpFile;
+import cn.bossfriday.im.common.entity.file.StorageIndex;
+import cn.bossfriday.im.common.enums.file.FileStatus;
+import cn.bossfriday.im.common.enums.file.OperationResult;
+import cn.bossfriday.im.common.enums.file.StorageEngineVersion;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -28,8 +28,8 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_CHANNEL_LRU_DURATION;
-import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_EXTENSION_NAME;
+import static cn.bossfriday.im.common.constant.FileServerConstant.STORAGE_FILE_CHANNEL_LRU_DURATION;
+import static cn.bossfriday.im.common.constant.FileServerConstant.STORAGE_FILE_EXTENSION_NAME;
 
 /**
  * StorageHandler

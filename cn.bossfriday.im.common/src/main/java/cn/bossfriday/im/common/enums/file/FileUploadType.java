@@ -1,10 +1,10 @@
-package cn.bossfriday.fileserver.common.enums;
+package cn.bossfriday.im.common.enums.file;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 /**
  * FileUploadType

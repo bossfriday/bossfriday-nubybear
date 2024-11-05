@@ -9,7 +9,7 @@ import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TRACKER;
+import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_TRACKER;
 
 /**
  * TrackerActor

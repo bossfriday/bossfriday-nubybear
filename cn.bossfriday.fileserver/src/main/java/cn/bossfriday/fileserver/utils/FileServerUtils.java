@@ -7,7 +7,7 @@ import cn.bossfriday.fileserver.actors.model.DeleteTmpFileMsg;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageTracker;
-import cn.bossfriday.fileserver.engine.enums.FileStatus;
+import cn.bossfriday.im.common.enums.file.FileStatus;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -23,7 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 
 /**

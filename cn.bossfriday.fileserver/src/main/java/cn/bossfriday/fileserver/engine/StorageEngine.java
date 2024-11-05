@@ -6,13 +6,13 @@ import cn.bossfriday.common.conf.fileserver.StorageNamespace;
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.core.BaseStorageEngine;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
 import cn.bossfriday.fileserver.engine.core.IStorageHandler;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
-import cn.bossfriday.fileserver.engine.enums.StorageEngineVersion;
-import cn.bossfriday.fileserver.engine.model.*;
+import cn.bossfriday.im.common.entity.file.*;
+import cn.bossfriday.im.common.enums.file.OperationResult;
+import cn.bossfriday.im.common.enums.file.StorageEngineVersion;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 /**
  * StorageEngine

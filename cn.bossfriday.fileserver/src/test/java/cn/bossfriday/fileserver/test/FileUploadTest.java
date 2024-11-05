@@ -30,8 +30,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TOTAL_SIZE;
-import static cn.bossfriday.fileserver.common.FileServerConst.HEADER_FILE_TRANSACTION_ID;
+import static cn.bossfriday.im.common.constant.FileServerConstant.HEADER_FILE_TOTAL_SIZE;
+import static cn.bossfriday.im.common.constant.FileServerConstant.HEADER_FILE_TRANSACTION_ID;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)

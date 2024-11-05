@@ -1,6 +1,6 @@
-package cn.bossfriday.fileserver.engine.model;
+package cn.bossfriday.im.common.entity.file;
 
-import cn.bossfriday.fileserver.engine.core.ICodec;
+import cn.bossfriday.im.common.codec.ICodec;
 import lombok.*;
 
 import java.io.*;

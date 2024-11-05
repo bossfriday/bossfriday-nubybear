@@ -1,4 +1,4 @@
-package cn.bossfriday.fileserver.common.enums;
+package cn.bossfriday.im.common.enums.file;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 import lombok.Getter;

@@ -18,7 +18,7 @@
     <dependencies>
         <dependency>
             <groupId>cn.bossfriday</groupId>
-            <artifactId>cn.bossfriday.common</artifactId>
+            <artifactId>cn.bossfriday.im.common</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.activation</groupId>

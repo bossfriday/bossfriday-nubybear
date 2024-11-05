@@ -10,7 +10,7 @@ import org.reflections.Reflections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.DEFAULT_STORAGE_ENGINE_VERSION;
+import static cn.bossfriday.im.common.constant.FileServerConstant.DEFAULT_STORAGE_ENGINE_VERSION;
 
 /**
  * StorageHandlerFactory

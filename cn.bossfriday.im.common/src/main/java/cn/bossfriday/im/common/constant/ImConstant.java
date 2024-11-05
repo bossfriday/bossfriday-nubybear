@@ -1,4 +1,4 @@
-package cn.bossfriday.im.common;
+package cn.bossfriday.im.common.constant;
 
 /**
  * ImConstant

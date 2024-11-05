@@ -1,13 +1,13 @@
-package cn.bossfriday.fileserver.common;
+package cn.bossfriday.im.common.constant;
 
 /**
- * FileServerConst
+ * FileServerConstant
  *
  * @author chenx
  */
-public class FileServerConst {
+public class FileServerConstant {
 
-    private FileServerConst() {
+    private FileServerConstant() {
 
     }
 

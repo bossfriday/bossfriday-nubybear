@@ -7,13 +7,13 @@ import cn.bossfriday.common.http.model.Range;
 import cn.bossfriday.fileserver.actors.model.FileDeleteMsg;
 import cn.bossfriday.fileserver.actors.model.FileDownloadMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
-import cn.bossfriday.fileserver.common.enums.FileUploadType;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.StorageTracker;
 import cn.bossfriday.fileserver.engine.core.IMetaDataHandler;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
 import cn.bossfriday.fileserver.utils.FileServerUtils;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.enums.file.FileUploadType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static cn.bossfriday.fileserver.actors.model.FileDownloadMsg.FIRST_CHUNK_INDEX;
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 /**
  * HttpFileServerHandler

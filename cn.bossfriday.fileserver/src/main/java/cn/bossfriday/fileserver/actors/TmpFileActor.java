@@ -5,13 +5,13 @@ import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageDispatcher;
 import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_TMP_FILE;
+import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_TMP_FILE;
 
 /**
  * TmpFileActor

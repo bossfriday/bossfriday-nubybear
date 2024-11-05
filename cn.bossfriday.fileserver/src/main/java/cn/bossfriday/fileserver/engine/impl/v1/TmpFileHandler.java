@@ -7,12 +7,12 @@ import cn.bossfriday.common.utils.FileUtil;
 import cn.bossfriday.common.utils.LruHashMap;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileMsg;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.context.FileTransactionContext;
 import cn.bossfriday.fileserver.context.FileTransactionContextManager;
 import cn.bossfriday.fileserver.engine.StorageEngine;
 import cn.bossfriday.fileserver.engine.core.CurrentStorageEngineVersion;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
@@ -22,7 +22,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.*;
+import static cn.bossfriday.im.common.constant.FileServerConstant.*;
 
 /**
  * TmpFileHandler

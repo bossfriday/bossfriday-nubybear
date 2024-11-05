@@ -2,7 +2,7 @@ package cn.bossfriday.fileserver.engine.core;
 
 import cn.bossfriday.common.exception.ServiceRuntimeException;
 import cn.bossfriday.common.utils.ThreadFactoryBuilder;
-import cn.bossfriday.fileserver.engine.model.RecoverableTmpFile;
+import cn.bossfriday.im.common.entity.file.RecoverableTmpFile;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;

@@ -6,12 +6,12 @@ import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseTypedActor;
 import cn.bossfriday.fileserver.actors.model.FileUploadResult;
 import cn.bossfriday.fileserver.actors.model.WriteTmpFileResult;
-import cn.bossfriday.fileserver.common.enums.OperationResult;
 import cn.bossfriday.fileserver.engine.StorageEngine;
-import cn.bossfriday.fileserver.engine.model.MetaDataIndex;
+import cn.bossfriday.im.common.entity.file.MetaDataIndex;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_UPLOAD;
+import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_UPLOAD;
 
 /**
  * FileUploadActor

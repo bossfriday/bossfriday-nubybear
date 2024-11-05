@@ -6,7 +6,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.STORAGE_FILE_CHANNEL_LRU_DURATION;
+import static cn.bossfriday.im.common.constant.FileServerConstant.STORAGE_FILE_CHANNEL_LRU_DURATION;
 
 /**
  * FileTransactionContextManager

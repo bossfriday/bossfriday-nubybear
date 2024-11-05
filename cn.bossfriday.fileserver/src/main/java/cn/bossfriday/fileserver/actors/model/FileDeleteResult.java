@@ -1,6 +1,6 @@
 package cn.bossfriday.fileserver.actors.model;
 
-import cn.bossfriday.fileserver.common.enums.OperationResult;
+import cn.bossfriday.im.common.enums.file.OperationResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

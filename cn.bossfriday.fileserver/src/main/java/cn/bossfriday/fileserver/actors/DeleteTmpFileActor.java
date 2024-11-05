@@ -7,7 +7,7 @@ import cn.bossfriday.fileserver.engine.StorageHandlerFactory;
 import cn.bossfriday.fileserver.engine.core.ITmpFileHandler;
 import lombok.extern.slf4j.Slf4j;
 
-import static cn.bossfriday.fileserver.common.FileServerConst.ACTOR_FS_DEL_TMP_FILE;
+import static cn.bossfriday.im.common.constant.FileServerConstant.ACTOR_FS_DEL_TMP_FILE;
 
 /**
  * DeleteTmpFileActor
