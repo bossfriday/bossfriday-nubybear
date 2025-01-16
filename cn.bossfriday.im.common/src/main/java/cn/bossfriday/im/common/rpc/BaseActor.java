@@ -7,6 +7,8 @@ import cn.bossfriday.common.rpc.ActorSystem;
 import cn.bossfriday.common.rpc.actor.ActorRef;
 import cn.bossfriday.common.rpc.actor.BaseUntypedActor;
 import cn.bossfriday.im.common.rpc.message.ApiRequest;
+import cn.bossfriday.im.common.rpc.message.CSMessage;
+import cn.bossfriday.im.common.rpc.message.SSMessage;
 import lombok.Getter;
 
 import java.lang.reflect.ParameterizedType;
@@ -50,6 +52,10 @@ public abstract class BaseActor<T> extends BaseUntypedActor {
             request = (T) msg;
         } else if (msg instanceof ApiRequest) {
             this.context = ((ApiRequest) msg).getActorContext();
+        } else if (msg instanceof CSMessage) {
+            // ...
+        } else if (msg instanceof SSMessage) {
+            // ...
         }
 
         this.onMessageReceived(request);

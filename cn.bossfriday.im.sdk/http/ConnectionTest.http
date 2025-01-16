@@ -1,9 +1,9 @@
-### 获取token
+### 获取token（鉴权头使用cn.bossfriday.im.sdk.test.tools.ApiTools生成即可）
 POST localhost:18081/api/v1/user/getToken
-Nonce: 53751.20438417491
-AppKey: 4UKeB5wgkzxzv1K1j
-Signature: 2667a87274882717caac8855e28e52ab778fc59f
-Timestamp: 1730802037
 Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+X-Timestamp: 1730802500
+X-Signature: 2c16a750341affd3e1859a7d568273ac54166a3d
+X-Nonce: 56997.4343442391
+X-AppKey: 4UKeB5wgkzxzv1K1j
 
 userId=123&deviceId=12143324

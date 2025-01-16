@@ -17,10 +17,10 @@ import java.util.Objects;
  */
 public class ApiHelper {
 
-    public static final String HEADER_APP_KEY = "AppKey";
-    public static final String HEADER_NONCE = "Nonce";
-    public static final String HEADER_TIMESTAMP = "Timestamp";
-    public static final String HEADER_SIGNATURE = "Signature";
+    public static final String HEADER_APP_KEY = "X-AppKey";
+    public static final String HEADER_NONCE = "X-Nonce";
+    public static final String HEADER_TIMESTAMP = "X-Timestamp";
+    public static final String HEADER_SIGNATURE = "X-Signature";
 
     private ApiHelper() {
         // do nothing
